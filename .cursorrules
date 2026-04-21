@@ -1,0 +1,66 @@
+# Shopify + Next.js Admin Rules (2026)
+
+## API surface
+- **Storefront API** is the public, customer-facing GraphQL surface
+  (`src/lib/shopify/client.ts` → `shopifyFetch`). Use it for everything
+  under the `(site)` route group, the cart, and the search page.
+- **Admin API** is the private back-office GraphQL surface
+  (`src/lib/shopify-admin.ts` → `shopifyAdminFetch`). Use it ONLY inside
+  the `(admin)` route group, inside `/api` route handlers, or inside
+  server actions invoked by admin pages.
+- Never import `shopify-admin.ts`, `admin-data.ts`, `admin-session.ts`,
+  `admin-queries.ts`, or anything under `src/app/(admin)/` from a Client
+  Component. They carry the `server-only` marker.
+
+## Environment variables
+- `NEXT_PUBLIC_*` is shipped to the browser. NEVER prefix Admin API
+  variables with `NEXT_PUBLIC_` — specifically `SHOPIFY_ADMIN_API_ACCESS_TOKEN`,
+  `SHOPIFY_ADMIN_API_VERSION`, `ADMIN_PANEL_PASSWORD`, `ADMIN_SESSION_SECRET`,
+  and `SHOPIFY_REVALIDATION_SECRET` must stay unprefixed.
+
+## GraphQL
+- Admin API version is pinned to `2026-04` via `SHOPIFY_ADMIN_API_VERSION`.
+  When generating or modifying admin queries, assume that schema.
+- Storefront API version is pinned via `SHOPIFY_STOREFRONT_API_VERSION`.
+  Do not silently bump either version.
+- When proposing new GraphQL, prefer reading the schema via the
+  `@shopify/dev-mcp` MCP server (if configured) over guessing.
+- Fragment names must be unique per document. When composing a query,
+  include each fragment definition exactly once — use the `_BUNDLE`
+  constants in `src/lib/shopify/queries/fragments.ts` for this.
+
+## Mutations
+- All Shopify mutations (product create/update, cart, orders) must run
+  inside a Next.js Server Action or a route handler — never `fetch`'d
+  from the browser.
+- After a mutation, call `updateTag(…)` with every tag whose cache needs
+  to be invalidated. Shared tags live on `TAGS` in
+  `src/lib/shopify/normalizers.ts` and `src/lib/admin-data.ts`.
+- Shopify returns `userErrors` (or `mediaUserErrors`, `orderUserErrors`,
+  etc.) in the mutation payload. Always call `throwIfUserErrors(…)` on
+  the payload before trusting the result.
+
+## Images
+- Product images use `next/image`. Allowed hosts are configured in
+  `next.config.ts` under `images.remotePatterns`; both `cdn.shopify.com`
+  and `{shop}.myshopify.com` are whitelisted.
+- When adding a new external image source, update `remotePatterns`
+  rather than disabling the Image optimizer.
+
+## Routing
+- `src/app/(site)/` holds storefront routes — wrapped by the site
+  Header/Footer/CartDrawer.
+- `src/app/(admin)/` holds admin routes — no site chrome. The
+  `(admin)/admin/(shell)/` sub-group adds the sidebar; `admin/login`
+  lives OUTSIDE that sub-group so the login page stays bare.
+- `/admin/*` is protected by `src/middleware.ts` (JWT session cookie).
+  Any new admin route is automatically protected because the matcher is
+  `/admin/:path*`.
+
+## React
+- Client components must have `"use client"` on line 1.
+- Avoid `useEffect` purely to derive state from props — use the
+  "reset state on prop change" pattern or `useSyncExternalStore`.
+- Never call impure functions (`Date.now()`, `Math.random()`) directly
+  inside `useMemo`/render — snapshot them once in a `useState`
+  initializer.

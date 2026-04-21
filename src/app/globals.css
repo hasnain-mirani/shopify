@@ -1,0 +1,298 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+ * Photovoltaic Goldstein theme.
+ *
+ * Palette & typography follow the spec in the design reference
+ * (deep forest green + sunlit yellow, DM Serif Display for headings,
+ * DM Sans for body, Outfit for UI/numbers). The `brand-*` ramp is
+ * intentionally aligned so every existing `bg-brand-*` / `text-brand-*`
+ * utility inherits the new colors without any JSX changes.
+ *
+ * Tailwind v4 @theme values become utilities automatically:
+ *   --color-brand-900   → bg-brand-900 / text-brand-900
+ *   --color-accent      → bg-accent
+ *   --font-display      → font-display
+ *   --animate-fade-up   → animate-fade-up
+ * ------------------------------------------------------------------ */
+@theme {
+  /* ── Brand ramp: sunlit off-white → deep forest green ─────────────── */
+  --color-brand-50: #f7f8f4; /* page background */
+  --color-brand-100: #edeee9; /* section alt */
+  --color-brand-200: #e2e3de;
+  --color-brand-300: #c9cbc4;
+  --color-brand-400: #9fa399;
+  --color-brand-500: #5c6b5e; /* text-muted */
+  --color-brand-600: #3f5243;
+  --color-brand-700: #243b27; /* primary-green tint */
+  --color-brand-800: #13361f; /* primary-green */
+  --color-brand-900: #0d2b14; /* primary-dark */
+  --color-brand-950: #071a0c;
+
+  /* ── Accents: solar yellow + late-afternoon orange ──────────────── */
+  --color-accent: #f5e04a;
+  --color-accent-light: #fbf0a8;
+  --color-accent-dark: #c9b427;
+  --color-accent-orange: #f2a65a;
+
+  /* ── Surfaces ──────────────────────────────────────────────────── */
+  --color-surface: #f7f8f4;
+  --color-surface-raised: #ffffff;
+  --color-surface-alt: #edeee9;
+
+  /* ── Fonts: swapped from Fraunces/Geist to DM Serif Display /
+       DM Sans / Outfit per the reference ──────────────────────────── */
+  --font-display: var(--font-dm-serif), "DM Serif Display", Georgia, serif;
+  --font-sans: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+  --font-ui: var(--font-outfit), "Outfit", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* ── Geometry ──────────────────────────────────────────────────── */
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-pill: 100px;
+
+  --animate-fade-up: fadeUp 0.5s ease forwards;
+  --animate-fade-in: fadeIn 0.4s ease forwards;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-slide-in-right: slideInRight 0.35s ease forwards;
+  --animate-float-down: floatDown 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Keyframes must live outside @theme in Tailwind v4. */
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes floatDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+:root {
+  --accent: #f5e04a;
+  --accent-orange: #f2a65a;
+  --radius: 0.75rem;
+
+  /* Liquid-glass tokens (light mode) */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(13, 43, 20, 0.08);
+  --glass-shadow: 0 16px 40px rgba(13, 43, 20, 0.08);
+}
+
+/* Dark mode overrides — for when next-themes sets `.dark` on <html>. */
+.dark {
+  --glass-bg: rgba(7, 26, 12, 0.55);
+  --glass-bg-strong: rgba(7, 26, 12, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+html[data-scroll-behavior="smooth"] {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: #f5e04a;
+  color: #0d2b14;
+}
+
+body {
+  @apply bg-surface text-brand-900 antialiased;
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .container-shop {
+    @apply max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10;
+  }
+
+  .heading-display {
+    @apply font-display tracking-tight;
+    font-weight: 400;
+    line-height: 0.95;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────────────── */
+
+  /* Primary CTA — solar yellow on dark, lifts on hover with glowing
+     yellow shadow. Matches the reference's `.btn-primary`. */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: #0d2b14;
+    border: 1px solid rgba(245, 224, 74, 0.5);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    box-shadow: 0 4px 10px rgba(13, 43, 20, 0.06);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(245, 224, 74, 0.4);
+  }
+  .btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Outline / frosted ghost — readable on any background, slightly
+     translucent with blur. Matches the reference's `.btn-ghost`. */
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: var(--radius-pill);
+    background: var(--glass-bg);
+    color: var(--color-brand-900);
+    border: 1px solid var(--glass-border);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.95rem;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn-outline:hover {
+    background: var(--glass-bg-strong);
+    transform: translateY(-1px);
+  }
+
+  /* Text-only ghost — for subdued actions inside cards. */
+  .btn-ghost {
+    @apply text-brand-600 hover:text-brand-900 transition-colors duration-150 text-sm;
+    font-family: var(--font-ui);
+    font-weight: 500;
+  }
+
+  /* ── Liquid-glass surfaces ─────────────────────────────────────── */
+
+  /* Frosted pill container — used by the floating navbar and
+     hero info widgets. */
+  .glass-pill {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /**
+   * Navbar-only glass: avoids the harsh 1px “outline” ring that reads
+   * cheap when `backdrop-filter` kicks in on scroll. Edge is defined by
+   * soft outer shadow + subtle inner highlight instead of a solid border.
+   */
+  .nav-glass-pill {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(118%);
+    -webkit-backdrop-filter: blur(20px) saturate(118%);
+    border: none;
+    outline: none;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.65) inset,
+      0 1px 0 rgba(255, 255, 255, 0.4) inset,
+      0 12px 36px -8px rgba(13, 43, 20, 0.1),
+      0 2px 6px rgba(13, 43, 20, 0.04);
+  }
+
+  .dark .nav-glass-pill {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.07) inset,
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 12px 40px -8px rgba(0, 0, 0, 0.5),
+      0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Subtle raised card used for product tiles, KPI cards, etc. */
+  .surface-card {
+    background: var(--color-surface-raised);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 20px rgba(13, 43, 20, 0.03);
+    border: 1px solid var(--color-brand-100);
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  /* Hide scrollbars without losing scrollability — used by the
+     horizontally-scrolling tag chip rail on the shop page. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Scrollbar: thin, green-tinted */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c9cbc4 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #c9cbc4;
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #9fa399;
+}
