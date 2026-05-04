@@ -21,8 +21,8 @@ export function ShopEmpty({ tag }: ShopEmptyProps) {
           className="absolute inset-0 -z-10"
           style={{
             background:
-              "radial-gradient(500px 300px at 85% 20%, rgba(245,224,74,0.2), transparent 60%), " +
-              "radial-gradient(400px 260px at 10% 90%, rgba(242,166,90,0.18), transparent 60%)",
+              "radial-gradient(500px 300px at 85% 20%, rgba(245,164,124,0.22), transparent 60%), " +
+              "radial-gradient(400px 260px at 10% 90%, rgba(242,138,173,0.2), transparent 60%)",
           }}
         />
         <div
@@ -60,7 +60,7 @@ export function ShopEmpty({ tag }: ShopEmptyProps) {
             {tag && (
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-2 rounded-full bg-accent text-brand-900 pl-4 pr-3 py-2.5 font-ui text-[12px] font-semibold uppercase tracking-[0.18em] hover:-translate-y-0.5 transition-transform shadow-[0_8px_20px_rgba(245,224,74,0.35)]"
+                className="inline-flex items-center gap-2 rounded-full bg-accent text-brand-900 pl-4 pr-3 py-2.5 font-ui text-[12px] font-semibold uppercase tracking-[0.18em] hover:-translate-y-0.5 transition-transform shadow-[0_8px_20px_rgba(245,164,124,0.4)]"
               >
                 Clear filter
                 <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-900 text-accent text-[10px]">

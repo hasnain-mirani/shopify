@@ -9,7 +9,7 @@ export default function SiteLayout({
   return (
     <>
       <Header />
-      <main className="flex-1 flex flex-col">{children}</main>
+      <main className="flex-1 flex flex-col" style={{ background: "#1A0D00" }}>{children}</main>
       <Footer />
       <CartDrawer />
     </>

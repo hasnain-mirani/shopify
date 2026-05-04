@@ -26,7 +26,7 @@ interface PageProps {
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(
     "Shop all",
-    "Browse the full collection. Considered goods in honest materials.",
+    "Browse every piece in the Glow Store PK catalog — phone accessories, home decor, and bundle deals.",
     "/shop",
   );
 }

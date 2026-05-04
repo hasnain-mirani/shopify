@@ -103,7 +103,7 @@ function Chip({
         "transition-all duration-200 outline-none",
         "focus-visible:ring-2 focus-visible:ring-brand-900",
         active
-          ? "bg-accent text-brand-900 shadow-[0_4px_14px_rgba(245,224,74,0.45)] border border-[color-mix(in_oklab,var(--accent)_40%,black)]/10"
+          ? "bg-accent text-brand-900 shadow-[0_4px_14px_rgba(245,164,124,0.5)] border border-[color-mix(in_oklab,var(--accent)_40%,black)]/10"
           : "bg-white/70 text-brand-700 border border-brand-200/70 hover:text-brand-900 hover:border-brand-900/40 hover:-translate-y-0.5",
       )}
     >

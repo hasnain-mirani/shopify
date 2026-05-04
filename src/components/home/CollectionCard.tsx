@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
@@ -19,6 +21,8 @@ export interface CollectionCardProps {
   aspect?: "4/5" | "3/4" | "1/1" | "16/9";
   /** Accent fallback when the collection has no image. */
   tone?: "green" | "yellow" | "orange";
+  /** Stagger delay for entrance animation */
+  delay?: number;
 }
 
 const ASPECT_CLASS: Record<NonNullable<CollectionCardProps["aspect"]>, string> = {
@@ -42,6 +46,7 @@ export function CollectionCard({
   index,
   aspect = "4/5",
   tone = "green",
+  delay = 0,
 }: CollectionCardProps) {
   return (
     <Link
@@ -51,6 +56,9 @@ export function CollectionCard({
         ASPECT_CLASS[aspect],
         className,
       )}
+      style={{
+        animation: `fadeSlideUp 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
+      }}
     >
       {collection.image ? (
         <Image
@@ -59,7 +67,7 @@ export function CollectionCard({
           fill
           priority={priority}
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-          className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+          className="object-cover transition-all duration-[900ms] ease-out group-hover:scale-[1.08] group-hover:brightness-110"
         />
       ) : (
         // No image? Fall back to a bold gradient slab so it still looks intentional.
@@ -83,7 +91,9 @@ export function CollectionCard({
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         style={{
           background:
-            "linear-gradient(120deg, transparent 40%, rgba(245,224,74,0.15) 50%, transparent 60%)",
+            "linear-gradient(120deg, transparent 30%, rgba(245,166,35,0.25) 50%, transparent 70%)",
+          backgroundSize: "200% 100%",
+          animation: "card-shimmer 1.5s ease-in-out infinite",
         }}
       />
 
@@ -97,9 +107,9 @@ export function CollectionCard({
       {/* Top-right arrow badge */}
       <span
         aria-hidden="true"
-        className="absolute top-4 right-4 h-9 w-9 rounded-full glass-pill flex items-center justify-center text-white transition-transform duration-500 ease-out group-hover:-translate-y-1 group-hover:translate-x-1"
+        className="absolute top-4 right-4 h-9 w-9 rounded-full glass-pill flex items-center justify-center text-white transition-all duration-500 ease-out group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:scale-110 group-hover:bg-white/20"
       >
-        <ArrowUpRight className="h-4 w-4" />
+        <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:rotate-45" />
       </span>
 
       {/* Bottom copy */}

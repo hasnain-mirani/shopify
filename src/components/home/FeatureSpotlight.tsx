@@ -55,25 +55,27 @@ export function FeatureSpotlight({
     .join(". ")
     .trim();
   const body =
-    blurb ?? (firstSentences || "A piece we return to, season after season.");
+    blurb ??
+    (firstSentences ||
+      "An aesthetic staple we keep coming back to — equal parts function and glow.");
 
   const pullQuote =
     quote ??
-    "The fit softens with wear — a piece that quietly becomes yours.";
+    "A quiet piece that adds a glow to any corner it lands in.";
 
   const watermark = String(watermarkIndex + 1).padStart(2, "0");
 
   return (
     <section className="relative overflow-hidden isolate">
-      {/* Soft diagonal wash behind the whole block */}
+      {/* Dark amber wash behind the whole block */}
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(800px 500px at 15% 20%, rgba(245,224,74,0.2), transparent 60%), " +
-            "radial-gradient(900px 600px at 90% 85%, rgba(242,166,90,0.14), transparent 60%), " +
-            "linear-gradient(180deg, #f7f8f4, #edeee9)",
+            "radial-gradient(800px 500px at 15% 20%, rgba(245,166,35,0.08), transparent 60%), " +
+            "radial-gradient(900px 600px at 90% 85%, rgba(232,133,10,0.06), transparent 60%), " +
+            "#1a0d00",
         }}
       />
 
@@ -81,16 +83,16 @@ export function FeatureSpotlight({
         {/* ─── Section eyebrow rail (top) ─────────────────────────────── */}
         <div className="flex items-center justify-between mb-12 md:mb-16">
           <div className="flex items-center gap-3">
-            <span className="h-[1px] w-10 bg-brand-700" />
-            <span className="font-ui text-[11px] uppercase tracking-[0.3em] text-brand-700">
+            <span className="h-[1px] w-10" style={{ background: "rgba(245,166,35,0.5)" }} />
+            <span className="font-ui text-[11px] uppercase tracking-[0.3em]" style={{ color: "rgba(245,166,35,0.7)" }}>
               {eyebrow}
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-2 font-ui text-[11px] uppercase tracking-[0.22em] text-brand-500">
-            <span className="font-display text-brand-900 text-lg leading-none">
+          <div className="hidden md:flex items-center gap-2 font-ui text-[11px] uppercase tracking-[0.22em]" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <span className="font-display text-lg leading-none" style={{ color: "#F5A623" }}>
               {watermark}
             </span>
-            <span className="h-[1px] w-6 bg-brand-300" />
+            <span className="h-[1px] w-6" style={{ background: "rgba(245,166,35,0.3)" }} />
             <span>Featured</span>
           </div>
         </div>
@@ -108,16 +110,16 @@ export function FeatureSpotlight({
 
             <div className="relative z-10">
               {/* Main product frame */}
-              <div className="relative aspect-[4/5] md:aspect-[5/5] rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(13,43,20,0.35)]">
-                {/* Sun-washed canvas behind the product */}
+              <div className="relative aspect-[4/5] md:aspect-[5/5] rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(26,14,46,0.4)]">
+                {/* Glow-washed canvas behind the product */}
                 <div
                   aria-hidden="true"
                   className="absolute inset-0"
                   style={{
                     background:
-                      "radial-gradient(circle at 30% 25%, rgba(245,224,74,0.35), transparent 55%), " +
-                      "radial-gradient(circle at 80% 85%, rgba(19,54,31,0.12), transparent 60%), " +
-                      "linear-gradient(180deg, #fafbf6 0%, #e6e8df 100%)",
+                      "radial-gradient(circle at 30% 25%, rgba(245,164,124,0.38), transparent 55%), " +
+                      "radial-gradient(circle at 80% 85%, rgba(242,138,173,0.22), transparent 60%), " +
+                      "linear-gradient(180deg, #fbf7f9 0%, #e8dce9 100%)",
                   }}
                 />
                 {/* subtle grid pattern */}
@@ -126,7 +128,7 @@ export function FeatureSpotlight({
                   className="absolute inset-0 opacity-[0.25]"
                   style={{
                     backgroundImage:
-                      "radial-gradient(circle, rgba(13,43,20,0.18) 1px, transparent 1px)",
+                      "radial-gradient(circle, rgba(26,14,46,0.18) 1px, transparent 1px)",
                     backgroundSize: "22px 22px",
                     maskImage:
                       "radial-gradient(ellipse at center, black 55%, transparent 95%)",
@@ -214,7 +216,8 @@ export function FeatureSpotlight({
           {/* ─── Copy column ──────────────────────────────────────────── */}
           <div className="lg:col-span-5 order-1 lg:order-2 flex flex-col gap-6">
             <h2
-              className="heading-display text-[clamp(2rem,4.4vw,3.75rem)] text-brand-900 text-balance line-clamp-3"
+              className="heading-display text-[clamp(2rem,4.4vw,3.75rem)] text-balance line-clamp-3"
+              style={{ color: "white" }}
               title={product.title}
             >
               {headline ?? (
@@ -228,7 +231,7 @@ export function FeatureSpotlight({
               )}
             </h2>
 
-            <p className="font-sans text-brand-600 text-base md:text-lg leading-relaxed max-w-md line-clamp-4">
+            <p className="font-sans text-base md:text-lg leading-relaxed max-w-md line-clamp-4" style={{ color: "rgba(255,255,255,0.6)" }}>
               {body}
             </p>
 
@@ -245,8 +248,8 @@ export function FeatureSpotlight({
 
             {/* spec rail */}
             <dl className="grid grid-cols-3 gap-5 mt-2 max-w-md">
-              <SpecItem label="Material" value="Honest fibres" />
-              <SpecItem label="Made in" value={product.vendor ?? "Small batch"} />
+              <SpecItem label="Style" value="Aesthetic edit" />
+              <SpecItem label="Vendor" value={product.vendor ?? "Glow Studio"} />
               <SpecItem label="Returns" value="30 days free" />
             </dl>
 

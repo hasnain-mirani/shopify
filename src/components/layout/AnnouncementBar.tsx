@@ -21,15 +21,11 @@ export interface AnnouncementBarProps {
  * nothing. The dismissed flag is read lazily once mounted.
  */
 export function AnnouncementBar({
-  message = "Free shipping on orders over $100 — enjoy complimentary returns within 30 days.",
+  message = "⚡ Weekend Sale — Up to 50% off Smartwatches & Power Banks. Free Shipping on orders over $50.",
   className,
 }: AnnouncementBarProps) {
   const mounted = useIsMounted();
 
-  // We initialize eagerly on the client — safe because we only render
-  // after `mounted === true`. On the server this function isn't called
-  // (useState initializers run on the client for a client component only
-  // when it actually renders; still, `mounted === false` guards it).
   const [dismissed, setDismissed] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     try {
@@ -43,9 +39,7 @@ export function AnnouncementBar({
     setDismissed(true);
     try {
       window.sessionStorage.setItem(STORAGE_KEY, "1");
-    } catch {
-      /* sessionStorage unavailable (private mode) — soft fail */
-    }
+    } catch {}
   };
 
   if (!mounted || dismissed) return null;
@@ -55,19 +49,22 @@ export function AnnouncementBar({
       role="region"
       aria-label="Site announcement"
       className={cn(
-        "relative w-full bg-brand-900 text-white",
-        "flex items-center justify-center",
-        "px-10 py-1.5 min-h-8",
-        "font-ui text-[11px] font-medium uppercase tracking-[0.2em]",
+        "relative w-full flex items-center justify-center px-10 py-2 min-h-8",
+        "font-ui text-[11px] font-bold uppercase tracking-[0.18em]",
         className,
       )}
+      style={{
+        background: "linear-gradient(90deg, #E8850A 0%, #F5A623 40%, #FFD580 60%, #F5A623 80%, #E8850A 100%)",
+        color: "#1a0d00",
+      }}
     >
       <p className="text-center leading-none">{message}</p>
       <button
         type="button"
         onClick={dismiss}
         aria-label="Dismiss announcement"
-        className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-6 w-6 items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+        className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-6 w-6 items-center justify-center rounded-full transition-colors"
+        style={{ color: "rgba(26,13,0,0.6)" }}
       >
         <X className="h-3.5 w-3.5" aria-hidden="true" />
       </button>

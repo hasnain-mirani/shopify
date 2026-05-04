@@ -1,89 +1,95 @@
 /**
- * Infinite-scrolling keyword strip. Pure CSS — no JS, no framer-motion —
- * so it's cheap to hydrate and renders from the server. The track holds
- * the list twice back-to-back and animates `translateX(-50%)` which
- * makes the loop seamless.
+ * MarqueeBand — infinite scrolling gold/amber ticker.
  *
- * Inspired by the Photovoltaic Goldstein reference's "band of values"
- * that sits between the hero and the product sections.
+ * Full-width gold gradient background with dark text.
+ * Diamond ◆ separators between items.
+ * Pure CSS animation — no JS, fully SSR-safe.
  */
 
 const DEFAULT_ITEMS = [
-  "Considered goods",
-  "Made to last",
-  "Small-batch",
-  "Honest materials",
-  "Ships worldwide",
-  "Wear-in guarantee",
-  "Crafted slowly",
+  "Free Shipping Over $50",
+  "Up to 50% Off",
+  "This Weekend Only",
+  "Authentic Products",
+  "Loyalty Rewards",
+  "Smartwatches & Power Banks",
+  "Fast 2–4 Day Delivery",
 ];
 
 export interface MarqueeBandProps {
   items?: string[];
-  /** "dark" puts the band on deep forest green with yellow dots (default).
-   *  "light" flips to off-white with green text. */
-  tone?: "dark" | "light";
+  /** "gold" (default) = gold gradient bg. "dark" / "light" = dark amber bg. */
+  tone?: "gold" | "dark" | "light";
 }
 
-export function MarqueeBand({ items = DEFAULT_ITEMS, tone = "dark" }: MarqueeBandProps) {
-  const isDark = tone === "dark";
+export function MarqueeBand({ items = DEFAULT_ITEMS, tone = "gold" }: MarqueeBandProps) {
+  const isGold = tone === "gold"; // dark and light both render as dark amber
+  const track = [...items, ...items]; // duplicate for seamless loop
 
-  // Duplicate the list once so the translateX(-50%) loop is continuous.
-  const track = [...items, ...items];
+  // Both tones now use vibrant gold/amber gradient — top marquee scrolls right, bottom scrolls left
+  const bgStyle = {
+    background: isGold
+      ? "linear-gradient(90deg, #F5A623 0%, #E8850A 30%, #FFD580 60%, #E8850A 80%, #F5A623 100%)"
+      : "linear-gradient(90deg, #E8850A 0%, #F5A623 35%, #FFD580 55%, #F5A623 75%, #E8850A 100%)",
+  };
+
+  const textColor = "#1a0d00";
+  const dotColor  = "rgba(26,13,0,0.35)";
 
   return (
     <section
-      aria-label="Brand values"
-      className={
-        isDark
-          ? "relative w-full overflow-hidden bg-brand-900 text-white py-5 md:py-6"
-          : "relative w-full overflow-hidden bg-surface-alt text-brand-900 py-5 md:py-6 border-y border-brand-200"
-      }
+      aria-label="Sale announcements"
+      className="relative w-full overflow-hidden py-3.5 md:py-4"
+      style={bgStyle}
     >
-      {/* edge fades */}
+      {/* Left edge fade */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-32 z-10"
+        className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-24 z-10"
         style={{
-          background: isDark
-            ? "linear-gradient(to right, #0d2b14, transparent)"
-            : "linear-gradient(to right, #edeee9, transparent)",
+          background: isGold
+            ? "linear-gradient(to right, #F5A623, transparent)"
+            : "linear-gradient(to right, #E8850A, transparent)",
         }}
       />
+      {/* Right edge fade */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 w-16 md:w-32 z-10"
+        className="pointer-events-none absolute inset-y-0 right-0 w-16 md:w-24 z-10"
         style={{
-          background: isDark
-            ? "linear-gradient(to left, #0d2b14, transparent)"
-            : "linear-gradient(to left, #edeee9, transparent)",
+          background: isGold
+            ? "linear-gradient(to left, #E8850A, transparent)"
+            : "linear-gradient(to left, #F5A623, transparent)",
         }}
       />
 
+      {/* Scrolling track — bottom marquee scrolls in reverse direction */}
       <div
-        className="flex w-max items-center gap-10 md:gap-16 marquee-track"
-        style={{
-          animation: "marqueeX 28s linear infinite",
-        }}
+        className="flex w-max items-center gap-8 md:gap-12 marquee-track"
+        style={{ animation: `marqueeX ${isGold ? "30s" : "25s"} linear ${isGold ? "normal" : "reverse"} infinite` }}
       >
         {track.map((item, i) => (
           <div
             key={`${item}-${i}`}
-            className="flex items-center gap-10 md:gap-16 shrink-0"
+            className="flex items-center gap-8 md:gap-12 shrink-0"
           >
-            <span className="font-display text-2xl md:text-4xl tracking-tight whitespace-nowrap">
+            <span
+              className="font-ui font-bold whitespace-nowrap uppercase tracking-[0.1em]"
+              style={{ color: textColor, fontSize: "clamp(0.75rem, 1.5vw, 0.9rem)" }}
+            >
               {item}
             </span>
             <span
               aria-hidden="true"
-              className="h-2 w-2 md:h-2.5 md:w-2.5 rounded-full bg-accent shrink-0"
-            />
+              className="font-bold text-xs"
+              style={{ color: dotColor }}
+            >
+              ◆
+            </span>
           </div>
         ))}
       </div>
 
-      {/* Local keyframes — scoped via a <style> tag so the component
-          is self-contained without touching globals.css further. */}
       <style>{`
         @keyframes marqueeX {
           from { transform: translateX(0); }

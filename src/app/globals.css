@@ -1,128 +1,204 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------
- * Photovoltaic Goldstein theme.
+ * Glow Store PK — "dark amber gold" theme.
  *
- * Palette & typography follow the spec in the design reference
- * (deep forest green + sunlit yellow, DM Serif Display for headings,
- * DM Sans for body, Outfit for UI/numbers). The `brand-*` ramp is
- * intentionally aligned so every existing `bg-brand-*` / `text-brand-*`
- * utility inherits the new colors without any JSX changes.
+ * Palette: deep dark brown-black base (#1A0D00) + warm amber/gold
+ * accent system. Every `bg-brand-*` / `text-brand-*` utility inherits
+ * the new colors without any JSX changes.
  *
  * Tailwind v4 @theme values become utilities automatically:
  *   --color-brand-900   → bg-brand-900 / text-brand-900
  *   --color-accent      → bg-accent
  *   --font-display      → font-display
- *   --animate-fade-up   → animate-fade-up
  * ------------------------------------------------------------------ */
 @theme {
-  /* ── Brand ramp: sunlit off-white → deep forest green ─────────────── */
-  --color-brand-50: #f7f8f4; /* page background */
-  --color-brand-100: #edeee9; /* section alt */
-  --color-brand-200: #e2e3de;
-  --color-brand-300: #c9cbc4;
-  --color-brand-400: #9fa399;
-  --color-brand-500: #5c6b5e; /* text-muted */
-  --color-brand-600: #3f5243;
-  --color-brand-700: #243b27; /* primary-green tint */
-  --color-brand-800: #13361f; /* primary-green */
-  --color-brand-900: #0d2b14; /* primary-dark */
-  --color-brand-950: #071a0c;
+  /* ── Brand ramp: warm amber-gold → deep dark brown ──────────────── */
+  --color-brand-50:  #fff8ee;
+  --color-brand-100: #ffefc8;
+  --color-brand-200: #ffd580;  /* light gold */
+  --color-brand-300: #f5a623;  /* primary gold */
+  --color-brand-400: #e8850a;  /* amber */
+  --color-brand-500: #c46a00;  /* muted amber */
+  --color-brand-600: #7a3f00;  /* dark amber */
+  --color-brand-700: #3d1f00;  /* very dark */
+  --color-brand-800: #200f00;
+  --color-brand-900: #1a0d00;  /* primary bg */
+  --color-brand-950: #0d0600;
 
-  /* ── Accents: solar yellow + late-afternoon orange ──────────────── */
-  --color-accent: #f5e04a;
-  --color-accent-light: #fbf0a8;
-  --color-accent-dark: #c9b427;
-  --color-accent-orange: #f2a65a;
+  /* ── Accents: gold + amber ──────────────────────────────────────── */
+  --color-accent:        #F5A623;   /* primary gold */
+  --color-accent-light:  #FFD580;   /* light gold */
+  --color-accent-dark:   #E8850A;   /* amber */
+  --color-accent-orange: #c46a00;   /* warm muted */
 
   /* ── Surfaces ──────────────────────────────────────────────────── */
-  --color-surface: #f7f8f4;
-  --color-surface-raised: #ffffff;
-  --color-surface-alt: #edeee9;
+  --color-surface:        #1a0d00;
+  --color-surface-raised: #200f00;
+  --color-surface-alt:    #2a1500;
 
-  /* ── Fonts: swapped from Fraunces/Geist to DM Serif Display /
-       DM Sans / Outfit per the reference ──────────────────────────── */
-  --font-display: var(--font-dm-serif), "DM Serif Display", Georgia, serif;
-  --font-sans: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
-  --font-ui: var(--font-outfit), "Outfit", system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  /* ── Fonts ──────────────────────────────────────────────────────── */
+  --font-display: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-sans:    var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+  --font-ui:      var(--font-outfit), "Outfit", system-ui, sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, monospace;
 
   /* ── Geometry ──────────────────────────────────────────────────── */
-  --radius-lg: 24px;
-  --radius-md: 16px;
+  --radius-lg:   24px;
+  --radius-md:   16px;
   --radius-pill: 100px;
 
-  --animate-fade-up: fadeUp 0.5s ease forwards;
-  --animate-fade-in: fadeIn 0.4s ease forwards;
-  --animate-shimmer: shimmer 2s linear infinite;
+  /* ── Animation tokens ───────────────────────────────────────────── */
+  --animate-fade-up:        fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+  --animate-fade-in:        fadeIn 0.5s ease forwards;
+  --animate-shimmer:        shine 3s linear infinite;
   --animate-slide-in-right: slideInRight 0.35s ease forwards;
-  --animate-float-down: floatDown 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-float-down:     floatDown 0.45s cubic-bezier(0.16,1,0.3,1) forwards;
+  --animate-fade-slide-up:  fadeSlideUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+  --animate-fade-slide-left:fadeSlideLeft 0.7s cubic-bezier(0.16,1,0.3,1) both;
+  --animate-spin-slow:      spin-slow 8s linear infinite;
+  --animate-float-gentle:   float-gentle 3s ease-in-out infinite;
+  --animate-pulse-glow:     pulse-glow 2s ease-in-out infinite;
 }
 
-/* Keyframes must live outside @theme in Tailwind v4. */
+/* ================================================================== */
+/*  KEYFRAMES                                                           */
+/* ================================================================== */
+
 @keyframes fadeUp {
-  0% {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
 }
 @keyframes slideInRight {
-  0% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(0);
-  }
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(0); }
 }
 @keyframes floatDown {
-  0% {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0%   { opacity: 0; transform: translateY(-12px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
+
+/* Entrance animations */
+@keyframes fadeSlideUp {
+  0%   { opacity: 0; transform: translateY(32px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideDown {
+  0%   { opacity: 0; transform: translateY(-32px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideLeft {
+  0%   { opacity: 0; transform: translateX(40px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Gold shimmer on gradient text */
+@keyframes shine {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Particle float-up */
+@keyframes float-up {
+  0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-20px) scale(1); opacity: 0; }
+}
+
+/* Bottle gentle bob */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+/* Smoke ring expand */
+@keyframes expand-ring {
+  0%   { transform: scale(0.3); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Badge spin */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Live indicator pulse */
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.4); opacity: 0.6; }
+}
+
+/* Product card glow pulse */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(245,166,35,0.1); }
+  50%       { box-shadow: 0 0 40px rgba(245,166,35,0.3); }
+}
+
+/* Enhanced scale and glow on hover */
+@keyframes scale-glow {
+  0%   { transform: scale(1); box-shadow: 0 0 0 rgba(245,166,35,0); }
+  100% { transform: scale(1.05); box-shadow: 0 0 30px rgba(245,166,35,0.3); }
+}
+
+/* Smooth rotate for decorative elements */
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Bounce for attention-grabbing elements */
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* Shimmer effect on cards */
+@keyframes card-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Marquee scroll */
+@keyframes marqueeX {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Scroll progress */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ================================================================== */
+/*  ROOT VARIABLES                                                      */
+/* ================================================================== */
 
 :root {
-  --accent: #f5e04a;
-  --accent-orange: #f2a65a;
-  --radius: 0.75rem;
+  --accent:        #F5A623;
+  --accent-light:  #FFD580;
+  --accent-amber:  #E8850A;
+  --radius:        0.75rem;
 
-  /* Liquid-glass tokens (light mode) */
-  --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-bg-strong: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(13, 43, 20, 0.08);
-  --glass-shadow: 0 16px 40px rgba(13, 43, 20, 0.08);
+  /* Dark glass tokens */
+  --glass-bg:        rgba(26, 13, 0, 0.55);
+  --glass-bg-strong: rgba(26, 13, 0, 0.85);
+  --glass-border:    rgba(245, 166, 35, 0.12);
+  --glass-shadow:    0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* Dark mode overrides — for when next-themes sets `.dark` on <html>. */
+/* Dark mode = always (this is a dark-only design) */
 .dark {
-  --glass-bg: rgba(7, 26, 12, 0.55);
-  --glass-bg-strong: rgba(7, 26, 12, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  --glass-bg:        rgba(13, 6, 0, 0.65);
+  --glass-bg-strong: rgba(13, 6, 0, 0.88);
+  --glass-border:    rgba(245, 166, 35, 0.15);
+  --glass-shadow:    0 16px 40px rgba(0, 0, 0, 0.65);
 }
 
 html[data-scroll-behavior="smooth"] {
@@ -130,14 +206,18 @@ html[data-scroll-behavior="smooth"] {
 }
 
 ::selection {
-  background: #f5e04a;
-  color: #0d2b14;
+  background: #F5A623;
+  color: #1a0d00;
 }
 
 body {
-  @apply bg-surface text-brand-900 antialiased;
+  @apply bg-brand-900 text-brand-200 antialiased;
   font-family: var(--font-sans);
 }
+
+/* ================================================================== */
+/*  COMPONENT LAYER                                                     */
+/* ================================================================== */
 
 @layer components {
   .container-shop {
@@ -145,15 +225,32 @@ body {
   }
 
   .heading-display {
-    @apply font-display tracking-tight;
-    font-weight: 400;
+    font-family: var(--font-display);
+    font-weight: 900;
     line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Gold shimmer text ──────────────────────────────────────────── */
+  .gold-text {
+    background: linear-gradient(
+      120deg,
+      #FFD580 0%,
+      #F5A623 30%,
+      #FFD580 50%,
+      #E8850A 70%,
+      #FFD580 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shine 3s linear infinite;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────── */
 
-  /* Primary CTA — solar yellow on dark, lifts on hover with glowing
-     yellow shadow. Matches the reference's `.btn-primary`. */
+  /* Primary CTA — gold on dark, lifts on hover */
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -161,30 +258,75 @@ body {
     gap: 0.5rem;
     padding: 0.85rem 1.75rem;
     border-radius: var(--radius-pill);
-    background: var(--accent);
-    color: #0d2b14;
-    border: 1px solid rgba(245, 224, 74, 0.5);
+    background: linear-gradient(135deg, #F5A623, #E8850A);
+    color: #1a0d00;
+    border: 1px solid rgba(245, 166, 35, 0.4);
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.95rem;
-    letter-spacing: 0;
-    box-shadow: 0 4px 10px rgba(13, 43, 20, 0.06);
+    letter-spacing: 0.01em;
+    box-shadow: 0 4px 20px rgba(245, 166, 35, 0.25);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     text-decoration: none;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s ease;
+  }
+  .btn-primary:hover::before {
+    left: 100%;
   }
   .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(245, 224, 74, 0.4);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 35px rgba(245, 166, 35, 0.45);
+    background: linear-gradient(135deg, #FFD580, #F5A623);
+  }
+  .btn-primary:active {
+    transform: translateY(-1px) scale(0.98);
   }
   .btn-primary:disabled {
     opacity: 0.55;
     cursor: not-allowed;
     transform: none;
   }
+  .btn-primary:disabled::before {
+    display: none;
+  }
 
-  /* Outline / frosted ghost — readable on any background, slightly
-     translucent with blur. Matches the reference's `.btn-ghost`. */
+  /* Gold pill button (same but smaller) */
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, #F5A623, #E8850A);
+    color: #1a0d00;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 16px rgba(245, 166, 35, 0.3);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(245, 166, 35, 0.5);
+  }
+
+  /* Outline ghost — dark bg with gold border */
   .btn-outline {
     display: inline-flex;
     align-items: center;
@@ -192,9 +334,9 @@ body {
     gap: 0.5rem;
     padding: 0.85rem 1.75rem;
     border-radius: var(--radius-pill);
-    background: var(--glass-bg);
-    color: var(--color-brand-900);
-    border: 1px solid var(--glass-border);
+    background: rgba(245, 166, 35, 0.05);
+    color: #F5A623;
+    border: 1px solid rgba(245, 166, 35, 0.4);
     font-family: var(--font-ui);
     font-weight: 600;
     font-size: 0.95rem;
@@ -203,23 +345,43 @@ body {
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     text-decoration: none;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-outline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(245, 166, 35, 0.1), transparent);
+    transition: left 0.5s ease;
+  }
+  .btn-outline:hover::before {
+    left: 100%;
   }
   .btn-outline:hover {
-    background: var(--glass-bg-strong);
-    transform: translateY(-1px);
+    background: rgba(245, 166, 35, 0.12);
+    border-color: rgba(245, 166, 35, 0.7);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 24px rgba(245, 166, 35, 0.2);
+  }
+  .btn-outline:active {
+    transform: translateY(0) scale(0.99);
   }
 
-  /* Text-only ghost — for subdued actions inside cards. */
   .btn-ghost {
-    @apply text-brand-600 hover:text-brand-900 transition-colors duration-150 text-sm;
+    color: rgba(255,255,255,0.6);
+    transition: color 0.15s;
     font-family: var(--font-ui);
     font-weight: 500;
+    font-size: 0.875rem;
   }
+  .btn-ghost:hover { color: #F5A623; }
 
-  /* ── Liquid-glass surfaces ─────────────────────────────────────── */
+  /* ── Glass surfaces ─────────────────────────────────────────────── */
 
-  /* Frosted pill container — used by the floating navbar and
-     hero info widgets. */
   .glass-pill {
     background: var(--glass-bg);
     backdrop-filter: blur(24px) saturate(120%);
@@ -228,71 +390,94 @@ body {
     box-shadow: var(--glass-shadow);
   }
 
-  /**
-   * Navbar-only glass: avoids the harsh 1px “outline” ring that reads
-   * cheap when `backdrop-filter` kicks in on scroll. Edge is defined by
-   * soft outer shadow + subtle inner highlight instead of a solid border.
-   */
+  .glass-dark {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(245, 166, 35, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Navbar dark glass pill */
   .nav-glass-pill {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px) saturate(118%);
-    -webkit-backdrop-filter: blur(20px) saturate(118%);
+    background: rgba(26, 13, 0, 0.72);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
     border: none;
     outline: none;
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.65) inset,
-      0 1px 0 rgba(255, 255, 255, 0.4) inset,
-      0 12px 36px -8px rgba(13, 43, 20, 0.1),
-      0 2px 6px rgba(13, 43, 20, 0.04);
+      0 0 0 1px rgba(245, 166, 35, 0.18) inset,
+      0 1px 0 rgba(245, 166, 35, 0.08) inset,
+      0 12px 36px -8px rgba(0, 0, 0, 0.6),
+      0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
-  .dark .nav-glass-pill {
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.07) inset,
-      0 1px 0 rgba(255, 255, 255, 0.04) inset,
-      0 12px 40px -8px rgba(0, 0, 0, 0.5),
-      0 2px 8px rgba(0, 0, 0, 0.25);
-  }
-
-  /* Subtle raised card used for product tiles, KPI cards, etc. */
+  /* Raised card on dark bg */
   .surface-card {
-    background: var(--color-surface-raised);
+    background: rgba(255, 255, 255, 0.04);
     border-radius: var(--radius-lg);
-    box-shadow: 0 4px 20px rgba(13, 43, 20, 0.03);
-    border: 1px solid var(--color-brand-100);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(245, 166, 35, 0.1);
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card-hover:hover {
+    transform: translateY(-6px);
+    border-color: rgba(245, 166, 35, 0.4);
+    box-shadow: 0 12px 40px rgba(245, 166, 35, 0.15);
   }
 
-  /* Hide scrollbars without losing scrollability — used by the
-     horizontally-scrolling tag chip rail on the shop page. */
+  /* Magnetic link effect */
+  .magnetic-link {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .magnetic-link:hover {
+    transform: translateY(-2px);
+  }
+
+  /* ── Utility ────────────────────────────────────────────────────── */
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 }
 
-/* Scrollbar: thin, green-tinted */
+/* ================================================================== */
+/*  SCROLLBAR                                                           */
+/* ================================================================== */
+
 * {
   scrollbar-width: thin;
-  scrollbar-color: #c9cbc4 transparent;
+  scrollbar-color: #3d1f00 transparent;
 }
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  background-color: #c9cbc4;
+  background-color: #3d1f00;
   border-radius: 4px;
 }
-*::-webkit-scrollbar-thumb:hover {
-  background-color: #9fa399;
+*::-webkit-scrollbar-thumb:hover { background-color: #F5A623; }
+
+/* ================================================================== */
+/*  HERO PARTICLES (global so they work in RSC context)                */
+/* ================================================================== */
+
+.hero-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: #F5A623;
+  pointer-events: none;
+  animation: float-up linear infinite, pulse-glow 3s ease-in-out infinite;
+}
+
+/* ================================================================== */
+/*  MARQUEE                                                             */
+/* ================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none !important; }
 }

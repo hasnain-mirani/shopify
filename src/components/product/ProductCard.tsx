@@ -156,7 +156,7 @@ export function ProductCard({
           className={cn(
             "relative block overflow-hidden rounded-[20px] bg-brand-100 aspect-[3/4]",
             "ring-0 ring-brand-900/0 transition-[box-shadow,transform] duration-500 ease-out",
-            "group-hover:shadow-[0_22px_50px_-20px_rgba(13,43,20,0.35)]",
+            "group-hover:shadow-[0_22px_50px_-20px_rgba(26,14,46,0.35)] group-hover:scale-[1.02]",
             isSoldOut && "opacity-90",
           )}
         >
@@ -298,7 +298,7 @@ export function ProductCard({
                   aria-hidden="true"
                   className={cn(
                     "relative inline-flex h-9 w-9 items-center justify-center rounded-full",
-                    "bg-accent text-brand-900 shadow-[0_4px_12px_rgba(245,224,74,0.45)]",
+                    "bg-accent text-brand-900 shadow-[0_4px_12px_rgba(245,164,124,0.5)]",
                     "transition-transform duration-500 ease-out",
                     "group-hover/btn:rotate-90",
                     (adding || justAdded) && "!rotate-0",
@@ -395,7 +395,7 @@ function EditorialPill({
       className={cn(
         "inline-flex items-center gap-1 px-2.5 py-1 rounded-full leading-none",
         "font-ui text-[10px] font-semibold uppercase tracking-[0.22em]",
-        "shadow-[0_2px_8px_rgba(13,43,20,0.12)]",
+        "shadow-[0_2px_8px_rgba(26,14,46,0.14)]",
         tone === "new" && "bg-accent text-brand-900",
         tone === "sale" && "bg-red-600 text-white tabular-nums",
       )}

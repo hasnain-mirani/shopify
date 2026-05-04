@@ -10,6 +10,9 @@ import {
   PlusCircle,
   LogOut,
   ExternalLink,
+  Megaphone,
+  Sparkles,
+  Home,
 } from "lucide-react";
 
 interface NavItem {
@@ -44,6 +47,24 @@ const NAV: NavItem[] = [
     label: "New product",
     Icon: PlusCircle,
     match: (p) => p.startsWith("/admin/products/new"),
+  },
+  {
+    href: "/admin/promo-banner",
+    label: "Promo banner",
+    Icon: Megaphone,
+    match: (p) => p.startsWith("/admin/promo-banner"),
+  },
+  {
+    href: "/admin/hero",
+    label: "Home hero",
+    Icon: Sparkles,
+    match: (p) => p.startsWith("/admin/hero"),
+  },
+  {
+    href: "/admin/landing-products",
+    label: "Landing Products",
+    Icon: Home,
+    match: (p) => p.startsWith("/admin/landing-products"),
   },
 ];
 

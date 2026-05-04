@@ -29,9 +29,9 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
         className="absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(800px 420px at 88% 20%, rgba(245,224,74,0.18), transparent 60%), " +
-            "radial-gradient(600px 360px at 8% 85%, rgba(242,166,90,0.12), transparent 60%), " +
-            "linear-gradient(180deg, #f7f8f4 0%, #edeee9 100%)",
+            "radial-gradient(800px 420px at 88% 20%, rgba(245,164,124,0.22), transparent 60%), " +
+            "radial-gradient(600px 360px at 8% 85%, rgba(242,138,173,0.18), transparent 60%), " +
+            "linear-gradient(180deg, #fbf7f9 0%, #f1eaf4 100%)",
         }}
       />
       <div
@@ -39,7 +39,7 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
         className="absolute inset-0 -z-10 opacity-[0.3]"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(13,43,20,0.08) 1px, transparent 1px)",
+            "radial-gradient(circle, rgba(26,14,46,0.08) 1px, transparent 1px)",
           backgroundSize: "28px 28px",
           maskImage:
             "radial-gradient(ellipse at center, black 40%, transparent 85%)",
@@ -51,13 +51,13 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
         <div className="flex items-center justify-between gap-4 mb-6 md:mb-8">
           <span className="inline-flex items-center gap-3 font-ui text-[11px] uppercase tracking-[0.28em] text-brand-700">
             <span aria-hidden="true" className="h-px w-10 bg-accent" />
-            The shop · Spring 2026
+            The shop · Glow Drop &rsquo;26
           </span>
           <span className="inline-flex items-baseline gap-1 font-ui text-[11px] uppercase tracking-[0.24em] text-brand-500">
             <span className="font-display text-brand-900 text-lg md:text-xl leading-none">
               {indexLabel}
             </span>
-            <span>pieces in rotation</span>
+            <span>pieces in stock</span>
           </span>
         </div>
 
@@ -123,15 +123,15 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
 
             <p className="font-sans text-brand-600 text-[15px] md:text-base max-w-lg mt-5 leading-relaxed">
               {tag
-                ? `Pieces from the ${tag} tag — filtered for you. Clear the filter to browse the full catalog.`
-                : "Small-batch, honest materials, made to outlast trend cycles. Filter by mood, sort by whim."}
+                ? `Pieces tagged ${tag} — filtered for you. Clear the filter to browse the full catalog.`
+                : "Phone accessories and home pieces, hand-picked for the aesthetically curious. Filter by mood, sort by whim."}
             </p>
           </div>
 
           {/* Inline meta chips — signal of craft, no noise */}
           <ul className="flex flex-wrap gap-2 lg:justify-end" aria-label="Shop highlights">
-            <MetaChip icon={<Sparkles className="h-3.5 w-3.5" />} label="Small-batch" />
-            <MetaChip icon={<Compass className="h-3.5 w-3.5" />} label="Free returns" />
+            <MetaChip icon={<Sparkles className="h-3.5 w-3.5" />} label="Bundle & save" />
+            <MetaChip icon={<Compass className="h-3.5 w-3.5" />} label="Free worldwide shipping" />
             <Link
               href="/collections"
               className="inline-flex items-center gap-1.5 rounded-full bg-brand-900 text-white pl-3.5 pr-2 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.2em] hover:bg-brand-800 transition-colors"

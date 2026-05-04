@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import type { ShopifyCollection, ShopifyProduct } from "@/types";
 import { formatPrice, truncate } from "./utils";
 
-const SITE_NAME = "Store";
+const SITE_NAME = "Glow Store PK";
 const DEFAULT_DESCRIPTION =
-  "Considered goods. Honest materials, thoughtful construction, made to last.";
+  "Phone accessories, home decor, and cosy bundle deals — hand-picked for the aesthetically curious.";
 
 function absoluteUrl(path: string): string {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";

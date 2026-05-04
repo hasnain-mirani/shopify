@@ -31,7 +31,7 @@ export function ThemeProvider({
           className:
             "!bg-brand-900 !text-white !text-sm !rounded-full !px-4 !py-2.5 !shadow-lg",
           success: {
-            iconTheme: { primary: "#f5e04a", secondary: "#0d2b14" },
+            iconTheme: { primary: "#f5a47c", secondary: "#1a0e2e" },
           },
           error: {
             iconTheme: { primary: "#ef4444", secondary: "#ffffff" },

@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, ShoppingBag, Package, PlusCircle } from "lucide-react";
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Package,
+  PlusCircle,
+  Megaphone,
+  Home,
+} from "lucide-react";
 
 interface NavItem {
   href: string;
@@ -16,14 +23,15 @@ const ITEMS: NavItem[] = [
   { href: "/admin", label: "Home", Icon: LayoutDashboard, exact: true },
   { href: "/admin/orders", label: "Orders", Icon: ShoppingBag },
   { href: "/admin/products", label: "Products", Icon: Package },
-  { href: "/admin/products/new", label: "New", Icon: PlusCircle },
+  { href: "/admin/promo-banner", label: "Promo", Icon: Megaphone },
+  { href: "/admin/landing-products", label: "Landing", Icon: Home },
 ];
 
 export function AdminMobileNav() {
   const pathname = usePathname();
   return (
     <nav
-      className="md:hidden sticky bottom-0 z-20 grid grid-cols-4 border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+      className="md:hidden sticky bottom-0 z-20 grid grid-cols-5 border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
       aria-label="Admin sections"
     >
       {ITEMS.map(({ href, label, Icon, exact }) => {

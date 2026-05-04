@@ -1,4 +1,5 @@
 export { Hero } from "./Hero";
+export { CategoryMenu } from "./CategoryMenu";
 export { CollectionCard } from "./CollectionCard";
 export type { CollectionCardData, CollectionCardProps } from "./CollectionCard";
 export { NewsletterSection } from "./NewsletterSection";
@@ -9,3 +10,4 @@ export { FeatureSpotlight } from "./FeatureSpotlight";
 export type { FeatureSpotlightProps } from "./FeatureSpotlight";
 export { StorySection } from "./StorySection";
 export { TestimonialStrip } from "./TestimonialStrip";
+export { PromoBanner } from "./PromoBanner";

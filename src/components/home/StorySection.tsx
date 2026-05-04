@@ -12,10 +12,10 @@ interface Stat {
 }
 
 const STATS: Stat[] = [
-  { value: 2_300_000, suffix: "+", label: "Pieces delivered", sub: "since 2018" },
-  { value: 18, label: "Countries", sub: "shipped monthly" },
-  { value: 98, suffix: "%", label: "Customer rating", sub: "2.3k reviews" },
-  { value: 12, label: "Craftspeople", sub: "small-batch workshops" },
+  { value: 48_000, suffix: "+", label: "Orders shipped",    sub: "since 2022" },
+  { value: 34,     label: "Countries",             sub: "shipped monthly" },
+  { value: 98,     suffix: "%", label: "Customer rating",  sub: "12k reviews" },
+  { value: 500,    suffix: "+", label: "Products stocked", sub: "phones · watches · banks" },
 ];
 
 /**
@@ -31,16 +31,16 @@ export function StorySection() {
       aria-labelledby="story-heading"
       className="relative overflow-hidden bg-brand-900 text-white isolate"
     >
-      {/* Decorative sun-pools */}
+      {/* Decorative amber glow pools */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-32 -left-24 h-[500px] w-[500px] rounded-full opacity-25 blur-3xl"
-        style={{ background: "radial-gradient(circle, #f5e04a, transparent 65%)" }}
+        className="pointer-events-none absolute -top-32 -left-24 h-[500px] w-[500px] rounded-full opacity-20 blur-3xl"
+        style={{ background: "radial-gradient(circle, #F5A623, transparent 65%)" }}
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-40 -right-20 h-[520px] w-[520px] rounded-full opacity-20 blur-3xl"
-        style={{ background: "radial-gradient(circle, #f2a65a, transparent 65%)" }}
+        className="pointer-events-none absolute -bottom-40 -right-20 h-[520px] w-[520px] rounded-full opacity-15 blur-3xl"
+        style={{ background: "radial-gradient(circle, #E8850A, transparent 65%)" }}
       />
 
       {/* Dot grid */}
@@ -77,8 +77,18 @@ export function StorySection() {
           id="story-heading"
           className="heading-display text-[clamp(2.5rem,6vw,5rem)] max-w-3xl text-white leading-[0.95] mb-16 md:mb-24"
         >
-          Built slowly,{" "}
-          <em className="italic text-accent">loved loudly</em>.
+          Powered by{" "}
+          <span
+            style={{
+              background: "linear-gradient(120deg, #FFD580, #F5A623, #E8850A, #FFD580)",
+              backgroundSize: "200% auto",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              animation: "shine 3s linear infinite",
+              fontStyle: "italic",
+            }}
+          >tech & trust</span>.
         </h2>
 
         {/* Stats */}
