@@ -32,7 +32,6 @@ export async function Hero() {
     getLandingProducts().catch(() => null),
   ]);
 
-  // Use admin-pinned products if configured, otherwise fall back to defaults
   let heroProducts = defaultProducts.filter((p) => !!p.featuredImage).slice(0, 5);
   if (landingConfig && landingConfig.productHandles.length > 0) {
     const pinned = await Promise.all(
@@ -99,17 +98,7 @@ export async function Hero() {
         ))}
       </div>
 
-      {/* ── Category strip — sits just below the navbar ─────────────── */}
-      <div
-        className="relative z-20 w-full"
-        style={{
-          borderBottom: "1px solid rgba(245,166,35,0.1)",
-          background: "rgba(26,13,0,0.55)",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <CategoryMenu />
-      </div>
+
 
       {/* ── Main content grid ──────────────────────────────────────── */}
       <div className="container-shop relative grid min-h-screen grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-16 pt-24 pb-16 md:pt-28 md:pb-20">
@@ -255,31 +244,22 @@ export async function Hero() {
           </div>
         </div>
 
-        {/* ═══ RIGHT: Product cluster scene ═══
-            Layout (bottom-baseline aligned, like a product shoot):
-
-                        [P0 — MAIN, tallest, center]
-                [P1]                        [P2]     ← medium, flanking
-              [P3]                              [P4]  ← smallest, front corners
-
-            50% OFF badge sits top-right of the entire scene container.
-        */}
+        {/* ═══ RIGHT: Product cluster + Category Menu ═══ */}
         <HeroParallax
           intensity={12}
-          className="relative hidden lg:flex items-center justify-center"
+          className="relative hidden lg:flex flex-col items-center justify-center gap-6"
           style={{
-            height: "580px",
             animation: "fadeSlideLeft 1s cubic-bezier(0.16,1,0.3,1) 0.4s both",
           }}
         >
-          {/* Elliptical warm glow below the product cluster */}
+          {/* ── Elliptical warm glow ── */}
           <div
             aria-hidden="true"
             className="absolute pointer-events-none"
             style={{
               width: "460px",
               height: "200px",
-              bottom: "8%",
+              top: "30%",
               left: "50%",
               transform: "translateX(-50%)",
               background: "radial-gradient(ellipse, rgba(245,166,35,0.22) 0%, transparent 72%)",
@@ -287,117 +267,58 @@ export async function Hero() {
             }}
           />
 
-          {/* ── 50% OFF badge — top-right corner of the scene ── */}
-          <div
-            className="absolute z-40"
-            style={{
-              top: "5%",
-              right: "5%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              animation: "float-gentle 4s ease-in-out infinite",
-            }}
-          >
-            {/* Pulse halo */}
-            <div
-              style={{
-                position: "absolute",
-                width: "92px",
-                height: "92px",
-                borderRadius: "50%",
-                background: "rgba(245,166,35,0.15)",
-                animation: "pulse-dot 2.6s ease-in-out infinite",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -62%)",
-              }}
-            />
-            {/* Gold circle */}
-            <div
-              style={{
-                width: "78px",
-                height: "78px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #FFD580 0%, #F5A623 50%, #E8850A 100%)",
-                boxShadow: "0 8px 28px rgba(245,166,35,0.55), 0 2px 8px rgba(0,0,0,0.4)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "1px",
-              }}
-            >
-              <span style={{ fontFamily: "var(--font-outfit)", fontSize: "8px", fontWeight: 700, color: "rgba(26,13,0,0.6)", letterSpacing: "0.14em", textTransform: "uppercase", lineHeight: 1 }}>
-                UP TO
-              </span>
-              <span style={{ fontFamily: "var(--font-playfair)", fontSize: "23px", fontWeight: 900, color: "#1a0d00", lineHeight: 1 }}>
-                50%
-              </span>
-              <span style={{ fontFamily: "var(--font-outfit)", fontSize: "8px", fontWeight: 700, color: "rgba(26,13,0,0.6)", letterSpacing: "0.14em", textTransform: "uppercase", lineHeight: 1 }}>
-                OFF
-              </span>
-            </div>
-            {/* Label pill */}
-            <div
-              style={{
-                marginTop: "7px",
-                background: "rgba(245,166,35,0.1)",
-                border: "1px solid rgba(245,166,35,0.4)",
-                borderRadius: "10px",
-                padding: "3px 9px",
-                fontFamily: "var(--font-outfit)",
-                fontSize: "8px",
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                color: "#FFD580",
-                textTransform: "uppercase",
-                whiteSpace: "nowrap",
-              }}
-            >
-              ⚡ Weekend
-            </div>
-          </div>
 
-          {/* ── Product cluster (bottom-baseline aligned flex row) ── */}
+          {/* ── Product cluster + 50% OFF badge ── */}
           <div
-            className="absolute"
             style={{
-              bottom: "9%",
-              left: "50%",
-              transform: "translateX(-50%)",
               display: "flex",
               alignItems: "flex-end",
               gap: "8px",
+              position: "relative",
+              zIndex: 10,
+              paddingTop: "52px",
             }}
           >
-            {/* P3 — front far-left (smallest) */}
+            {/* 50% OFF badge — top-right of entire cluster */}
+            <div
+              style={{
+                position: "absolute",
+                top: "0px",
+                right: "0px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                animation: "float-gentle 4s ease-in-out infinite",
+                zIndex: 30,
+              }}
+            >
+              <div style={{ position: "absolute", width: "88px", height: "88px", borderRadius: "50%", background: "rgba(245,166,35,0.15)", animation: "pulse-dot 2.6s ease-in-out infinite", top: "50%", left: "50%", transform: "translate(-50%, -58%)" }} />
+              <div style={{ width: "74px", height: "74px", borderRadius: "50%", background: "linear-gradient(135deg, #FFD580 0%, #F5A623 50%, #E8850A 100%)", boxShadow: "0 8px 28px rgba(245,166,35,0.55), 0 2px 8px rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1px" }}>
+                <span style={{ fontFamily: "var(--font-outfit)", fontSize: "8px", fontWeight: 700, color: "rgba(26,13,0,0.6)", letterSpacing: "0.14em", textTransform: "uppercase", lineHeight: 1 }}>UP TO</span>
+                <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", fontWeight: 900, color: "#1a0d00", lineHeight: 1 }}>50%</span>
+                <span style={{ fontFamily: "var(--font-outfit)", fontSize: "8px", fontWeight: 700, color: "rgba(26,13,0,0.6)", letterSpacing: "0.14em", textTransform: "uppercase", lineHeight: 1 }}>OFF</span>
+              </div>
+              <div style={{ marginTop: "6px", background: "rgba(245,166,35,0.1)", border: "1px solid rgba(245,166,35,0.4)", borderRadius: "8px", padding: "3px 8px", fontFamily: "var(--font-outfit)", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", color: "#FFD580", textTransform: "uppercase", whiteSpace: "nowrap" }}>⚡ Weekend</div>
+            </div>
+
             {heroProducts[3] && (
               <div style={{ animation: "float-gentle 4.5s ease-in-out 1.3s infinite" }}>
                 <ProductCard product={heroProducts[3]} width={86} height={106} borderRadius="14px" />
               </div>
             )}
-
-            {/* P1 — mid-left */}
             {heroProducts[1] && (
               <div style={{ animation: "float-gentle 4s ease-in-out 0.7s infinite" }}>
                 <ProductCard product={heroProducts[1]} width={118} height={158} borderRadius="18px" />
               </div>
             )}
-
-            {/* P0 — MAIN (tallest, center) */}
             <div style={{ animation: "float-gentle 3.5s ease-in-out infinite", zIndex: 10 }}>
               <ProductCard product={heroProducts[0]} width={150} height={210} borderRadius="22px" glow />
             </div>
-
-            {/* P2 — mid-right */}
             {heroProducts[2] && (
               <div style={{ animation: "float-gentle 3.8s ease-in-out 0.4s infinite" }}>
                 <ProductCard product={heroProducts[2]} width={118} height={158} borderRadius="18px" />
               </div>
             )}
-
-            {/* P4 — front far-right (smallest) */}
             {heroProducts[4] && (
               <div style={{ animation: "float-gentle 3.6s ease-in-out 0.9s infinite" }}>
                 <ProductCard product={heroProducts[4]} width={86} height={106} borderRadius="14px" />
@@ -405,26 +326,22 @@ export async function Hero() {
             )}
           </div>
 
-          {/* Floating "48k+ orders shipped" social proof pill */}
+          {/* ── Category Menu below the products ── */}
           <div
-            className="absolute bottom-2 left-2 glass-pill rounded-2xl px-4 py-3 flex items-center gap-3 z-30"
-            style={{ maxWidth: "190px", animation: "fadeSlideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.8s both" }}
+            style={{
+              background: "rgba(26,13,0,0.55)",
+              backdropFilter: "blur(16px)",
+              border: "1px solid rgba(245,166,35,0.15)",
+              borderRadius: "20px",
+              padding: "16px 4px 16px 12px",
+              width: "100%",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(245,166,35,0.07)",
+              position: "relative",
+              zIndex: 10,
+              overflow: "visible",
+            }}
           >
-            <div className="flex -space-x-2">
-              {["#F5A623", "#E8850A", "#FFD580"].map((clr, i) => (
-                <span
-                  key={i}
-                  className="h-7 w-7 rounded-full flex items-center justify-center font-ui text-[10px] font-bold text-brand-900"
-                  style={{ background: clr, outline: "2px solid #1a0d00" }}
-                >
-                  {["A", "M", "K"][i]}
-                </span>
-              ))}
-            </div>
-            <div className="leading-none">
-              <div className="font-display text-base" style={{ color: "#FFD580" }}>48k+</div>
-              <div className="font-ui text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>orders shipped</div>
-            </div>
+            <CategoryMenu />
           </div>
         </HeroParallax>
       </div>
@@ -476,6 +393,7 @@ const TRUST_PILLS = [
   { icon: "↩",  label: "Easy Returns",     sub: "30 days" },
 ];
 
+
 /* -------------------------------------------------------------------------- */
 /* ProductCard — real Shopify product image in a glassy floating frame        */
 /* -------------------------------------------------------------------------- */
@@ -519,29 +437,11 @@ function ProductCard({ product, width, height, borderRadius, glow }: ProductCard
           style={{ objectFit: "cover" }}
         />
       ) : (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "linear-gradient(145deg, rgba(245,166,35,0.08), rgba(232,133,10,0.04))",
-          }}
-        >
+        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(145deg, rgba(245,166,35,0.08), rgba(232,133,10,0.04))" }}>
           <span style={{ fontSize: "28px", opacity: 0.4 }}>📦</span>
         </div>
       )}
-      {/* Subtle gold shimmer overlay */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(160deg, rgba(245,166,35,0.07) 0%, transparent 50%, rgba(232,133,10,0.04) 100%)",
-          pointerEvents: "none",
-        }}
-      />
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg, rgba(245,166,35,0.07) 0%, transparent 50%, rgba(232,133,10,0.04) 100%)", pointerEvents: "none" }} />
     </div>
   );
 }

@@ -72,7 +72,7 @@ export async function savePromoBannerAction(
       productHandles,
     });
 
-    revalidateTag(PROMO_BANNER_TAG);
+    revalidateTag(PROMO_BANNER_TAG, {});
     revalidatePath("/");
     revalidatePath("/admin/promo-banner");
 

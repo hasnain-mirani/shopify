@@ -136,7 +136,7 @@ export async function saveHeroConfigAction(
       badgeText,
     });
 
-    revalidateTag(HERO_CONFIG_TAG);
+    revalidateTag(HERO_CONFIG_TAG, {});
     revalidatePath("/");
     revalidatePath("/admin/hero");
 

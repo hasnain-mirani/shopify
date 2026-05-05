@@ -50,7 +50,7 @@ export async function saveLandingProductsAction(
       sectionSubcopy: sectionSubcopy || DEFAULT_LANDING_PRODUCTS.sectionSubcopy,
     });
 
-    revalidateTag(LANDING_PRODUCTS_TAG);
+    revalidateTag(LANDING_PRODUCTS_TAG, {});
     revalidatePath("/");
     revalidatePath("/admin/landing-products");
 

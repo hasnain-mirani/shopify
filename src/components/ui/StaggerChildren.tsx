@@ -27,12 +27,12 @@ export function StaggerChildren({
 
         const delay = baseDelay + index * staggerDelay;
 
-        return cloneElement(child as React.ReactElement, {
+        return cloneElement(child as React.ReactElement<any>, {
           style: {
-            ...(child.props.style || {}),
+            ...((child.props as any).style || {}),
             animationDelay: `${delay}s`,
           },
-          className: cn(animationClass, child.props.className),
+          className: cn(animationClass, (child.props as any).className),
         });
       })}
     </div>

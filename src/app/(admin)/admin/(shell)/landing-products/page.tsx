@@ -40,7 +40,7 @@ export default async function AdminLandingProductsPage() {
             title: p.title,
             handle: p.handle,
             status: p.status,
-            vendor: p.vendor,
+            vendor: p.vendor ?? "",
             image: p.featuredImage
               ? {
                   url: p.featuredImage.url,

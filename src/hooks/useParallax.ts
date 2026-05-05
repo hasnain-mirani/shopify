@@ -7,11 +7,11 @@ interface UseParallaxOptions {
   disabled?: boolean;
 }
 
-export function useParallax(options: UseParallaxOptions = {}) {
+export function useParallax<T extends HTMLElement = HTMLDivElement>(options: UseParallaxOptions = {}) {
   const { intensity = 20, disabled = false } = options;
   const [transform, setTransform] = useState({ x: 0, y: 0 });
-  const ref = useRef<HTMLElement>(null);
-  const requestRef = useRef<number>();
+  const ref = useRef<T>(null);
+  const requestRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (disabled) return;
