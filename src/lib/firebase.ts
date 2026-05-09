@@ -1,5 +1,5 @@
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
 import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
@@ -11,17 +11,45 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase once (safe for Next.js hot reload)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+function isFirebaseConfigured(): boolean {
+  return Boolean(
+    firebaseConfig.apiKey &&
+      firebaseConfig.authDomain &&
+      firebaseConfig.projectId,
+  );
+}
 
-export const auth = getAuth(app);
+let app: FirebaseApp | undefined;
 
-// Messaging only works in browser and only if FCM is supported
+function getFirebaseApp(): FirebaseApp | null {
+  if (!isFirebaseConfigured()) return null;
+  if (!app) {
+    app =
+      getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]!;
+  }
+  return app;
+}
+
+let authSingleton: Auth | null | undefined;
+
+/**
+ * Returns Firebase Auth when env is configured, otherwise null.
+ * Avoids initializeApp during import so builds/prerender succeed without keys.
+ */
+export function getFirebaseAuth(): Auth | null {
+  if (!isFirebaseConfigured()) return null;
+  if (authSingleton === undefined) {
+    const a = getFirebaseApp();
+    authSingleton = a ? getAuth(a) : null;
+  }
+  return authSingleton;
+}
+
 export const getFirebaseMessaging = async () => {
   if (typeof window === "undefined") return null;
+  const fbApp = getFirebaseApp();
+  if (!fbApp) return null;
   const supported = await isSupported();
   if (!supported) return null;
-  return getMessaging(app);
+  return getMessaging(fbApp);
 };
-
-export default app;

@@ -21,7 +21,7 @@ import {
 } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { useAuthStore } from "@/store/auth-store";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { SshubMark } from "@/components/brand/SshubMark";
@@ -489,7 +489,10 @@ function UserMenu({ user }: { user: User }) {
             </div>
             <button
               type="button"
-              onClick={() => signOut(auth)}
+              onClick={() => {
+                const a = getFirebaseAuth();
+                if (a) void signOut(a);
+              }}
               className="w-full text-left px-3 py-2 rounded-xl font-ui text-sm text-red-400 hover:bg-red-500/10 transition-colors"
             >
               Sign Out

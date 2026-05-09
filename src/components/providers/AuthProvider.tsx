@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { useAuthStore } from "@/store/auth-store";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -10,6 +10,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setLoading = useAuthStore((s) => s.setLoading);
 
   useEffect(() => {
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);

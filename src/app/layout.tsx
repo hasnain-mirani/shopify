@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { AppProviders } from "@/components/providers/AppProviders";
 import "./globals.css";
 
 const inter = Inter({
@@ -110,9 +109,7 @@ export default function RootLayout({
         className="flex min-h-full flex-col bg-background text-foreground"
         suppressHydrationWarning
       >
-        <ThemeProvider>
-          <AppProviders>{children}</AppProviders>
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

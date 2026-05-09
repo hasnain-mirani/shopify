@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { SshubMark } from "@/components/brand/SshubMark";
 import { SshubWordmark } from "@/components/brand/SshubWordmark";
@@ -24,6 +24,11 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setError("Sign-in is not configured. Set Firebase env vars on the server.");
+      return;
+    }
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -37,6 +42,11 @@ export default function LoginPage() {
 
   const handleGoogle = async () => {
     setError("");
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setError("Sign-in is not configured. Set Firebase env vars on the server.");
+      return;
+    }
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();

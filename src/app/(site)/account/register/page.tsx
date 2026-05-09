@@ -9,7 +9,7 @@ import {
   GoogleAuthProvider,
   updateProfile,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { toast } from "react-hot-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { SshubMark } from "@/components/brand/SshubMark";
@@ -28,6 +28,11 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setError("Sign-in is not configured. Set Firebase env vars on the server.");
+      return;
+    }
     setLoading(true);
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -46,6 +51,11 @@ export default function RegisterPage() {
 
   const handleGoogle = async () => {
     setError("");
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setError("Sign-in is not configured. Set Firebase env vars on the server.");
+      return;
+    }
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
