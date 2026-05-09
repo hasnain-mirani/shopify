@@ -10,7 +10,7 @@ export function SshubMark({ size = 32, className }: Props) {
   return (
     <img
       src="/brand/sshub-mark.svg"
-      alt=""
+      alt="SSHUB - Premium Mobile Accessories Pakistan"
       width={size}
       height={size}
       className={cn("shrink-0 select-none", className)}

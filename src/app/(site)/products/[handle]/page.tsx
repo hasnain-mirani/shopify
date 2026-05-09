@@ -7,14 +7,23 @@ import {
   ProductPurchasePanel,
 } from "@/components/product";
 import {
+  getCollections,
   getProductByHandle,
   getProductRecommendations,
   getProducts,
 } from "@/lib/catalog";
 import { buildProductMetadata } from "@/lib/metadata";
 import { ProductPageTabs } from "@/components/product/ProductPageTabs";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { buildBreadcrumbJsonLd, buildProductJsonLd } from "@/lib/seo/json-ld";
+import { inferPrimaryCollection } from "@/lib/seo/infer-collection";
+import { buildProductSeoNarrative } from "@/lib/seo/product-seo-body";
+import { stripEmojisForSeo } from "@/lib/seo/text";
 import type { Product } from "@/types";
 import { isSafeStaticSegment } from "@/lib/safe-static-segment";
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ handle: string }>;
@@ -77,9 +86,10 @@ export default async function ProductPage({ params }: PageProps) {
   const product = await getProductByHandle(handle);
   if (!product) notFound();
 
-  const [recommendations, allProducts] = await Promise.all([
+  const [recommendations, allProducts, collections] = await Promise.all([
     getProductRecommendations(product.id).catch(() => []),
     getProducts({ limit: 8 }).catch(() => []),
+    getCollections().catch(() => []),
   ]);
 
   const similar = recommendations.length > 0
@@ -101,20 +111,42 @@ export default async function ProductPage({ params }: PageProps) {
   const specs = parseSpecifications(product.specifications);
   const keySpecs = specs.slice(0, 6);
   const topTags = (product.tags ?? []).filter(Boolean).slice(0, 5);
+  const cleanTitle = stripEmojisForSeo(product.title);
+  const primaryCol = inferPrimaryCollection(product, collections);
+  const primaryKeyword = `${(product.productType ?? "mobile accessories").toLowerCase()} in Pakistan`;
+  const seoNarrative = buildProductSeoNarrative(product, primaryKeyword);
+
+  const breadcrumbItems = [
+    { name: "Home", href: "/" },
+    ...(primaryCol
+      ? [{ name: primaryCol.title, href: primaryCol.href }]
+      : []),
+    { name: cleanTitle },
+  ];
+
+  const breadcrumbLd = buildBreadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    ...(primaryCol
+      ? [{ name: primaryCol.title, path: primaryCol.href }]
+      : []),
+    { name: cleanTitle, path: `/products/${product.handle}` },
+  ]);
 
   return (
     <div style={{ background: "transparent", minHeight: "100vh" }}>
+      <JsonLd data={buildProductJsonLd(product)} />
+      <JsonLd data={breadcrumbLd} />
 
       {/* ── Breadcrumb ── */}
       <div style={{ background: "rgba(2,6,23,0.7)", borderBottom: "1px solid rgba(148,163,184,0.2)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "10px 16px" }}>
-          <nav style={{ fontSize: "12px", color: "#94a3b8", display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            <Link href="/" style={{ color: "#f59e0b", textDecoration: "none" }}>Home</Link>
-            <span>/</span>
-            <Link href="/products" style={{ color: "#f59e0b", textDecoration: "none" }}>Products</Link>
-            <span>/</span>
-            <span style={{ color: "#e2e8f0" }}>{product.title}</span>
-          </nav>
+          <Breadcrumbs
+            items={breadcrumbItems}
+            className="text-xs text-slate-400"
+            linkClassName="text-amber-400 hover:text-amber-300"
+            currentClassName="text-slate-200"
+            sepClassName="text-slate-500"
+          />
         </div>
       </div>
 
@@ -123,14 +155,18 @@ export default async function ProductPage({ params }: PageProps) {
         <div style={{ background: "rgba(15,23,42,0.78)", borderRadius: "14px", padding: "24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", border: "1px solid rgba(148,163,184,0.18)" }} className="pdp-main-grid">
 
           {/* Left: Gallery */}
-          <ProductImageGallery images={product.images} productTitle={product.title} />
+          <ProductImageGallery
+            images={product.images}
+            productTitle={cleanTitle}
+            imageAltDetail={keySpecs[0]?.value}
+          />
 
           {/* Right: Info */}
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             {/* Title + badges */}
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "8px" }}>
               <h1 style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "26px", fontWeight: 700, color: "#f8fafc", margin: 0, lineHeight: 1.25 }}>
-                {product.title}
+                {cleanTitle}
               </h1>
             </div>
 
@@ -182,35 +218,66 @@ export default async function ProductPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Key technical snapshot */}
-            {keySpecs.length > 0 && (
-              <div style={{ border: "1px solid rgba(148,163,184,0.24)", background: "rgba(2,6,23,0.45)", borderRadius: "12px", padding: "12px 14px" }}>
-                <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", letterSpacing: "0.08em", textTransform: "uppercase", color: "#93c5fd" }}>
-                  Key Specifications
-                </h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }} className="quick-specs-grid">
-                  {keySpecs.map((row) => (
-                    <div key={`${row.key}-${row.value}`} style={{ border: "1px solid rgba(148,163,184,0.15)", borderRadius: "9px", padding: "8px 10px", background: "rgba(15,23,42,0.6)" }}>
-                      <p style={{ margin: 0, fontFamily: "var(--font-outfit, sans-serif)", fontSize: "10px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.key}</p>
-                      <p style={{ margin: "4px 0 0", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", color: "#e2e8f0", fontWeight: 600, lineHeight: 1.4 }}>{row.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Purchase panel (variant selector + add to cart) */}
             <ProductPurchasePanel product={product} />
 
-            {/* Description */}
-            {product.descriptionHtml && (
-              <div style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "12px" }}>
+            {/* SEO narrative + merchant description */}
+            <div style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "12px" }}>
+              <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.75, margin: "0 0 12px" }}>
+                {seoNarrative}
+              </p>
+              {primaryCol ? (
+                <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#94a3b8", margin: "0 0 12px" }}>
+                  Explore more in our{" "}
+                  <Link href={primaryCol.href} style={{ color: "#f59e0b", fontWeight: 600 }}>
+                    {primaryCol.title}
+                  </Link>{" "}
+                  collection — curated mobile accessories with fast delivery across Pakistan.
+                </p>
+              ) : null}
+              {product.descriptionHtml ? (
                 <div
                   style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.7 }}
                   dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
                 />
-              </div>
-            )}
+              ) : null}
+            </div>
+
+            {specs.length > 0 ? (
+              <section style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "16px" }} aria-labelledby="pdp-key-features">
+                <h2 id="pdp-key-features" style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "18px", fontWeight: 700, color: "#f8fafc", margin: "0 0 10px" }}>
+                  Key Features
+                </h2>
+                <ul style={{ margin: 0, paddingLeft: "18px", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.65 }}>
+                  {specs.map((row) => (
+                    <li key={`${row.key}-${row.value}`}>
+                      <strong style={{ color: "#e2e8f0" }}>{row.key}:</strong> {row.value}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            <section style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "16px" }} aria-labelledby="pdp-box">
+              <h2 id="pdp-box" style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "18px", fontWeight: 700, color: "#f8fafc", margin: "0 0 10px" }}>
+                What&apos;s in the Box
+              </h2>
+              <ul style={{ margin: 0, paddingLeft: "18px", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.65 }}>
+                <li>{cleanTitle} unit</li>
+                <li>Charging cable (where applicable)</li>
+                <li>Quick start / warranty information</li>
+                <li>Retail packaging</li>
+              </ul>
+            </section>
+
+            <section style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "16px" }} aria-labelledby="pdp-reviews">
+              <h2 id="pdp-reviews" style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "18px", fontWeight: 700, color: "#f8fafc", margin: "0 0 10px" }}>
+                Customer Reviews
+              </h2>
+              <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.7, margin: 0 }}>
+                SSHUB shoppers value clear specs, fair pricing, and support across Pakistan. See the Reviews tab below for product-specific feedback and common questions. Buying {primaryKeyword}? Add {cleanTitle} to your cart for fast dispatch and straightforward returns.
+              </p>
+            </section>
 
             {topTags.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
@@ -263,7 +330,7 @@ export default async function ProductPage({ params }: PageProps) {
                   <Link key={p.id} href={`/products/${p.handle}`} style={{ display: "flex", flexDirection: "column", padding: "12px", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "12px", textDecoration: "none", transition: "box-shadow 0.18s", background: "rgba(2,6,23,0.45)" }}>
                     <div style={{ position: "relative", aspectRatio: "1", background: "#0b1224", borderRadius: "10px", overflow: "hidden", marginBottom: "10px" }}>
                       {p.featuredImage?.url ? (
-                        <Image src={p.featuredImage.url} alt={p.title} fill sizes="180px" style={{ objectFit: "contain" }} />
+                        <Image src={p.featuredImage.url} alt={`${stripEmojisForSeo(p.title)} - mobile accessory - SSHUB`} fill sizes="180px" style={{ objectFit: "contain" }} loading="lazy" />
                       ) : (
                         <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>📦</div>
                       )}
@@ -327,7 +394,7 @@ export default async function ProductPage({ params }: PageProps) {
                   <Link key={p.id} href={`/products/${p.handle}`} style={{ display: "flex", flexDirection: "column", padding: "12px", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "12px", textDecoration: "none", background: "rgba(2,6,23,0.45)" }}>
                     <div style={{ position: "relative", aspectRatio: "1", background: "#0b1224", borderRadius: "10px", overflow: "hidden", marginBottom: "10px" }}>
                       {p.featuredImage?.url ? (
-                        <Image src={p.featuredImage.url} alt={p.title} fill sizes="180px" style={{ objectFit: "contain" }} />
+                        <Image src={p.featuredImage.url} alt={`${stripEmojisForSeo(p.title)} - mobile accessory - SSHUB`} fill sizes="180px" style={{ objectFit: "contain" }} loading="lazy" />
                       ) : (
                         <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>📦</div>
                       )}
@@ -357,19 +424,19 @@ export default async function ProductPage({ params }: PageProps) {
           </h2>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             {[
-              { label: "Mobiles", emoji: "📱", color: "#7C3AED" },
-              { label: "Earbuds", emoji: "🎧", color: "#DB2777" },
-              { label: "Watches", emoji: "⌚", color: "#0EA5E9" },
-              { label: "Chargers", emoji: "🔌", color: "#16A34A" },
-              { label: "Speakers", emoji: "🔊", color: "#EA580C" },
-              { label: "Tablets", emoji: "📟", color: "#8B5CF6" },
+              { label: "Earbuds", href: "/collections/wireless-earbuds", emoji: "🎧", color: "#DB2777" },
+              { label: "Watches", href: "/collections/smart-watches", emoji: "⌚", color: "#0EA5E9" },
+              { label: "Power", href: "/collections/power-banks", emoji: "🔋", color: "#16A34A" },
+              { label: "Chargers", href: "/collections/wall-chargers", emoji: "🔌", color: "#EA580C" },
+              { label: "Speakers", href: "/collections/bluetooth-speakers", emoji: "🔊", color: "#7C3AED" },
+              { label: "Shop all", href: "/shop", emoji: "🛒", color: "#0f172a" },
             ].map((c) => (
               <Link
                 key={c.label}
-                href="/products"
+                href={c.href}
                 style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", width: "90px", height: "90px", borderRadius: "10px", background: c.color, padding: "8px", textDecoration: "none", gap: "4px", transition: "opacity 0.18s" }}
               >
-                <span style={{ fontSize: "28px" }}>{c.emoji}</span>
+                <span style={{ fontSize: "28px" }} aria-hidden>{c.emoji}</span>
                 <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "11px", fontWeight: 700, color: "#fff", textAlign: "center" }}>{c.label}</span>
               </Link>
             ))}

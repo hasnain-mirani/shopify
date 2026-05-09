@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import type { Collection, Product } from "@/types";
 import { getSiteUrl } from "@/lib/site-url";
+import {
+  plainTextFromHtml,
+  stripEmojisForSeo,
+  truncateMetaDescription,
+} from "@/lib/seo/text";
 import { formatPrice, truncate } from "./utils";
 
 const SITE_NAME = "SSHUB";
 const DEFAULT_DESCRIPTION =
-  "Phone accessories, home decor, and cosy bundle deals — hand-picked for the aesthetically curious.";
+  "Premium phone accessories, smartwatches, power banks, and mobile tech in Pakistan — SSHUB.";
 
 function absoluteUrl(path: string): string {
   const base = getSiteUrl();
@@ -21,49 +26,68 @@ function firstImage(images: Array<{ url: string; altText?: string | null }> | un
 
 /**
  * Build Next.js `Metadata` for a product detail page.
- *
- * Uses:
- *   - Product's SEO overrides from Shopify when present, else falls back to
- *     title/description.
- *   - First product image for OG / Twitter cards.
- *   - Price prefix in description so it surfaces in SERP snippets.
+ * Title/description formats optimized for Pakistan e‑commerce SERPs.
  */
 export function buildProductMetadata(product: Product): Metadata {
-  const title = product.seo?.title ?? product.title;
-  const descSource =
-    product.seo?.description?.trim() || product.description?.trim() || "";
+  const cleanTitle = stripEmojisForSeo(product.title);
+  const absoluteTitle = `${cleanTitle} — Buy Online in Pakistan | ${SITE_NAME}`;
 
   const price = formatPrice(
     product.priceRange.minVariantPrice.amount,
     product.priceRange.minVariantPrice.currencyCode,
   );
 
-  const description =
-    truncate(descSource, 150) || `${product.title} — from ${price}.`;
+  const descFromSeo =
+    product.seo?.description?.trim() ||
+    plainTextFromHtml(product.descriptionHtml ?? "") ||
+    product.description?.trim() ||
+    "";
+
+  const featureHint = truncate(
+    descFromSeo.replace(/\s+/g, " "),
+    80,
+  ) || `Quality ${(product.productType ?? "accessory").toLowerCase()} for daily use.`;
+
+  const description = truncateMetaDescription(
+    `Buy ${cleanTitle} at ${SITE_NAME}. ${featureHint} ${price}. Fast delivery across Pakistan. Free returns.`,
+    160,
+  );
 
   const image = firstImage(product.images) ?? (product.featuredImage
     ? { url: product.featuredImage.url, alt: product.featuredImage.altText ?? "" }
     : null);
 
   const url = absoluteUrl(`/products/${product.handle}`);
+  const ogTitle = `${cleanTitle} | ${SITE_NAME}`;
+  const ogDesc = truncateMetaDescription(
+    descFromSeo || `${cleanTitle} — ${price}. Shop online at ${SITE_NAME}.`,
+    200,
+  );
+  const priceAmount = product.priceRange.minVariantPrice.amount;
+  const priceCurrency =
+    product.priceRange.minVariantPrice.currencyCode || "PKR";
 
   return {
-    title,
+    title: { absolute: absoluteTitle },
     description,
     alternates: { canonical: url },
     openGraph: {
-      type: "website",
-      title,
-      description,
+      title: ogTitle,
+      description: ogDesc,
       url,
       siteName: SITE_NAME,
-      images: image ? [{ url: image.url, alt: image.alt || title }] : undefined,
+      images: image ? [{ url: image.url, alt: image.alt || ogTitle }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: ogTitle,
+      description: ogDesc,
       images: image ? [image.url] : undefined,
+    },
+    other: {
+      "og:type": "product",
+      "product:price:amount": String(priceAmount),
+      "product:price:currency": priceCurrency,
     },
     robots: product.availableForSale
       ? undefined
@@ -75,25 +99,34 @@ export function buildProductMetadata(product: Product): Metadata {
  * Build `Metadata` for a collection page.
  */
 export function buildCollectionMetadata(collection: Collection): Metadata {
-  const title = collection.seo?.title ?? collection.title;
+  const collectionTitle = collection.seo?.title ?? collection.title;
+  const absoluteTitle = `Buy ${collectionTitle} Online in Pakistan — Best Prices | ${SITE_NAME}`;
   const descSource =
     collection.seo?.description?.trim() ||
     collection.description?.trim() ||
     DEFAULT_DESCRIPTION;
 
-  const description = truncate(descSource, 160);
+  const description = truncateMetaDescription(
+    `Shop ${collectionTitle} online in Pakistan at ${SITE_NAME}. ${truncate(descSource.replace(/\s+/g, " "), 100)} Best prices on mobile accessories & tech. Fast delivery.`,
+    160,
+  );
   const url = absoluteUrl(`/collections/${collection.handle}`);
   const image = collection.image
-    ? { url: collection.image.url, alt: collection.image.altText ?? title }
+    ? {
+        url: collection.image.url,
+        alt:
+          collection.image.altText ??
+          `${collectionTitle} collection - ${SITE_NAME}`,
+      }
     : null;
 
   return {
-    title,
+    title: { absolute: absoluteTitle },
     description,
     alternates: { canonical: url },
     openGraph: {
       type: "website",
-      title,
+      title: absoluteTitle,
       description,
       url,
       siteName: SITE_NAME,
@@ -101,7 +134,7 @@ export function buildCollectionMetadata(collection: Collection): Metadata {
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: absoluteTitle,
       description,
       images: image ? [image.url] : undefined,
     },

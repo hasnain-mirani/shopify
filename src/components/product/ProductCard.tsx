@@ -10,6 +10,7 @@ import { IMAGE_BLUR_DATA_URL } from "@/lib/image-blur";
 import { useCartStore } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { useOutsideClick } from "@/hooks/useOutsideClick";
+import { stripEmojisForSeo } from "@/lib/seo/text";
 import { cn, formatPrice, isVariantAvailable } from "@/lib/utils";
 import type { Product, Variant } from "@/types";
 
@@ -178,7 +179,11 @@ export function ProductCard({
           {primaryImage ? (
             <Image
               src={primaryImage.url}
-              alt={primaryImage.altText ?? product.title}
+              alt={
+                primaryImage.altText?.trim()
+                  ? `${primaryImage.altText} - SSHUB`
+                  : `${stripEmojisForSeo(product.title)} - mobile accessory - SSHUB`
+              }
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               priority={priority}

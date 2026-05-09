@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "@/types";
+import { stripEmojisForSeo } from "@/lib/seo/text";
 
 interface SimilarProduct {
   id: string;
@@ -99,7 +100,7 @@ export function ProductPageTabs({ product, similar }: Props) {
                 <Link key={p.id} href={`/products/${p.handle}`} style={{ display: "flex", flexDirection: "column", padding: "12px", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "10px", textDecoration: "none", background: "rgba(2,6,23,0.4)" }}>
                   <div style={{ position: "relative", aspectRatio: "1", background: "#0b1224", borderRadius: "8px", overflow: "hidden", marginBottom: "8px" }}>
                     {p.featuredImage?.url ? (
-                      <Image src={p.featuredImage.url} alt={p.title} fill sizes="140px" style={{ objectFit: "contain" }} />
+                      <Image src={p.featuredImage.url} alt={`${stripEmojisForSeo(p.title)} - SSHUB`} fill sizes="140px" style={{ objectFit: "contain" }} loading="lazy" />
                     ) : (
                       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>📦</div>
                     )}

@@ -8,6 +8,8 @@ import type { Image as ShopifyImage } from "@/types";
 export interface ProductImageGalleryProps {
   images: ShopifyImage[];
   productTitle: string;
+  /** Short feature phrase for primary image alt (e.g. first spec value). */
+  imageAltDetail?: string;
   className?: string;
 }
 
@@ -19,10 +21,14 @@ export interface ProductImageGalleryProps {
 export function ProductImageGallery({
   images,
   productTitle,
+  imageAltDetail,
   className,
 }: ProductImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const active = images[activeIndex] ?? images[0];
+  const primaryAlt = imageAltDetail
+    ? `${productTitle} - ${imageAltDetail} - SSHUB`
+    : `${productTitle} - SSHUB premium mobile accessories`;
 
   if (!active) {
     return (
@@ -46,10 +52,11 @@ export function ProductImageGallery({
         <Image
           key={active.url}
           src={active.url}
-          alt={active.altText ?? productTitle}
+          alt={active.altText?.trim() ? active.altText! : primaryAlt}
           fill
           sizes="(max-width: 1024px) 100vw, 50vw"
           priority={activeIndex === 0}
+          fetchPriority={activeIndex === 0 ? "high" : undefined}
           className={cn(
             "object-cover transition-transform duration-500 ease-out",
             "group-hover:scale-105",
@@ -79,10 +86,10 @@ export function ProductImageGallery({
                 >
                   <Image
                     src={img.url}
-                    alt=""
-                    aria-hidden="true"
+                    alt={`${productTitle} - product photo ${i + 1} - SSHUB`}
                     fill
                     sizes="80px"
+                    loading="lazy"
                     className="object-cover"
                   />
                 </button>

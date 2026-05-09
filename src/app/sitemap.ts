@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getCollections, getProducts } from "@/lib/catalog";
+import { getAllPosts } from "@/lib/journal";
 import { getSiteUrl } from "@/lib/site-url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -30,7 +31,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.3,
     },
+    {
+      url: `${SITE_URL}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${SITE_URL}/journal`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.65,
+    },
+    {
+      url: `${SITE_URL}/wishlist`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
   ];
+
+  const journalEntries: MetadataRoute.Sitemap = getAllPosts().map((post) => ({
+    url: `${SITE_URL}/journal/${post.slug}`,
+    lastModified: new Date(post.publishedAt),
+    changeFrequency: "monthly" as const,
+    priority: 0.55,
+  }));
 
   // Dynamic Shopify entries. Wrap in try/catch so a Shopify outage doesn't
   // break the whole sitemap response.
@@ -60,5 +86,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Swallow — static entries still return.
   }
 
-  return [...staticEntries, ...collectionEntries, ...productEntries];
+  return [
+    ...staticEntries,
+    ...journalEntries,
+    ...collectionEntries,
+    ...productEntries,
+  ];
 }

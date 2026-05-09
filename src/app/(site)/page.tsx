@@ -13,6 +13,8 @@ import {
 import { getProducts } from "@/lib/catalog";
 import { getHeroConfig } from "@/lib/hero-config";
 import { getLandingProducts } from "@/lib/landing-products";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildHomeJsonLd } from "@/lib/seo/json-ld";
 import type { Product } from "@/types";
 
 export const revalidate = 300;
@@ -41,10 +43,9 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ── Category icon strip (desktop); mobile uses header drawer ── */}
-      <div className="hidden md:block">
-        <CategoryMenu trendingHref={landingConfig?.trendingHref || "/shop"} />
-      </div>
+      <JsonLd data={buildHomeJsonLd()} />
+      {/* ── Category icon strip (horizontal scroll; PriceOye-style on mobile) ── */}
+      <CategoryMenu trendingHref={landingConfig?.trendingHref || "/shop"} />
 
       {/* ── Unified promotional hero + deals banner ── */}
       <UnifiedBanner promoPersonImageUrl={heroConfig.promoPersonImageUrl} />

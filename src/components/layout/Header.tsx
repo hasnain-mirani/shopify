@@ -26,6 +26,7 @@ import { signOut } from "firebase/auth";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { SshubMark } from "@/components/brand/SshubMark";
 import { SshubWordmark } from "@/components/brand/SshubWordmark";
+import { isExcludedNavCategory } from "@/lib/nav-categories";
 
 const NAV_LINKS = [
   { label: "Shop",        href: "/shop" },
@@ -652,7 +653,7 @@ function MobileMenuButton({ open, onToggle }: { open: boolean; onToggle: () => v
 /* Sidebar menu (priceoye-style)                                               */
 /* -------------------------------------------------------------------------- */
 
-const SIDEBAR_CATEGORIES = [
+const SIDEBAR_CATEGORIES_RAW = [
   { label: "Mobiles",                   href: "/collections/mobiles", icon: "📱", subs: ["Samsung", "Infinix", "Oppo", "Xiaomi", "Vivo", "Honor", "Tecno", "Realme", "More Brands"] },
   { label: "Smart Watches",             href: "/collections/smart-watches", icon: "⌚", subs: ["Faster", "Nothing", "Zero", "Assorted", "Dany", "Samsung", "Huawei", "More Brands"] },
   { label: "Wireless Earbuds",          href: "/collections/wireless-earbuds", icon: "🎧", subs: ["Xiaomi", "Airox", "Soundpeats", "Anker", "More Brands"] },
@@ -665,7 +666,11 @@ const SIDEBAR_CATEGORIES = [
   { label: "Hair Dryers",               href: "/collections/hair-dryers", icon: "💨", subs: ["Kemei", "Nova", "More Brands"] },
   { label: "Hair Straighteners",        href: "/collections/hair-straighteners", icon: "✂️", subs: ["Kemei", "Nova", "More Brands"] },
   { label: "TV & Home Appliances",      href: "/collections/home-appliances", icon: "📺", subs: ["Samsung", "LG", "TCL", "Haier", "More Brands"] },
-];
+] as const;
+
+const SIDEBAR_CATEGORIES = SIDEBAR_CATEGORIES_RAW.filter(
+  (c) => !isExcludedNavCategory(c.label, c.href),
+);
 
 function MobileMenu({
   open, onClose,
