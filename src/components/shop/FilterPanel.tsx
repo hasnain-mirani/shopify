@@ -282,7 +282,7 @@ function PriceInput({
     <div className="relative">
       <label
         htmlFor={id}
-        className="absolute top-1 left-3 font-ui text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400"
+        className="absolute top-1 left-3 font-ui text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400"
       >
         {label}
       </label>

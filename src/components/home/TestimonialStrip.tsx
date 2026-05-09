@@ -81,7 +81,7 @@ export function TestimonialStrip() {
         <div className="max-w-xl">
           <div className="flex items-center gap-3 mb-4">
             <span className="h-[1px] w-10" style={{ background: "rgba(245,166,35,0.5)" }} />
-            <span className="font-ui text-[11px] uppercase tracking-[0.3em]" style={{ color: "rgba(245,166,35,0.7)" }}>
+            <span className="font-ui text-[11px] uppercase tracking-[0.3em] text-amber-400">
               Loved by 48k+
             </span>
           </div>
@@ -109,7 +109,7 @@ export function TestimonialStrip() {
               <Star key={i} className="h-4 w-4 fill-accent text-accent" aria-hidden="true" />
             ))}
           </div>
-          <div className="font-ui text-sm text-white/50">
+          <div className="font-ui text-sm text-white/70">
             <strong className="text-brand-200">4.9 / 5</strong> · 12,000+ verified reviews
           </div>
         </div>
@@ -135,8 +135,8 @@ export function TestimonialStrip() {
 
             {/* Index badge */}
             <span
-              className="font-ui text-[10px] uppercase tracking-[0.25em]"
-              style={{ color: t.tone === "yellow" ? "rgba(26,13,0,0.5)" : "rgba(255,255,255,0.45)" }}
+              className="font-ui text-[11px] uppercase tracking-[0.25em]"
+              style={{ color: t.tone === "yellow" ? "rgba(26,13,0,0.88)" : "rgba(255,255,255,0.78)" }}
             >
               {String(i + 1).padStart(2, "0")} / {TESTIMONIALS.length.toString().padStart(2, "0")}
             </span>

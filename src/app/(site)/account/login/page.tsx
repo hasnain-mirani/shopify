@@ -90,7 +90,7 @@ export default function LoginPage() {
 
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 h-px bg-brand-200/10" />
-            <span className="font-ui text-xs text-slate-500">or with email</span>
+            <span className="font-ui text-xs text-slate-400">or with email</span>
             <div className="flex-1 h-px bg-brand-200/10" />
           </div>
 

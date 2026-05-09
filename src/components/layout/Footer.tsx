@@ -58,7 +58,7 @@ export function Footer({ className }: FooterProps) {
                 <SshubWordmark variant="footer" />
               </span>
               <span
-                className="font-ui text-[10px] uppercase tracking-[0.25em] mt-2 text-accent/50"
+                className="font-ui text-[11px] uppercase tracking-[0.25em] mt-2 text-accent/90"
               >
                 Premium Tech Accessories
               </span>
@@ -112,9 +112,11 @@ export function Footer({ className }: FooterProps) {
 
         {/* Bottom bar */}
         <div
-          className="mt-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pt-6 text-xs border-t border-brand-200/10 text-slate-500"
+          className="mt-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pt-6 text-xs border-t border-brand-200/10 text-slate-400"
         >
-          <span>© {new Date().getFullYear()} SSHUB. All rights reserved.</span>
+          <span className="text-slate-400">
+            © {new Date().getFullYear()} SSHUB. All rights reserved.
+          </span>
           <div className="flex items-center gap-4">
             {[
               { label: "Privacy",       href: "/privacy" },
@@ -124,7 +126,7 @@ export function Footer({ className }: FooterProps) {
               <Link
                 key={l.href}
                 href={l.href}
-                className="transition-colors hover:text-accent text-slate-500"
+                className="transition-colors hover:text-accent text-slate-400"
               >
                 {l.label}
               </Link>
@@ -187,6 +189,7 @@ function Newsletter() {
             onChange={(e) => setEmail(e.target.value)}
             variant="underline"
             inputSize="sm"
+            className="text-slate-200 placeholder:text-slate-400"
           />
         </div>
         <button

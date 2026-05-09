@@ -50,6 +50,8 @@ export interface Product {
     title?: string;
     description?: string;
   };
+  /** Optional storefront reviews for JSON-LD when available from API. */
+  reviews?: { count: number; rating: number };
 }
 
 export interface CartItem {

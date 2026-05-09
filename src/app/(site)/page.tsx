@@ -56,7 +56,7 @@ export default async function HomePage() {
           <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0c1a33_0%,#0a152a_100%)] p-3 shadow-[0_18px_45px_rgba(2,6,23,0.45)]">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <p className="font-ui text-[10px] uppercase tracking-[0.16em] text-white/55">
+                <p className="font-ui text-[11px] uppercase tracking-[0.16em] text-white/70">
                   Featured now
                 </p>
                 <h2 className="font-ui text-lg font-bold text-white">Top Picks</h2>

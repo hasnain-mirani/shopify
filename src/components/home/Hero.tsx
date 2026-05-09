@@ -221,7 +221,7 @@ export async function Hero() {
                     {pill.label}
                   </div>
                   {pill.sub && (
-                    <div className="font-ui text-[10px] mt-0.5 text-white/45">
+                    <div className="font-ui text-[11px] mt-0.5 text-white/70">
                       {pill.sub}
                     </div>
                   )}
@@ -281,11 +281,11 @@ export async function Hero() {
             >
               <div style={{ position: "absolute", width: "88px", height: "88px", borderRadius: "50%", background: "rgba(245,166,35,0.15)", animation: "pulse-dot 2.6s ease-in-out infinite", top: "50%", left: "50%", transform: "translate(-50%, -58%)" }} />
               <div className="hero-badge-shimmer" style={{ width: "74px", height: "74px", borderRadius: "50%", background: "linear-gradient(135deg, #FFD580 0%, #F5A623 50%, #E8850A 100%)", boxShadow: "0 8px 28px rgba(245,166,35,0.55), 0 2px 8px rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1px" }}>
-                <span className="font-ui text-[8px] font-bold tracking-widest uppercase leading-none text-brand-900/60">UP TO</span>
+                <span className="font-ui text-[11px] font-bold tracking-widest uppercase leading-none text-brand-900">UP TO</span>
                 <span className="font-display text-[22px] font-black leading-none text-brand-900">50%</span>
-                <span className="font-ui text-[8px] font-bold tracking-widest uppercase leading-none text-brand-900/60">OFF</span>
+                <span className="font-ui text-[11px] font-bold tracking-widest uppercase leading-none text-brand-900">OFF</span>
               </div>
-              <div className="mt-1.5 bg-accent/10 border border-accent/40 rounded-lg px-2 py-0.5 font-ui text-[8px] font-bold tracking-widest uppercase text-brand-200 whitespace-nowrap">⚡ Weekend</div>
+              <div className="mt-1.5 bg-accent/10 border border-accent/40 rounded-lg px-2 py-0.5 font-ui text-[11px] font-bold tracking-widest uppercase text-brand-100 whitespace-nowrap">⚡ Weekend</div>
             </div>
 
             {heroProducts[3] && (

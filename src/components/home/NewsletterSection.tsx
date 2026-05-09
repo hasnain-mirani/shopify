@@ -102,7 +102,7 @@ export function NewsletterSection() {
           <p
             className="font-sans mt-5"
             style={{
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(255,255,255,0.78)",
               fontSize: "clamp(0.95rem, 1.8vw, 1.1rem)",
               lineHeight: 1.7,
               maxWidth: "520px",
@@ -136,7 +136,7 @@ export function NewsletterSection() {
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 bg-transparent pl-4 pr-2 text-white placeholder:text-white/30 font-sans text-sm outline-none"
+              className="flex-1 bg-transparent pl-4 pr-2 text-white placeholder:text-white/60 font-sans text-sm outline-none"
               onFocus={(e) => {
                 const parent = e.target.parentElement;
                 if (parent) {
@@ -173,8 +173,7 @@ export function NewsletterSection() {
           </div>
 
           <p
-            className="mt-4 font-sans text-xs text-center"
-            style={{ color: "rgba(255,255,255,0.35)" }}
+            className="mt-4 font-sans text-xs text-center text-white/70"
           >
             By subscribing you agree to our privacy policy. Unsubscribe anytime.
           </p>
@@ -182,8 +181,7 @@ export function NewsletterSection() {
 
         {/* Trust row */}
         <div
-          className="flex items-center gap-6 flex-wrap justify-center font-ui text-[10px] uppercase tracking-[0.2em]"
-          style={{ color: "rgba(255,255,255,0.35)" }}
+          className="flex items-center gap-6 flex-wrap justify-center font-ui text-[11px] uppercase tracking-[0.2em] text-white/70"
         >
           <span>48k+ subscribers</span>
           <span className="h-1 w-1 rounded-full" style={{ background: "rgba(245,166,35,0.3)" }} />

@@ -61,7 +61,7 @@ export function ValueProps() {
                   {title}
                 </h3>
                 <p
-                  className="font-sans text-sm mt-1 leading-relaxed text-white/50"
+                  className="font-sans text-sm mt-1 leading-relaxed text-white/70"
                 >
                   {sub}
                 </p>

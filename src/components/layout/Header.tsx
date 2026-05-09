@@ -263,7 +263,7 @@ function NavLink({
       className={cn(
         "relative font-ui text-[13px] font-medium px-3.5 py-1.5 rounded-full",
         "transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent",
-        active ? "text-brand-900" : "text-white/60 hover:text-accent",
+        active ? "text-brand-900" : "text-white/70 hover:text-accent",
       )}
     >
       {active && (
@@ -396,7 +396,7 @@ function CartIconButton({
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
             className="absolute top-full right-0 mt-2 min-w-[200px] nav-glass-pill rounded-2xl px-4 py-3 text-left pointer-events-none"
           >
-            <div className="font-ui text-[10px] uppercase tracking-[0.22em] text-white/50">Your bag</div>
+            <div className="font-ui text-[11px] uppercase tracking-[0.22em] text-white/70">Your bag</div>
             <div className="mt-1 flex items-baseline justify-between gap-4">
               <span className="font-display text-xl text-white leading-none">
                 {count} {count === 1 ? "item" : "items"}
@@ -407,7 +407,7 @@ function CartIconButton({
                 </span>
               )}
             </div>
-            <div className="mt-2 font-ui text-[11px] text-white/40">Click to review & check out</div>
+            <div className="mt-2 font-ui text-[11px] text-white/70">Click to review & check out</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -603,7 +603,7 @@ function NotificationBell() {
                   >
                     <p className="font-ui text-sm font-semibold text-amber-400 mb-1 leading-tight">{n.title}</p>
                     <p className="font-ui text-xs text-slate-300 leading-snug line-clamp-2">{n.body}</p>
-                    <p className="font-ui text-[10px] text-slate-500 mt-2">{new Date(n.created_at).toLocaleDateString()}</p>
+                    <p className="font-ui text-[10px] text-slate-400 mt-2">{new Date(n.created_at).toLocaleDateString()}</p>
                   </Link>
                 ))
               )}

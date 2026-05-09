@@ -145,7 +145,7 @@ export default async function ProductPage({ params }: PageProps) {
             className="text-xs text-slate-400"
             linkClassName="text-amber-400 hover:text-amber-300"
             currentClassName="text-slate-200"
-            sepClassName="text-slate-500"
+            sepClassName="text-slate-400"
           />
         </div>
       </div>
@@ -344,7 +344,7 @@ export default async function ProductPage({ params }: PageProps) {
                       </span>
                       {sd > 0 && <span style={{ fontSize: "10px", fontWeight: 600, color: "#16a34a" }}>{sd}% OFF</span>}
                     </div>
-                    <span style={{ marginTop: "6px", display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 7px", borderRadius: "4px", background: "rgba(245,166,35,0.12)", border: "1px solid rgba(245,166,35,0.25)", color: "#E8850A", fontSize: "9px", fontWeight: 700, width: "fit-content" }}>
+                    <span style={{ marginTop: "6px", display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 7px", borderRadius: "4px", background: "rgba(245,166,35,0.12)", border: "1px solid rgba(245,166,35,0.25)", color: "#E8850A", fontSize: "11px", fontWeight: 700, width: "fit-content" }}>
                       ⚡ Fast Delivery
                     </span>
                   </Link>

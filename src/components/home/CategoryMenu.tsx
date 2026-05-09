@@ -201,7 +201,7 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
                 </div>
                 <span
                   className={cn(
-                    "max-w-full px-0.5 text-center font-ui text-[9px] font-medium leading-[1.15] text-white/75 sm:text-[10px] md:text-[11px]",
+                    "max-w-full px-0.5 text-center font-ui text-[11px] font-medium leading-[1.15] text-white sm:text-[11px] md:text-[11px]",
                     isFeatured && "text-[#f5a623]",
                     isActive && "text-[#f5a623]",
                   )}

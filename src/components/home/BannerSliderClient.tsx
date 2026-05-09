@@ -156,7 +156,8 @@ export function BannerSliderClient({ slides, autoPlayMs = 4500 }: Props) {
                 onClick={() => goTo(i)}
                 className="banner-dot"
                 style={{
-                  width: i === active ? "36px" : "8px",
+                  transform: `scaleX(${i === active ? 1 : 8 / 36})`,
+                  transformOrigin: "center",
                   background: i === active ? "linear-gradient(90deg, #FFD580, #F5A623)" : "rgba(245,166,35,0.3)",
                   boxShadow: i === active ? "0 0 12px rgba(245,166,35,0.55)" : "none",
                 }}
@@ -167,7 +168,10 @@ export function BannerSliderClient({ slides, autoPlayMs = 4500 }: Props) {
       )}
 
       <div className="banner-progress" aria-hidden="true">
-        <span className="banner-progress-fill" style={{ width: `${progress}%` }} />
+        <span
+          className="banner-progress-fill"
+          style={{ transform: `scaleX(${progress / 100})` }}
+        />
       </div>
     </section>
   );

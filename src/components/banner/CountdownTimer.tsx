@@ -36,7 +36,7 @@ function CountdownUnit({
           {str}
         </span>
       </div>
-      <span className="text-[10px] uppercase tracking-wider text-white/40">
+      <span className="text-[11px] uppercase tracking-wider text-white/70">
         {label}
       </span>
     </div>

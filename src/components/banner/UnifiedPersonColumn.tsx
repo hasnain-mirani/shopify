@@ -58,7 +58,7 @@ export function UnifiedPersonColumn({
       >
         {!imgFailed ? (
           <motion.div
-            className="relative h-full w-full overflow-visible"
+            className="relative w-full max-w-[460px] overflow-visible"
             style={{ background: "transparent", backgroundColor: "transparent" }}
             animate={
               reduceMotion
@@ -74,11 +74,13 @@ export function UnifiedPersonColumn({
             <Image
               src={imageUrl}
               alt="SSHUB Premium Mobile Accessories Pakistan"
-              fill
+              width={1920}
+              height={800}
               priority={imagePriority}
               fetchPriority={imagePriority ? "high" : undefined}
               sizes="(max-width: 767px) 100vw, min(460px, 40vw)"
               onError={() => setImgFailed(true)}
+              className="h-auto w-full max-h-[min(520px,70vh)]"
               style={{
                 objectFit: "contain",
                 objectPosition: "bottom center",

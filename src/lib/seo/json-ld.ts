@@ -57,20 +57,37 @@ export function buildHomeJsonLd() {
         },
       },
       {
-        "@type": "Store",
+        "@type": ["Store", "LocalBusiness"],
         "@id": storeId,
-        name: SITE_NAME,
-        description:
-          "Premium mobile accessories in Pakistan — earbuds, smartwatches, power banks, phone cases.",
-        url: base,
+        name: "SSHUB",
+        url: "https://www.sshub.store",
+        telephone: "+92-302-9453605",
+        email: "hasnainmirani1122@gmail.com",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "Jahaz Chok, Chobara Road",
+          addressLocality: "Layyah",
+          addressRegion: "Punjab",
+          addressCountry: "PK",
+          postalCode: "31200",
+        },
+        openingHoursSpecification: {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ],
+          opens: "09:00",
+          closes: "22:00",
+        },
         currenciesAccepted: "PKR",
         priceRange: "Rs 500 - Rs 15,000",
         areaServed: "PK",
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: "4.9",
-          reviewCount: "12000",
-        },
       },
     ],
   };
@@ -95,14 +112,42 @@ export function buildProductJsonLd(product: Product) {
 
   const amount = product.priceRange.minVariantPrice.amount;
   const currency = product.priceRange.minVariantPrice.currencyCode || "PKR";
-  const sku =
-    product.variants?.find((v) => v.sku)?.sku ??
-    product.variants?.[0]?.id ??
-    product.id;
 
   const availability = product.availableForSale
     ? "https://schema.org/InStock"
     : "https://schema.org/OutOfStock";
+
+  const offers: Record<string, unknown> = {
+    "@type": "Offer",
+    url,
+    priceCurrency: currency,
+    price: amount,
+    availability,
+    seller: { "@type": "Organization", name: SITE_NAME },
+    shippingDetails: {
+      "@type": "OfferShippingDetails",
+      shippingRate: {
+        "@type": "MonetaryAmount",
+        value: "0",
+        currency: "PKR",
+      },
+      deliveryTime: {
+        "@type": "ShippingDeliveryTime",
+        handlingTime: {
+          "@type": "QuantitativeValue",
+          minValue: 1,
+          maxValue: 2,
+          unitCode: "DAY",
+        },
+        transitTime: {
+          "@type": "QuantitativeValue",
+          minValue: 2,
+          maxValue: 5,
+          unitCode: "DAY",
+        },
+      },
+    },
+  };
 
   const node: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -111,25 +156,27 @@ export function buildProductJsonLd(product: Product) {
     image: images.length ? images : undefined,
     description,
     brand: { "@type": "Brand", name: SITE_NAME },
-    sku,
-    offers: {
-      "@type": "Offer",
-      url,
-      priceCurrency: currency,
-      price: amount,
-      availability,
-      seller: { "@type": "Organization", name: SITE_NAME },
-    },
+    sku: product.id,
+    offers,
   };
 
-  const reviewCount = process.env.NEXT_PUBLIC_SEO_REVIEW_COUNT?.trim();
-  const ratingVal = process.env.NEXT_PUBLIC_SEO_AGGREGATE_RATING?.trim();
-  if (reviewCount && ratingVal) {
+  const apiReviews = product.reviews;
+  if (apiReviews && apiReviews.count > 0) {
     node.aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: ratingVal,
-      reviewCount,
+      ratingValue: String(apiReviews.rating),
+      reviewCount: String(apiReviews.count),
     };
+  } else {
+    const reviewCount = process.env.NEXT_PUBLIC_SEO_REVIEW_COUNT?.trim();
+    const ratingVal = process.env.NEXT_PUBLIC_SEO_AGGREGATE_RATING?.trim();
+    if (reviewCount && ratingVal) {
+      node.aggregateRating = {
+        "@type": "AggregateRating",
+        ratingValue: ratingVal,
+        reviewCount,
+      };
+    }
   }
 
   return node;

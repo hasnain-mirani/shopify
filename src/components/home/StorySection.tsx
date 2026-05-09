@@ -159,7 +159,7 @@ function StatBlock({ stat, delayMs }: { stat: Stat; delayMs: number }) {
       <dt className="font-ui text-sm font-semibold text-white uppercase tracking-[0.14em] mt-2">
         {stat.label}
       </dt>
-      <dd className="font-sans text-sm text-white/55">{stat.sub}</dd>
+      <dd className="font-sans text-sm text-white/70">{stat.sub}</dd>
     </div>
   );
 }

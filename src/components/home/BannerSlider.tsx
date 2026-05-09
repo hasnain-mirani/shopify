@@ -219,11 +219,12 @@ export async function BannerSlider() {
         .banner-dot {
           height: 8px;
           min-height: 8px;
+          width: 36px;
           border-radius: 999px;
           border: none;
           cursor: pointer;
           padding: 0;
-          transition: width 0.35s cubic-bezier(0.22,1,0.36,1), background 0.25s ease, box-shadow 0.25s ease;
+          transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), background 0.25s ease, box-shadow 0.25s ease;
         }
         .banner-progress {
           position: absolute;
@@ -237,8 +238,10 @@ export async function BannerSlider() {
         .banner-progress-fill {
           display: block;
           height: 100%;
+          width: 100%;
+          transform-origin: left center;
           background: linear-gradient(90deg, #fcd34d, #f59e0b);
-          transition: width 0.35s ease;
+          transition: transform 0.35s ease;
         }
       `}</style>
     </>

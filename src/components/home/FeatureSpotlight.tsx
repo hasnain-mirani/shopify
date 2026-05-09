@@ -88,7 +88,7 @@ export function FeatureSpotlight({
               {eyebrow}
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-2 font-ui text-[11px] uppercase tracking-[0.22em] text-white/30">
+          <div className="hidden md:flex items-center gap-2 font-ui text-[11px] uppercase tracking-[0.22em] text-white/70">
             <span className="font-display text-lg leading-none text-accent">
               {watermark}
             </span>
@@ -164,7 +164,7 @@ export function FeatureSpotlight({
                 {/* Top-right price tag — repositioned so it NEVER collides
                     with anything pinned to the bottom. */}
                 <div className="absolute top-5 right-5 z-20 text-right rounded-2xl bg-brand-900/90 backdrop-blur-md px-4 py-2.5 shadow-lg">
-                  <div className="font-ui text-[9px] uppercase tracking-[0.25em] text-white/60">
+                  <div className="font-ui text-[11px] uppercase tracking-[0.25em] text-white">
                     From
                   </div>
                   <div className="font-display text-xl md:text-2xl text-accent leading-none mt-0.5">
