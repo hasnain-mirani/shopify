@@ -17,6 +17,7 @@ const siteNotificationsRouter = require("./routes/site-notifications");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+let dbInitPromise = null;
 
 // Allowed origins for CORS
 const allowedOrigins = [
@@ -91,14 +92,34 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Initialize DB then start server
-initDb().then(() => {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Backend running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
+function ensureDbInitialized() {
+  if (!dbInitPromise) {
+    dbInitPromise = initDb().catch((err) => {
+      dbInitPromise = null;
+      throw err;
+    });
+  }
+  return dbInitPromise;
+}
+
+// For Vercel serverless runtime
+async function handler(req, res) {
+  await ensureDbInitialized();
+  return app(req, res);
+}
+
+module.exports = { app, handler, ensureDbInitialized };
+
+// Local/dev server entrypoint
+if (require.main === module) {
+  ensureDbInitialized().then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Backend running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
+    });
+  }).catch((err) => {
+    console.error("Failed to initialize database:", err);
+    process.exit(1);
   });
-}).catch((err) => {
-  console.error("Failed to initialize database:", err);
-  process.exit(1);
-});
+}
