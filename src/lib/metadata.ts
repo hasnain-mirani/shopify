@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { Collection, Product } from "@/types";
+import { getSiteUrl } from "@/lib/site-url";
 import { formatPrice, truncate } from "./utils";
 
 const SITE_NAME = "SSHUB";
@@ -7,7 +8,7 @@ const DEFAULT_DESCRIPTION =
   "Phone accessories, home decor, and cosy bundle deals — hand-picked for the aesthetically curious.";
 
 function absoluteUrl(path: string): string {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const base = getSiteUrl();
   const clean = path.startsWith("/") ? path : `/${path}`;
   return `${base}${clean}`;
 }

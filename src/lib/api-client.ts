@@ -1,4 +1,5 @@
 import type { Product } from "@/types";
+import { getSiteUrl } from "@/lib/site-url";
 import { uploadToCloudinary, uploadMultipleToCloudinary, type CloudinaryUploadResult } from "./cloudinary";
 
 const RAW_API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
@@ -14,10 +15,7 @@ function getApiBase(): string {
   }
 
   // Server actions/route handlers need an absolute URL for fetch().
-  const serverOrigin =
-    process.env.INTERNAL_API_ORIGIN ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    `http://localhost:${process.env.PORT || "3000"}`;
+  const serverOrigin = process.env.INTERNAL_API_ORIGIN || getSiteUrl();
 
   if (RAW_API_BASE.startsWith("/")) {
     return `${serverOrigin}${RAW_API_BASE}`.replace(/\/$/, "");
