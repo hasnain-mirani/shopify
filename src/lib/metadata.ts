@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { Collection, Product } from "@/types";
 import { formatPrice, truncate } from "./utils";
 
-const SITE_NAME = "SSHUB.STORE";
+const SITE_NAME = "SSHUB";
 const DEFAULT_DESCRIPTION =
   "Phone accessories, home decor, and cosy bundle deals — hand-picked for the aesthetically curious.";
 

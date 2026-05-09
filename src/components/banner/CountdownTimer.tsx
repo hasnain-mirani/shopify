@@ -25,14 +25,14 @@ function CountdownUnit({
 }) {
   const str = String(value).padStart(2, "0");
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-0.5 md:gap-1">
       <div
         className={cn(
-          "rounded-[10px] border border-white/10 bg-white/[0.06] px-[18px] py-2.5 tabular-nums backdrop-blur-md [perspective:400px]",
+          "rounded-[10px] border border-white/10 bg-white/[0.06] px-3 py-1.5 tabular-nums backdrop-blur-md [perspective:400px] md:px-[18px] md:py-2.5",
           !reduceMotion && flipped && "flash-sale-digit-flip",
         )}
       >
-        <span className="inline-block text-[26px] font-bold leading-none text-[#f5a623]">
+        <span className="inline-block text-xl font-bold leading-none text-[#f5a623] md:text-[26px]">
           {str}
         </span>
       </div>
@@ -78,7 +78,7 @@ export function CountdownTimer({ reduceMotion }: { reduceMotion: boolean }) {
   prevSRef.current = s;
 
   return (
-    <div className="flex flex-wrap items-end gap-2 [perspective:500px]">
+    <div className="flex flex-wrap items-end justify-center gap-1.5 [perspective:500px] md:justify-start md:gap-2">
       <CountdownUnit
         value={h}
         label="Hours"
@@ -87,7 +87,7 @@ export function CountdownTimer({ reduceMotion }: { reduceMotion: boolean }) {
       />
       <span
         className={cn(
-          "mb-8 px-0.5 text-2xl font-bold text-[#f5a623]",
+          "mb-5 px-0.5 text-lg font-bold text-[#f5a623] md:mb-8 md:text-2xl",
           colonOn ? "opacity-100" : "opacity-35",
         )}
       >
@@ -101,7 +101,7 @@ export function CountdownTimer({ reduceMotion }: { reduceMotion: boolean }) {
       />
       <span
         className={cn(
-          "mb-8 px-0.5 text-2xl font-bold text-[#f5a623]",
+          "mb-5 px-0.5 text-lg font-bold text-[#f5a623] md:mb-8 md:text-2xl",
           colonOn ? "opacity-100" : "opacity-35",
         )}
       >

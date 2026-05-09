@@ -106,7 +106,7 @@ export function BannerSliderClient({ slides, autoPlayMs = 4500 }: Props) {
               <div className="banner-eyebrow-row">
                 <span className="banner-index">{String(active + 1).padStart(2, "0")}</span>
                 <span className="banner-divider" />
-                <span className="banner-eyebrow">SSHUB.STORE Picks</span>
+                <span className="banner-eyebrow">SSHUB Picks</span>
               </div>
               <span className="banner-badge">{slide.badge}</span>
               <h1 className="banner-headline">{slide.headline}</h1>

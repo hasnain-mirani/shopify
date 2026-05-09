@@ -129,7 +129,7 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
         ? list.slice(0, 2)
         : list;
   const unifiedMobile = isMobile && mobileLayout === "unified";
-  const mobileScale = isMobile ? (unifiedMobile ? 0.62 : 0.6) : 1;
+  const mobileScale = isMobile ? (unifiedMobile ? 0.68 : 0.64) : 1;
 
   return (
     <div
@@ -137,7 +137,9 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
       className={[
         className,
         "pointer-events-auto touch-manipulation",
-        unifiedMobile ? "flex w-full gap-3 overflow-x-auto pb-2 no-scrollbar" : "",
+        unifiedMobile
+          ? "flex w-full min-h-[108px] items-end gap-2 overflow-x-auto overflow-y-visible py-1 pb-1 [-webkit-overflow-scrolling:touch] no-scrollbar"
+          : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -201,7 +203,7 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
 
       {visibleProducts.map((p) => {
         const w = Math.round(
-          (unifiedMobile ? Math.min(p.width, 108) : p.width) * mobileScale,
+          (unifiedMobile ? Math.min(p.width, 96) : p.width) * mobileScale,
         );
         const baseRx = `rotateX(${p.rotateX}deg)`;
         const baseRy = `rotateY(${p.rotateY}deg)`;
@@ -229,8 +231,8 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
         const positionStyle: CSSProperties = unifiedMobile
           ? {
               position: "relative",
-              width: 100,
-              flex: "0 0 100px",
+              width: 108,
+              flex: "0 0 108px",
             }
           : isMobile
             ? {

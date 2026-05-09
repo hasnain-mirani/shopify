@@ -16,7 +16,7 @@ export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(
     "Journal",
-    "Styling notes, drop diaries, and studio dispatches from SSHUB.STORE — the aesthetic corner of the internet.",
+    "Styling notes, drop diaries, and studio dispatches from SSHUB — the aesthetic corner of the internet.",
     "/journal",
   );
 }

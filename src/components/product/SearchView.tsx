@@ -32,7 +32,7 @@ const DEFAULT_SUGGESTIONS = [
 ];
 
 const BROWSE_LINKS: Array<{ label: string; href: string; hint: string }> = [
-  { label: "New arrivals", href: "/shop?sort=CREATED_AT&reverse=true", hint: "Fresh glow drops" },
+  { label: "New arrivals", href: "/shop?tag=New%20Arrivals", hint: "Fresh glow drops" },
   { label: "All collections", href: "/collections", hint: "Phone · home · bundle" },
   { label: "Shop everything", href: "/shop", hint: "The full catalog" },
 ];
@@ -339,16 +339,16 @@ function ResultsStatus({
   onClear?: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-5 border-b border-brand-200">
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-5 border-b border-brand-200 dark:border-white/15">
       <div className="flex items-center gap-3">
-        <span className="h-px w-8 bg-brand-700" aria-hidden="true" />
-        <span className="font-ui text-[11px] uppercase tracking-[0.28em] text-brand-700">
+        <span className="h-px w-8 bg-brand-700 dark:bg-zinc-500" aria-hidden="true" />
+        <span className="font-ui text-[11px] uppercase tracking-[0.28em] text-brand-700 dark:text-zinc-300">
           {state === "loading" ? "Searching" : "Results"}
         </span>
         {query && (
-          <span className="font-ui text-sm text-brand-800">
+          <span className="font-ui text-sm text-brand-800 dark:text-zinc-300">
             for{" "}
-            <span className="font-display text-brand-900 italic">
+            <span className="font-display text-brand-900 dark:text-white italic">
               &ldquo;{query}&rdquo;
             </span>
           </span>
@@ -356,14 +356,14 @@ function ResultsStatus({
       </div>
       {state === "results" && typeof count === "number" && (
         <div className="flex items-center gap-4">
-          <span className="font-ui text-[11px] uppercase tracking-[0.22em] text-brand-500 tabular-nums">
+          <span className="font-ui text-[11px] uppercase tracking-[0.22em] text-brand-500 dark:text-zinc-400 tabular-nums">
             {String(count).padStart(2, "0")} {count === 1 ? "piece" : "pieces"}
           </span>
           {onClear && (
             <button
               type="button"
               onClick={onClear}
-              className="inline-flex items-center gap-1.5 font-ui text-[11px] uppercase tracking-[0.22em] text-brand-600 hover:text-brand-900 transition-colors"
+              className="inline-flex items-center gap-1.5 font-ui text-[11px] uppercase tracking-[0.22em] text-brand-600 dark:text-zinc-400 hover:text-brand-900 dark:hover:text-white transition-colors"
             >
               Clear
               <X className="h-3 w-3" aria-hidden="true" />

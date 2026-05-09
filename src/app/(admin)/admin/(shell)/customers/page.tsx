@@ -19,9 +19,11 @@ export default function AdminCustomersPage() {
   const fetchUsers = async () => {
     try {
       const res = await fetch("/api/admin/users");
-      if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
-      setUsers(data);
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to fetch users");
+      }
+      setUsers(Array.isArray(data) ? data : []);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -46,12 +48,12 @@ export default function AdminCustomersPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to create user");
       }
-      toast.success("User created successfully!");
+      toast.success("Customer saved");
       setModalOpen(false);
       setName("");
       setEmail("");
       setPassword("");
-      fetchUsers();
+      await fetchUsers();
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -176,7 +178,9 @@ export default function AdminCustomersPage() {
                   <td className="px-6 py-4 font-medium">{u.displayName || "—"}</td>
                   <td className="px-6 py-4 text-zinc-500 dark:text-zinc-400">{u.email}</td>
                   <td className="px-6 py-4 text-zinc-500 dark:text-zinc-400">
-                    {new Date(u.creationTime).toLocaleDateString()}
+                    {u.creationTime
+                      ? new Date(u.creationTime).toLocaleDateString()
+                      : "—"}
                   </td>
                   <td className="px-6 py-4">
                     <button

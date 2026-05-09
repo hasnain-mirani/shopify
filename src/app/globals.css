@@ -754,9 +754,9 @@ html.cursor-glow-enabled * {
   }
 }
 
-/* WhatsApp FAB — amber ping rings + periodic bounce hint */
+/* WhatsApp FAB — amber ping rings + periodic bounce hint.
+   Do not set position here — the component uses Tailwind `fixed` for viewport placement. */
 .wa-fab {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,32 +1,53 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { api } from "@/lib/api-client";
 
+/** E.164 digits for wa.me (PK local 03… → 923…). */
+function toWhatsAppDigits(raw: string): string {
+  let d = raw.replace(/\D/g, "");
+  if (d.startsWith("0") && d.length >= 10) d = "92" + d.slice(1);
+  return d;
+}
+
 export function WhatsAppButton() {
-  const [number, setNumber] = useState("03066888139");
+  const [number, setNumber] = useState("03006760473");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     api.settings
       .get()
       .then((s) => {
-        if (s.whatsapp_number) setNumber(s.whatsapp_number);
+        if (s.whatsapp_number?.trim()) setNumber(s.whatsapp_number.trim());
       })
       .catch(() => {});
   }, []);
 
-  const cleanNumber = number.replace(/\D/g, "");
-  const href = "https://wa.me/" + cleanNumber;
+  const href = "https://wa.me/" + toWhatsAppDigits(number);
 
-  return (
+  /** Portal → document.body so parent flex/transform never breaks `fixed`. */
+  const fab = (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      title="Chat with us"
+      title="Chat on WhatsApp"
       aria-label="Chat with us on WhatsApp"
-      className="wa-fab fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full p-0 text-white shadow-lg transition-transform duration-300 hover:scale-110"
-      style={{ boxShadow: "0 4px 20px rgba(37, 211, 102, 0.4)" }}
+      className="wa-fab flex h-14 w-14 items-center justify-center rounded-full p-0 text-white shadow-lg transition-transform duration-300 hover:scale-110 motion-reduce:transition-none motion-reduce:hover:scale-100"
+      style={{
+        position: "fixed",
+        right: "max(1rem, env(safe-area-inset-right, 0px))",
+        bottom: "max(1.25rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)))",
+        left: "auto",
+        top: "auto",
+        zIndex: 2147483000,
+        boxShadow: "0 4px 24px rgba(37, 211, 102, 0.45), 0 2px 8px rgba(0,0,0,0.35)",
+      }}
     >
       <span className="wa-fab-ring" aria-hidden />
       <span className="wa-fab-ring wa-fab-ring--delay" aria-hidden />
@@ -37,4 +58,7 @@ export function WhatsAppButton() {
       </span>
     </a>
   );
+
+  if (!mounted || typeof document === "undefined") return null;
+  return createPortal(fab, document.body);
 }

@@ -19,21 +19,34 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 let dbInitPromise = null;
 
+function normalizeOrigin(value) {
+  return String(value || "").trim().replace(/\/$/, "");
+}
+
+function parseOriginList(raw) {
+  return String(raw || "")
+    .split(",")
+    .map((v) => normalizeOrigin(v))
+    .filter(Boolean);
+}
+
 // Allowed origins for CORS
-const allowedOrigins = [
+const allowedOrigins = new Set([
   "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://localhost:3001",
   "http://127.0.0.1:3001",
-  process.env.FRONTEND_URL, // Add your deployed frontend URL
-].filter(Boolean);
+  ...parseOriginList(process.env.FRONTEND_URL),   // supports comma-separated values
+  ...parseOriginList(process.env.FRONTEND_URLS),  // optional dedicated list
+].map(normalizeOrigin).filter(Boolean));
 
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
+    const normalized = normalizeOrigin(origin);
+    if (!allowedOrigins.has(normalized)) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
       return callback(new Error(msg), false);
     }
@@ -108,7 +121,10 @@ async function handler(req, res) {
   return app(req, res);
 }
 
-module.exports = { app, handler, ensureDbInitialized };
+module.exports = handler;
+module.exports.app = app;
+module.exports.handler = handler;
+module.exports.ensureDbInitialized = ensureDbInitialized;
 
 // Local/dev server entrypoint
 if (require.main === module) {
@@ -116,7 +132,7 @@ if (require.main === module) {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Backend running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
+      console.log(`Allowed origins: ${Array.from(allowedOrigins).join(', ')}`);
     });
   }).catch((err) => {
     console.error("Failed to initialize database:", err);

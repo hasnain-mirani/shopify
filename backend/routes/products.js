@@ -49,16 +49,44 @@ function selectedOptionsFromVariantTitle(title, optionsOrdered) {
 
 router.get("/", async (req, res) => {
   try {
-    const { status, search, limit = 50, offset = 0 } = req.query;
+    const {
+      status,
+      search,
+      tag,
+      newArrivals,
+      inStock,
+      sort = "updated_desc",
+      limit = 50,
+      offset = 0,
+    } = req.query;
+
     let sql = "SELECT * FROM products WHERE 1=1";
     const params = [];
     if (status) { sql += " AND status = ?"; params.push(status); }
-    if (search) { sql += " AND (title LIKE ? OR handle LIKE ?)"; params.push("%" + search + "%", "%" + search + "%"); }
-    sql += " ORDER BY updated_at DESC LIMIT ? OFFSET ?";
+    if (search) { sql += " AND (title ILIKE ? OR handle ILIKE ?)"; params.push("%" + search + "%", "%" + search + "%"); }
+    if (inStock === "1" || inStock === "true") { sql += " AND status = 'ACTIVE'"; }
+
+    const newArrivalsOn = newArrivals === "1" || newArrivals === "true";
+    if (!newArrivalsOn && tag) {
+      const t = String(tag).trim();
+      if (t) {
+        sql += " AND tags ILIKE ?";
+        params.push("%" + t + "%");
+      }
+    }
+
+    const orderSql = {
+      updated_desc: "updated_at DESC NULLS LAST",
+      created_desc: "created_at DESC NULLS LAST",
+      created_asc: "created_at ASC NULLS LAST",
+      title_asc: "title ASC NULLS LAST",
+    };
+    sql += " ORDER BY " + (orderSql[sort] || orderSql.updated_desc);
+    sql += " LIMIT ? OFFSET ?";
     params.push(Number(limit), Number(offset));
 
     const products = await queryAll(sql, params);
-    const result = await Promise.all(products.map(async (p) => {
+    let result = await Promise.all(products.map(async (p) => {
       const images = await queryAll("SELECT * FROM product_images WHERE product_id = ? ORDER BY position", [p.id]);
       const variants = await queryAll("SELECT * FROM product_variants WHERE product_id = ? ORDER BY position", [p.id]);
       const options = await queryAll("SELECT * FROM product_options WHERE product_id = ? ORDER BY position", [p.id]);
@@ -113,6 +141,16 @@ router.get("/", async (req, res) => {
         createdAt: p.created_at, updatedAt: p.updated_at,
       };
     }));
+
+    if (sort === "price_asc" || sort === "price_desc") {
+      const mul = sort === "price_desc" ? -1 : 1;
+      result.sort((a, b) => {
+        const pa = Number.parseFloat(a.priceRange?.minVariantPrice?.amount ?? "0");
+        const pb = Number.parseFloat(b.priceRange?.minVariantPrice?.amount ?? "0");
+        return mul * (pa - pb);
+      });
+    }
+
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

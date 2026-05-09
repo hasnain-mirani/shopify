@@ -112,7 +112,7 @@ export function useNotifications() {
         if (!mounted) return;
         console.log("[FCM] Foreground message received:", payload);
         setToast({
-          title: payload.notification?.title || "SSHUB.STORE",
+          title: payload.notification?.title || "SSHUB",
           body: payload.notification?.body || "",
           icon: payload.notification?.icon,
           url: (payload.data as any)?.url,

@@ -44,3 +44,5 @@ next-env.d.ts
 
 # local json config store (promo banner, etc.)
 /.data/
+
+.vercel

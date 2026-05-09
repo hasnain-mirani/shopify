@@ -27,7 +27,7 @@ interface PageProps {
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(
     "Shop all",
-    "Browse every piece in the SSHUB.STORE catalog — phone accessories, home decor, and bundle deals.",
+    "Browse every piece in the SSHUB catalog — phone accessories, home decor, and bundle deals.",
     "/shop",
   );
 }

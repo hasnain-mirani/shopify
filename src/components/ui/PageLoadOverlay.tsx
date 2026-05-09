@@ -2,6 +2,8 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { SshubMark } from "@/components/brand/SshubMark";
+import { SshubWordmark } from "@/components/brand/SshubWordmark";
 
 const SESSION_KEY = "sshub_store_splash_v1";
 
@@ -44,7 +46,7 @@ export function PageLoadOverlay() {
         >
           <div className="flex flex-col items-center gap-5">
             <motion.div
-              className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-accent-light to-accent-dark shadow-lg shadow-accent/30"
+              className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full shadow-lg shadow-accent/30"
               animate={{ scale: [1, 1.07, 1] }}
               transition={{
                 duration: 0.65,
@@ -53,11 +55,9 @@ export function PageLoadOverlay() {
               }}
               style={{ boxShadow: "0 0 24px rgba(245,166,35,0.45)" }}
             >
-              <span className="text-2xl font-black text-brand-900">⚡</span>
+              <SshubMark size={56} className="h-full w-full rounded-full object-cover" />
             </motion.div>
-            <span className="font-display text-xl font-black tracking-tight bg-gradient-to-r from-brand-200 via-accent to-accent-dark bg-clip-text text-transparent">
-              SSHUB.STORE
-            </span>
+            <SshubWordmark variant="splash" />
           </div>
         </motion.div>
       ) : null}

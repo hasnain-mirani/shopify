@@ -190,14 +190,16 @@ const SLIDES: SlideConfig[] = [
     glow: "cool",
     line1: "New Arrivals",
     line2Words: ["Fresh", "drops", "weekly"],
-    sub: "Latest accessories and wearables landing on SSHUB.STORE",
+    sub: "Latest accessories and wearables landing on SSHUB",
     cta: "See what's new",
     href: "/shop",
   },
 ];
 
 function useMatchMedia(query: string) {
-  const [matches, setMatches] = useState(false);
+  const [matches, setMatches] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(query).matches : false,
+  );
   useEffect(() => {
     const mq = window.matchMedia(query);
     const fn = () => setMatches(mq.matches);
@@ -221,7 +223,7 @@ function CenterSlideContent({
     <div className="flex w-full max-w-[480px] flex-col items-center px-0 text-center md:mx-auto md:items-start md:px-10 md:text-left">
       <motion.span
         className={cn(
-          "mb-4 inline-flex items-center gap-1 rounded-full border border-[rgba(245,166,35,0.35)] bg-[rgba(245,166,35,0.12)] px-[14px] py-[5px] text-[11px] font-semibold uppercase tracking-[0.1em] text-[#f5a623]",
+          "mb-2 inline-flex items-center gap-1 rounded-full border border-[rgba(245,166,35,0.35)] bg-[rgba(245,166,35,0.12)] px-[14px] py-[5px] text-[11px] font-semibold uppercase tracking-[0.1em] text-[#f5a623] md:mb-4",
           !reduceMotion && "unified-banner-badge-pulse",
         )}
         initial={reduceMotion ? undefined : { opacity: 0 }}
@@ -231,7 +233,7 @@ function CenterSlideContent({
         ⚡ LIMITED TIME OFFER
       </motion.span>
 
-      <h2 className="font-ui text-[32px] font-extrabold leading-[1.08] tracking-tight text-white md:text-[44px]">
+      <h2 className="font-ui text-[24px] font-extrabold leading-[1.08] tracking-tight text-white md:text-[44px]">
         <span className="block">
           {wordsL1.map((w, wi) => (
             <motion.span
@@ -250,7 +252,7 @@ function CenterSlideContent({
           ))}
         </span>
         <span
-          className="mt-1 block bg-gradient-to-r from-[#f5a623] to-[#ffd700] bg-clip-text text-[36px] font-black text-transparent md:text-[50px]"
+          className="mt-0.5 block bg-gradient-to-r from-[#f5a623] to-[#ffd700] bg-clip-text text-[28px] font-black text-transparent md:mt-1 md:text-[50px]"
           style={{
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
@@ -275,7 +277,7 @@ function CenterSlideContent({
       </h2>
 
       <motion.p
-        className="mb-6 mt-3 max-w-md text-sm leading-relaxed text-[rgba(255,255,255,0.45)]"
+        className="mb-3 mt-2 max-w-md text-xs leading-relaxed text-[rgba(255,255,255,0.45)] md:mb-6 md:mt-3 md:text-sm"
         initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
         animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
         transition={{ delay: reduceMotion ? 0 : 0.6, duration: 0.45, ease: textEase }}
@@ -292,14 +294,14 @@ function CenterSlideContent({
       </motion.div>
 
       <motion.div
-        className="mt-6 w-full max-md:flex max-md:justify-center md:mt-6"
+        className="mt-3 w-full max-md:flex max-md:justify-center md:mt-6"
         initial={reduceMotion ? undefined : { opacity: 0, y: 18 }}
         animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
         transition={{ delay: reduceMotion ? 0 : 0.75, duration: 0.45, ease: textEase }}
       >
         <Link
           href={slide.href}
-          className="group inline-flex w-full max-w-[360px] items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-[#f5a623] to-[#e8960f] px-9 py-[14px] text-[15px] font-bold text-black shadow-[0_0_28px_rgba(245,166,35,0.35)] transition duration-300 hover:-translate-y-[3px] hover:shadow-[0_0_40px_rgba(245,166,35,0.5)] md:inline-flex md:w-auto md:max-w-none md:px-[36px]"
+          className="group inline-flex w-full max-w-[360px] items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-[#f5a623] to-[#e8960f] px-6 py-3 text-sm font-bold text-black shadow-[0_0_28px_rgba(245,166,35,0.35)] transition duration-300 hover:-translate-y-[3px] hover:shadow-[0_0_40px_rgba(245,166,35,0.5)] md:inline-flex md:w-auto md:max-w-none md:px-[36px] md:py-[14px] md:text-[15px]"
         >
           {slide.cta}
           <ArrowRight
@@ -360,7 +362,7 @@ function UnifiedBannerImpl({
   return (
     <section
       ref={sectionRef}
-      className="relative isolate w-full overflow-hidden bg-[#0a0f1e] py-8 md:h-[520px] md:min-h-[520px] md:py-0"
+      className="relative isolate w-full overflow-x-hidden overflow-y-visible bg-[#0a0f1e] py-3 pb-8 md:h-[520px] md:min-h-[520px] md:overflow-hidden md:pb-8 md:py-0"
       aria-label="SSHUB promotions"
     >
       {/* Top accent */}
@@ -422,7 +424,7 @@ function UnifiedBannerImpl({
 
       {/* SALE watermark center */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-black leading-none text-[220px] text-[rgba(245,166,35,0.025)] max-md:text-[120px]"
+        className="pointer-events-none absolute left-1/2 top-[42%] z-0 -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-black leading-none text-[220px] text-[rgba(245,166,35,0.025)] max-md:top-1/3 max-md:text-[72px]"
         style={{ fontWeight: 900 }}
         aria-hidden
       >
@@ -466,7 +468,7 @@ function UnifiedBannerImpl({
       `}</style>
 
       {/* Main row */}
-      <div className="relative z-[3] mx-auto flex h-full w-full max-w-[1440px] flex-col md:flex-row md:items-stretch">
+      <div className="relative z-[3] mx-auto flex h-full w-full max-w-[1440px] flex-col gap-0 md:flex-row md:items-stretch md:gap-0">
         <UnifiedPersonColumn
           reduceMotion={!!reduceMotion}
           inView={inView}
@@ -474,12 +476,12 @@ function UnifiedBannerImpl({
           imageUrl={promoPersonImageUrl}
         />
 
-        {/* Center 40% */}
-        <div className="relative z-[4] flex w-full flex-1 items-center justify-center py-4 md:w-[40%] md:max-w-[40%] md:py-0">
+        {/* Center 40% — on mobile, stack below floating products so category strip stays visible */}
+        <div className="relative z-[4] order-2 flex w-full flex-1 items-center justify-center py-1 md:order-none md:w-[40%] md:max-w-[40%] md:py-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={slide.id}
-              className="flex w-full justify-center px-5 md:px-0"
+              className="flex w-full justify-center px-3 md:px-0"
               initial={reduceMotion ? false : { x: 30, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={reduceMotion ? undefined : { x: -30, opacity: 0 }}
@@ -490,19 +492,19 @@ function UnifiedBannerImpl({
           </AnimatePresence>
         </div>
 
-        {/* Right 30% — floating products */}
-        <div className="relative z-[2] flex min-h-[200px] w-full shrink-0 flex-col justify-center md:w-[30%] md:max-w-[30%] md:min-h-0">
+        {/* Right 30% — floating products (first on mobile so horizontal strip is not below the fold) */}
+        <div className="relative z-[5] order-1 flex min-h-0 w-full shrink-0 flex-col justify-start md:order-none md:z-[2] md:w-[30%] md:max-w-[30%] md:min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={slide.id}
-              className="relative h-[min(360px,52vw)] w-full px-3 md:absolute md:inset-0 md:h-full md:px-0"
+              className="relative min-h-0 w-full px-3 md:absolute md:inset-0 md:h-full md:min-h-0 md:px-0"
               initial={reduceMotion ? false : { x: 45, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={reduceMotion ? undefined : { x: 40, opacity: 0 }}
               transition={{ duration: 0.45, ease: textEase }}
             >
               <BannerFloatingProducts
-                className="relative h-full w-full md:pt-4"
+                className="relative w-full min-h-0 md:h-full md:min-h-0 md:pt-4"
                 animationsActive={animationsActive}
                 parallaxEnabled={parallaxEnabled}
                 isMobile={isMobile}
@@ -534,7 +536,7 @@ function UnifiedBannerImpl({
       </button>
 
       {/* Indicators */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-5 z-[8] flex justify-center px-4">
+      <div className="pointer-events-none absolute inset-x-0 bottom-1 z-[8] flex justify-center px-4 md:bottom-5">
         <div className="pointer-events-auto">
           <BannerControls
             count={SLIDES.length}

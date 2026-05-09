@@ -8,6 +8,8 @@ import { api } from "@/lib/api-client";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "react-hot-toast";
 import { Check, MapPin } from "lucide-react";
+import { SshubMark } from "@/components/brand/SshubMark";
+import { SshubWordmark } from "@/components/brand/SshubWordmark";
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
@@ -79,13 +81,9 @@ function CheckoutSuccessContent() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       {/* Checkout Header */}
       <header className="border-b border-white/10 py-6 px-6 lg:px-12 flex justify-between items-center bg-zinc-950/80 backdrop-blur-md sticky top-0 z-30">
-        <Link href="/" className="text-2xl font-bold tracking-tight text-white font-outfit flex items-center gap-2">
-          <span className="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center text-zinc-900">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </span>
-          SSHUB.STORE
+        <Link href="/" className="flex items-center gap-2 no-underline">
+          <SshubMark size={32} className="rounded-full" />
+          <SshubWordmark variant="drawer" className="text-2xl sm:text-[1.4rem]" />
         </Link>
       </header>
 

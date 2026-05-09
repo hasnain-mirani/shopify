@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+import { getBackendApiBase } from "@/lib/backend-url";
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ uid: string }> }) {
   try {
     const { uid } = await params;
-    const res = await fetch(`${BACKEND_URL}/users/${uid}`, {
+    const base = getBackendApiBase();
+    const res = await fetch(`${base}/users/${uid}`, {
       method: "DELETE",
     });
 

@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
+import { SshubMark } from "@/components/brand/SshubMark";
+import { SshubWordmark } from "@/components/brand/SshubWordmark";
 
 const SECTIONS: Array<{ heading: string; links: Array<{ label: string; href: string }> }> = [
   {
@@ -50,19 +52,10 @@ export function Footer({ className }: FooterProps) {
 
           {/* Brand + tagline */}
           <div>
-            <Link href="/" className="inline-flex flex-col leading-none" aria-label="SSHUB.STORE — home">
+            <Link href="/" className="inline-flex flex-col leading-none" aria-label="SSHUB — home">
               <span className="flex items-center gap-2">
-                <span
-                  aria-hidden="true"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-base font-black text-brand-900 bg-gradient-to-br from-accent to-accent-dark"
-                >
-                  ⚡
-                </span>
-                <span
-                  className="font-display text-lg font-black tracking-tight bg-gradient-to-r from-brand-200 via-accent to-accent-dark text-transparent bg-clip-text"
-                >
-                  SSHUB.STORE
-                </span>
+                <SshubMark size={32} className="rounded-full" />
+                <SshubWordmark variant="footer" />
               </span>
               <span
                 className="font-ui text-[10px] uppercase tracking-[0.25em] mt-2 text-accent/50"
@@ -121,7 +114,7 @@ export function Footer({ className }: FooterProps) {
         <div
           className="mt-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pt-6 text-xs border-t border-brand-200/10 text-slate-500"
         >
-          <span>© {new Date().getFullYear()} SSHUB.STORE. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} SSHUB. All rights reserved.</span>
           <div className="flex items-center gap-4">
             {[
               { label: "Privacy",       href: "/privacy" },

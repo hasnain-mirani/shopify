@@ -16,14 +16,65 @@ export interface GetProductsParams {
   after?: string;
 }
 
+/** Parse storefront-style `query` (e.g. tag:"X" AND available_for_sale:true). */
+function parseStorefrontQuery(query: string | undefined): {
+  tags: string[];
+  inStockOnly: boolean;
+  freeText: string;
+} {
+  if (!query?.trim()) return { tags: [], inStockOnly: false, freeText: "" };
+  let rest = query;
+  const tags: string[] = [];
+  const re = /tag:\s*"([^"]+)"/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(query)) !== null) tags.push(m[1]);
+  rest = rest.replace(/tag:\s*"[^"]+"\s*(AND\s*)?/gi, "");
+  const inStockOnly = /available_for_sale:\s*true/i.test(rest);
+  rest = rest.replace(/available_for_sale:\s*true\s*(AND\s*)?/gi, "");
+  return { tags, inStockOnly, freeText: rest.replace(/\s+AND\s*$/i, "").trim() };
+}
+
+function isNewArrivalsLabel(tag: string): boolean {
+  const t = tag.trim().toLowerCase();
+  return t === "new arrivals" || t === "new arrival" || t === "new-arrivals";
+}
+
+function mapSortToApi(sortKey: string | undefined, reverse: boolean): string {
+  switch (sortKey) {
+    case "CREATED_AT":
+      return reverse ? "created_desc" : "created_asc";
+    case "PRICE":
+      return reverse ? "price_desc" : "price_asc";
+    case "TITLE":
+      return "title_asc";
+    case "BEST_SELLING":
+    default:
+      return "updated_desc";
+  }
+}
+
 export async function getProducts(params: GetProductsParams = {}): Promise<Product[]> {
-  const { limit = 24, query, after } = params;
+  const { limit = 24, query, after, sortKey = "BEST_SELLING", reverse = false } = params;
   const offset = after ? Number.parseInt(after, 10) : 0;
   const safeOffset = Number.isFinite(offset) && offset > 0 ? offset : 0;
+
+  const parsed = parseStorefrontQuery(query);
+  const primaryTag = parsed.tags[0];
+  const newArrivalsNav = primaryTag ? isNewArrivalsLabel(primaryTag) : false;
+
+  const sort =
+    newArrivalsNav && sortKey === "BEST_SELLING"
+      ? "created_desc"
+      : mapSortToApi(sortKey, reverse);
+
   return api.products.list({
     limit,
-    search: query || undefined,
     offset: safeOffset,
+    search: parsed.freeText || undefined,
+    tag: newArrivalsNav || !primaryTag ? undefined : primaryTag,
+    newArrivals: newArrivalsNav,
+    inStock: parsed.inStockOnly,
+    sort,
   });
 }
 

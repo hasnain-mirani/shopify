@@ -84,7 +84,7 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
     <section
       ref={sectionRef}
       aria-label="Shop by category"
-      className="relative flex h-20 w-full shrink-0 items-center border-y border-white/[0.06] bg-[rgba(255,255,255,0.02)] px-6"
+      className="relative flex h-14 w-full shrink-0 items-center border-y border-white/[0.06] bg-[rgba(255,255,255,0.02)] px-2 md:h-20 md:px-6"
     >
       {/* Left fade + arrow (desktop) */}
       <div
@@ -110,7 +110,7 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
       <div
         ref={scrollRef}
         className={cn(
-          "no-scrollbar flex h-full min-w-0 flex-1 items-center gap-2.5 overflow-x-auto scroll-smooth [-ms-overflow-style:none] md:gap-2.5",
+          "no-scrollbar flex h-full min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-smooth [-ms-overflow-style:none] md:gap-2.5",
           showArrows ? "lg:mx-10" : "",
         )}
         style={{ WebkitOverflowScrolling: "touch" }}
@@ -159,7 +159,7 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
                   aria-label={cat.label}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "group relative flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border py-1.5 pl-1.5 pr-3 transition-all duration-[250ms] ease-out md:gap-2 md:py-2 md:pl-2 md:pr-4",
+                    "group relative flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-3 py-1 transition-all duration-[250ms] ease-out md:h-11 md:gap-2 md:py-2 md:pl-2 md:pr-4",
                     "border-white/[0.08] bg-[rgba(255,255,255,0.04)]",
                     "hover:border-[rgba(245,166,35,0.45)] hover:bg-[rgba(245,166,35,0.1)] hover:shadow-[0_4px_20px_rgba(245,166,35,0.15)]",
                     isFeatured &&
@@ -178,13 +178,13 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
 
                   <div
                     className={cn(
-                      "relative flex shrink-0 items-center justify-center overflow-visible rounded-full border border-white/10 bg-[rgba(255,255,255,0.06)] transition-transform duration-300 ease-out group-hover:scale-110",
-                      "h-7 w-7 p-1 max-md:h-7 max-md:w-7 md:h-9 md:w-9 md:p-1",
+                      "relative hidden shrink-0 items-center justify-center overflow-visible rounded-full border border-white/10 bg-[rgba(255,255,255,0.06)] transition-transform duration-300 ease-out group-hover:scale-110 md:flex",
+                      "md:h-9 md:w-9 md:p-1",
                     )}
                   >
                     {/* Emoji badge — top-left of thumb */}
                     <span
-                      className="absolute -left-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-[rgba(245,166,35,0.5)] bg-[rgba(245,166,35,0.2)] text-[8px] leading-none shadow-[0_0_6px_rgba(245,166,35,0.35)]"
+                      className="absolute -left-0.5 -top-0.5 hidden h-4 w-4 items-center justify-center rounded-full border border-[rgba(245,166,35,0.5)] bg-[rgba(245,166,35,0.2)] text-[8px] leading-none shadow-[0_0_6px_rgba(245,166,35,0.35)] md:flex"
                       aria-hidden
                     >
                       {badge}
@@ -223,7 +223,7 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
                   </div>
                   <span
                     className={cn(
-                      "font-ui text-xs font-medium text-white/75 transition-colors duration-200 group-hover:text-[#f5a623] md:text-[13px]",
+                      "font-ui inline text-[11px] font-medium text-white/75 transition-colors duration-200 group-hover:text-[#f5a623] md:text-[13px]",
                       isFeatured && "text-[#f5a623]",
                       isActive && "text-[#f5a623]",
                     )}

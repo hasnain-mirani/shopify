@@ -11,7 +11,7 @@ export const revalidate = 900;
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(
     "Collections",
-    "Shop phone accessories, home decor, and bundle deals — three curated collections from SSHUB.STORE.",
+    "Shop phone accessories, home decor, and bundle deals — three curated collections from SSHUB.",
     "/collections",
   );
 }

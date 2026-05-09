@@ -64,6 +64,7 @@ function normalizeProduct(raw: any): Product {
     productType: raw.productType || raw.category || undefined,
     createdAt: raw.createdAt || raw.created_at || undefined,
     updatedAt: raw.updatedAt || raw.updated_at || undefined,
+    publishedAt: raw.publishedAt || raw.createdAt || raw.created_at || undefined,
     status: raw.status || undefined,
     options: Array.isArray(raw.options) ? raw.options : [],
     priceRange: raw.priceRange || {
@@ -134,10 +135,23 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
 // Products
 export const api = {
   products: {
-    list: async (params?: { status?: string; search?: string; limit?: number; offset?: number }) => {
+    list: async (params?: {
+      status?: string;
+      search?: string;
+      tag?: string;
+      newArrivals?: boolean;
+      inStock?: boolean;
+      sort?: string;
+      limit?: number;
+      offset?: number;
+    }) => {
       const searchParams = new URLSearchParams();
       if (params?.status) searchParams.set("status", params.status);
       if (params?.search) searchParams.set("search", params.search);
+      if (params?.tag) searchParams.set("tag", params.tag);
+      if (params?.newArrivals) searchParams.set("newArrivals", "1");
+      if (params?.inStock) searchParams.set("inStock", "1");
+      if (params?.sort) searchParams.set("sort", params.sort);
       if (params?.limit) searchParams.set("limit", String(params.limit));
       if (params?.offset != null && params.offset > 0) searchParams.set("offset", String(params.offset));
       const qs = searchParams.toString();

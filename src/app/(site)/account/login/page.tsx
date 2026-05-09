@@ -10,6 +10,8 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { SshubMark } from "@/components/brand/SshubMark";
+import { SshubWordmark } from "@/components/brand/SshubWordmark";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,10 +54,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-10">
-          <span className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-brand-900 font-black text-lg">⚡</span>
-          <span className="font-display text-2xl font-black tracking-tight bg-gradient-to-r from-brand-200 via-amber-400 to-amber-500 text-transparent bg-clip-text">
-            SSHUB.STORE
-          </span>
+          <SshubMark size={40} className="rounded-full" />
+          <SshubWordmark variant="lg" />
         </Link>
 
         <div className="bg-brand-900/60 backdrop-blur-xl rounded-3xl border border-brand-200/10 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)]">

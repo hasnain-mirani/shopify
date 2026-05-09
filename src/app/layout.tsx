@@ -27,7 +27,7 @@ const geistMono = Geist_Mono({
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const siteName = "SSHUB.STORE";
+const siteName = "SSHUB";
 const siteTagline = "Premium Mobile Accessories & Smart Tech";
 const defaultDescription =
   "Premium phone accessories, smartwatches, power banks, and smart tech — hand-picked for tech enthusiasts. Free shipping worldwide.";
@@ -66,9 +66,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteName} — ${siteTagline}`,
     description: defaultDescription,
-  },
-  icons: {
-    icon: "/favicon.ico",
   },
   robots: {
     index: true,

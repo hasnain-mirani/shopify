@@ -25,7 +25,7 @@ function createSmtpTransport() {
   });
 }
 
-const DEFAULT_STORE_NAME = "SSHUB.STORE";
+const DEFAULT_STORE_NAME = "SSHUB";
 const DEFAULT_ADMIN_EMAIL = "hasnainmirani1122@gmail.com";
 
 function escapeHtml(s: string | null | undefined): string {

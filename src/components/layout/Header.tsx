@@ -24,6 +24,8 @@ import { useAuthStore } from "@/store/auth-store";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { AnnouncementBar } from "./AnnouncementBar";
+import { SshubMark } from "@/components/brand/SshubMark";
+import { SshubWordmark } from "@/components/brand/SshubWordmark";
 
 const NAV_LINKS = [
   { label: "Shop",        href: "/shop" },
@@ -130,7 +132,7 @@ export function Header({
           {/* ── Logo ── */}
           <Link
             href="/"
-            aria-label="SSHUB.STORE — home"
+            aria-label="SSHUB — home"
             className="group flex items-center gap-2 leading-none shrink-0 outline-none"
           >
             <motion.span
@@ -138,7 +140,7 @@ export function Header({
               initial={reduceMotion ? false : { scale: 0.88, opacity: 0.85 }}
               animate={reduceMotion ? undefined : { scale: 1, opacity: 1 }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-accent to-accent-dark transition-transform duration-500 group-hover:rotate-[360deg]"
+              className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full transition-transform duration-500 group-hover:rotate-[360deg]"
               style={
                 reduceMotion
                   ? undefined
@@ -147,12 +149,10 @@ export function Header({
                     }
               }
             >
-              <span className="text-sm font-black text-brand-900">⚡</span>
+              <SshubMark size={32} className="h-full w-full rounded-full object-cover" />
             </motion.span>
-            <span
-              className="font-display text-[16px] font-black tracking-tight hidden sm:block bg-gradient-to-r from-brand-200 via-accent to-accent-dark text-transparent bg-clip-text"
-            >
-              SSHUB.STORE
+            <span className="hidden sm:block">
+              <SshubWordmark variant="nav" />
             </span>
           </Link>
 
@@ -704,8 +704,8 @@ function MobileMenu({
             {/* Header */}
             <div style={{ background: "linear-gradient(135deg, #172554, #1e293b)", padding: "16px 16px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(148,163,184,0.2)" }}>
               <Link href="/" onClick={onClose} style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
-                <span style={{ fontSize: "22px" }}>⚡</span>
-                <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "16px", fontWeight: 800, color: "#f8fafc" }}>SSHUB.STORE</span>
+                <SshubMark size={28} className="rounded-full" />
+                <SshubWordmark variant="drawer" />
               </Link>
               <button
                 type="button"

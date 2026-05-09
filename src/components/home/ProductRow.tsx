@@ -119,7 +119,7 @@ function ProductCard({ product }: { product: Product }) {
         <p className="pr-title">{product.title}</p>
         <p className="pr-brand">
           <Check className="pr-brand-check" aria-hidden strokeWidth={3} />
-          SSHUB.STORE Verified
+          SSHUB Verified
         </p>
         <div className="pr-price-row">
           <span className="pr-price">
@@ -238,7 +238,11 @@ export function ProductRow({
           margin: 0 auto;
         }
         @media (max-width: 640px) {
-          .pr-section-header { padding: 0 48px 14px; }
+          .pr-section-header {
+            padding: 0 14px 12px;
+            align-items: flex-start;
+            gap: 8px;
+          }
         }
         .pr-title-wrap {
           display: flex;
@@ -356,6 +360,27 @@ export function ProductRow({
         @media (min-width: 1024px) {
           .pr-grid { grid-template-columns: repeat(5, 1fr); }
         }
+        @media (max-width: 767px) {
+          .pr-grid-wrapper { display: block; }
+          .pr-nav-btn { display: none; }
+          .pr-grid {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 0 14px 4px;
+            scroll-snap-type: x mandatory;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .pr-grid::-webkit-scrollbar { display: none; }
+          .pr-grid > * {
+            min-width: 46%;
+            flex: 0 0 46%;
+            scroll-snap-align: start;
+          }
+          .pr-view-all { padding: 7px 12px; font-size: 11px; }
+          .pr-subtitle { font-size: 11px; }
+        }
         /* ── Card ── */
         .pr-card {
           border-radius: 20px;
@@ -367,6 +392,9 @@ export function ProductRow({
           flex-direction: column;
           transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
           min-height: 280px;
+        }
+        @media (max-width: 767px) {
+          .pr-card { min-height: 238px; }
         }
         .pr-card:hover {
           box-shadow: 0 8px 40px rgba(245,166,35,0.12);

@@ -201,7 +201,7 @@ export function ProductPageTabs({ product, similar }: Props) {
         {active === "FAQs" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {[
-              { q: "Is this product authentic?", a: "Yes, all products on SSHUB.STORE are 100% authentic and sourced from authorised distributors." },
+              { q: "Is this product authentic?", a: "Yes, all products on SSHUB are 100% authentic and sourced from authorised distributors." },
               { q: "What is the delivery time?", a: "Standard delivery takes 2–4 business days nationwide." },
               { q: "Can I return this product?", a: "Yes, we offer easy 7-day returns free of charge if the product is defective." },
             ].map((faq) => (

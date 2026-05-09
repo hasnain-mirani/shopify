@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import UnifiedBanner from "@/components/banner/UnifiedBanner";
 import {
   CategoryMenu,
@@ -29,18 +31,79 @@ export default async function HomePage() {
   const rowBest = pickCategoryProducts(products, BEST_SELLER_KEYWORDS, 10);
   const row4 = pickCategoryProducts(products, CHARGER_KEYWORDS, 10);
   const rowSpeakers = pickCategoryProducts(products, SPEAKER_KEYWORDS, 10);
-  const featuredProducts = row1.length > 0 ? row1 : activeProducts.slice(0, 10);
+  const featuredProducts =
+    row1.length > 0
+      ? row1
+      : activeProducts.length > 0
+        ? activeProducts.slice(0, 10)
+        : products.slice(0, 10);
+  const mobileFeatured = featuredProducts.slice(0, 4);
 
   return (
     <>
-      {/* ── Category icon strip ── */}
-      <CategoryMenu trendingHref={landingConfig?.trendingHref || "/shop"} />
+      {/* ── Category icon strip (desktop); mobile uses header drawer ── */}
+      <div className="hidden md:block">
+        <CategoryMenu trendingHref={landingConfig?.trendingHref || "/shop"} />
+      </div>
 
       {/* ── Unified promotional hero + deals banner ── */}
       <UnifiedBanner promoPersonImageUrl={heroConfig.promoPersonImageUrl} />
 
-      {/* ── Admin-configured promo banner (enable from admin panel) ── */}
-      <PromoBanner />
+      {/* ── Mobile-first quick featured block (structure-focused) ── */}
+      {mobileFeatured.length > 0 && (
+        <section className="mx-auto w-full max-w-[1200px] px-3 pb-2 pt-2 md:hidden">
+          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#0c1a33_0%,#0a152a_100%)] p-3 shadow-[0_18px_45px_rgba(2,6,23,0.45)]">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <p className="font-ui text-[10px] uppercase tracking-[0.16em] text-white/55">
+                  Featured now
+                </p>
+                <h2 className="font-ui text-lg font-bold text-white">Top Picks</h2>
+              </div>
+              <Link
+                href="/shop"
+                className="rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-white/90"
+              >
+                View All
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {mobileFeatured.map((p) => {
+                const price = Number.parseFloat(
+                  p.priceRange?.minVariantPrice?.amount ?? "0",
+                );
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/products/${p.handle}`}
+                    className="rounded-xl border border-white/10 bg-[rgba(255,255,255,0.03)] p-2"
+                  >
+                    <div className="relative mb-2 aspect-square overflow-hidden rounded-lg bg-[#0c1730]">
+                      {p.featuredImage?.url ? (
+                        <Image
+                          src={p.featuredImage.url}
+                          alt={p.featuredImage.altText ?? p.title}
+                          fill
+                          sizes="45vw"
+                          className="object-contain p-2"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-xl">📦</div>
+                      )}
+                    </div>
+                    <p className="line-clamp-1 font-ui text-[12px] font-semibold text-white">
+                      {p.title}
+                    </p>
+                    <p className="mt-1 font-ui text-[12px] font-bold text-[#f5a623]">
+                      Rs {price.toLocaleString("en-PK")}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Product rows — each with a distinct dark-tinted background ── */}
       {featuredProducts.length > 0 && (
@@ -53,6 +116,9 @@ export default async function HomePage() {
           sectionBg="linear-gradient(135deg, #0f172a 0%, #111c34 100%)"
         />
       )}
+
+      {/* ── Admin-configured promo banner (enable from admin panel) ── */}
+      <PromoBanner />
 
       <MarqueeBand
         tone="dark"

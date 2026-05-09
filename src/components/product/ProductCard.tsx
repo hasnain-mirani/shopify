@@ -92,13 +92,20 @@ export function ProductCard({
   // freeze it into a stable state value.
   const [nowSnapshot] = useState(() => Date.now());
   const isNew = useMemo(() => {
-    if (product.tags?.some((t) => t.toLowerCase() === "new")) return true;
-    if (!product.publishedAt) return false;
+    if (
+      product.tags?.some((t) => {
+        const u = t.toLowerCase();
+        return u === "new" || u === "new arrivals" || u === "new arrival";
+      })
+    ) {
+      return true;
+    }
+    const pub = product.publishedAt || product.createdAt;
+    if (!pub) return false;
     const days =
-      (nowSnapshot - new Date(product.publishedAt).getTime()) /
-      (1000 * 60 * 60 * 24);
+      (nowSnapshot - new Date(pub).getTime()) / (1000 * 60 * 60 * 24);
     return days >= 0 && days <= 30;
-  }, [product.tags, product.publishedAt, nowSnapshot]);
+  }, [product.tags, product.publishedAt, product.createdAt, nowSnapshot]);
 
   const purchasableVariants = useMemo(
     () => product.variants?.filter(isVariantAvailable) ?? [],
@@ -344,7 +351,7 @@ export function ProductCard({
       {/* ── Product info block ───────────────────────────────────────── */}
       <div className="mt-4 flex flex-col gap-1.5">
         {product.vendor && (
-          <span className="font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-500">
+          <span className="font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-500 dark:text-zinc-400">
             {product.vendor}
           </span>
         )}
@@ -354,7 +361,7 @@ export function ProductCard({
           className={cn(
             "relative inline-block self-start pr-1 max-w-full",
             "font-display text-[17px] md:text-[18px] leading-[1.15] tracking-tight",
-            "text-brand-900 hover:text-brand-700 transition-colors line-clamp-1",
+            "text-brand-900 hover:text-brand-700 dark:text-zinc-100 dark:hover:text-amber-200/90 transition-colors line-clamp-1",
             "after:content-[''] after:block after:h-px after:w-0 after:bg-current after:transition-[width] after:duration-300",
             "group-hover:after:w-[calc(100%-0.25rem)]",
           )}
@@ -367,13 +374,15 @@ export function ProductCard({
             <span
               className={cn(
                 "font-ui font-semibold text-[15px] md:text-[15.5px]",
-                onSale ? "text-red-600" : "text-brand-900",
+                onSale
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-brand-900 dark:text-amber-400",
               )}
             >
               {formatPrice(min.amount, min.currencyCode)}
             </span>
             {onSale && compareMin && (
-              <span className="font-ui text-brand-400 line-through text-xs">
+              <span className="font-ui text-brand-400 dark:text-zinc-500 line-through text-xs">
                 {formatPrice(compareMin.amount, compareMin.currencyCode)}
               </span>
             )}
@@ -383,7 +392,7 @@ export function ProductCard({
           {swatches.length > 0 ? (
             <ColorDots swatches={swatches} />
           ) : variantCount > 1 ? (
-            <span className="font-ui text-[10px] uppercase tracking-[0.18em] text-brand-500 shrink-0">
+            <span className="font-ui text-[10px] uppercase tracking-[0.18em] text-brand-500 dark:text-zinc-400 shrink-0">
               {variantCount} options
             </span>
           ) : null}
@@ -440,7 +449,7 @@ function ColorDots({ swatches }: { swatches: ColorSwatch[] }) {
         />
       ))}
       {extra > 0 && (
-        <span className="font-ui text-[10px] font-medium text-brand-500 tabular-nums ml-0.5">
+        <span className="font-ui text-[10px] font-medium text-brand-500 dark:text-zinc-400 tabular-nums ml-0.5">
           +{extra}
         </span>
       )}
@@ -582,9 +591,10 @@ function VariantPanel({
           className={cn(
             "absolute left-3 right-3 bottom-[68px] z-30",
             "rounded-2xl nav-glass-pill p-2 max-h-56 overflow-y-auto",
+            "dark:bg-zinc-900/95 dark:border dark:border-white/10",
           )}
         >
-          <div className="px-2 pt-1 pb-2 font-ui text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-500">
+          <div className="px-2 pt-1 pb-2 font-ui text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-500 dark:text-zinc-400">
             Select option
           </div>
           <ul className="flex flex-col gap-0.5">
@@ -603,12 +613,12 @@ function VariantPanel({
                     className={cn(
                       "w-full text-left px-3 py-2 rounded-xl text-sm",
                       "flex items-center justify-between gap-3",
-                      "hover:bg-brand-100/80 transition-colors",
+                      "hover:bg-brand-100/80 dark:hover:bg-white/10 transition-colors",
                       "disabled:opacity-60 disabled:cursor-not-allowed",
                     )}
                   >
-                    <span className="truncate font-ui text-brand-900">{label}</span>
-                    <span className="shrink-0 font-ui text-xs text-brand-500 tabular-nums">
+                    <span className="truncate font-ui text-brand-900 dark:text-zinc-100">{label}</span>
+                    <span className="shrink-0 font-ui text-xs text-brand-500 dark:text-zinc-400 tabular-nums">
                       {formatPrice(
                         v.price.amount,
                         v.price.currencyCode ?? fallbackCurrency,

@@ -115,7 +115,7 @@ async function sendOrderConfirmationEmail(order, items) {
 
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;"/>
         <p style="font-size: 12px; color: #999; text-align: center;">
-          ${isForAdmin ? "This is an automated notification from SSHUB.STORE Admin." : "If you have any questions, please contact our support team."}
+          ${isForAdmin ? "This is an automated notification from SSHUB Admin." : "If you have any questions, please contact our support team."}
         </p>
       </div>
     `;
@@ -123,7 +123,7 @@ async function sendOrderConfirmationEmail(order, items) {
     // Send to customer only when we have a real buyer email (not shop placeholder)
     if (buyerEmail) {
       await transporter.sendMail({
-        from: `"SSHUB.STORE" <${process.env.SMTP_USER || "noreply@sshub.store"}>`,
+        from: `"SSHUB" <${process.env.SMTP_USER || "noreply@sshub.store"}>`,
         to: buyerEmail,
         subject: `Order Confirmation #${order.id.split('-')[0].toUpperCase()}`,
         html: htmlTemplate(false),
@@ -132,7 +132,7 @@ async function sendOrderConfirmationEmail(order, items) {
 
     // Send to Admin
     await transporter.sendMail({
-      from: `"SSHUB.STORE Admin" <${process.env.SMTP_USER || "noreply@sshub.store"}>`,
+        from: `"SSHUB Admin" <${process.env.SMTP_USER || "noreply@sshub.store"}>`,
       to: adminEmail,
       subject: `[New Order] #${order.id.split('-')[0].toUpperCase()} - PKR ${order.total}`,
       html: htmlTemplate(true),
@@ -179,7 +179,7 @@ async function sendShippingConfirmationEmail(order) {
     if (!recipient) return;
 
     await transporter.sendMail({
-      from: `"SSHUB.STORE" <${process.env.SMTP_USER || "noreply@sshub.store"}>`,
+      from: `"SSHUB" <${process.env.SMTP_USER || "noreply@sshub.store"}>`,
       to: recipient,
       subject: `Your Order #${order.id.split('-')[0].toUpperCase()} has been shipped!`,
       html: `
@@ -204,7 +204,7 @@ async function sendShippingConfirmationEmail(order) {
 
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;"/>
           <p style="font-size: 12px; color: #999; text-align: center;">
-            Thank you for shopping with SSHUB.STORE!
+            Thank you for shopping with SSHUB!
           </p>
         </div>
       `,
