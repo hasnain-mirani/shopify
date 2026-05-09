@@ -14,6 +14,7 @@ import {
 import { buildProductMetadata } from "@/lib/metadata";
 import { ProductPageTabs } from "@/components/product/ProductPageTabs";
 import type { Product } from "@/types";
+import { isSafeStaticSegment } from "@/lib/safe-static-segment";
 
 interface PageProps {
   params: Promise<{ handle: string }>;
@@ -56,7 +57,9 @@ function parseSpecifications(specifications?: string): Array<{ key: string; valu
 export async function generateStaticParams() {
   try {
     const products = await getProducts({ limit: 50 });
-    return products.map((p: Product) => ({ handle: p.handle }));
+    return products
+      .map((p: Product) => ({ handle: p.handle }))
+      .filter((p) => isSafeStaticSegment(p.handle));
   } catch {
     return [];
   }

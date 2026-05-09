@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductGrid } from "@/components/product";
 import { getCollectionProducts, getCollections } from "@/lib/catalog";
 import { buildCollectionMetadata } from "@/lib/metadata";
+import { isSafeStaticSegment } from "@/lib/safe-static-segment";
 
 interface PageProps {
   params: Promise<{ handle: string }>;
@@ -12,7 +13,9 @@ interface PageProps {
 export async function generateStaticParams() {
   try {
     const collections = await getCollections();
-    return collections.map((c) => ({ handle: c.handle }));
+    return collections
+      .map((c) => ({ handle: c.handle }))
+      .filter((p) => isSafeStaticSegment(p.handle));
   } catch {
     return [];
   }
