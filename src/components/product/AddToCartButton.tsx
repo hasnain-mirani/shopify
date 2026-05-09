@@ -10,6 +10,9 @@ export interface AddToCartButtonProps
   extends Omit<ButtonProps, "onClick" | "isLoading" | "children"> {
   /** Variant id to add. When `null`, button renders disabled. */
   variantId: string | null;
+  productTitle: string;
+  price: number;
+  imageUrl?: string;
   availableForSale: boolean;
   quantity?: number;
   label?: string;
@@ -27,6 +30,9 @@ export interface AddToCartButtonProps
  */
 export function AddToCartButton({
   variantId,
+  productTitle,
+  price,
+  imageUrl,
   availableForSale,
   quantity = 1,
   label,
@@ -60,7 +66,7 @@ export function AddToCartButton({
     if (!variantId || !availableForSale) return;
     setState("adding");
     try {
-      await addItem(variantId, quantity);
+      await addItem(variantId, productTitle, price, imageUrl, quantity);
       setState("added");
       onAdded?.();
     } catch {

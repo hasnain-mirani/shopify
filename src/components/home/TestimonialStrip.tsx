@@ -54,6 +54,12 @@ const TONE_AVATAR: Record<Testimonial["tone"], React.CSSProperties> = {
   orange: { background: "linear-gradient(135deg, #F5A623, #E8850A)", color: "#1a0d00" },
 };
 
+const TONE_AVATAR_CLASS: Record<Testimonial["tone"], string> = {
+  green:  "bg-gradient-to-br from-accent to-accent-dark text-brand-900",
+  yellow: "bg-brand-900/25 text-brand-900",
+  orange: "bg-gradient-to-br from-accent to-accent-dark text-brand-900",
+};
+
 const TONE_QUOTE_COLOR: Record<Testimonial["tone"], string> = {
   green:  "rgba(245,166,35,0.15)",
   yellow: "rgba(26,13,0,0.15)",
@@ -100,11 +106,11 @@ export function TestimonialStrip() {
         <div className="hidden md:flex flex-col items-end gap-1">
           <div className="flex items-center gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="h-4 w-4" style={{ fill: "#F5A623", color: "#F5A623" }} aria-hidden="true" />
+              <Star key={i} className="h-4 w-4 fill-accent text-accent" aria-hidden="true" />
             ))}
           </div>
-          <div className="font-ui text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-            <strong style={{ color: "#FFD580" }}>4.9 / 5</strong> · 12,000+ verified reviews
+          <div className="font-ui text-sm text-white/50">
+            <strong className="text-brand-200">4.9 / 5</strong> · 12,000+ verified reviews
           </div>
         </div>
       </div>
@@ -137,8 +143,7 @@ export function TestimonialStrip() {
 
             {/* Quote */}
             <blockquote
-              className="relative font-display text-xl md:text-[1.4rem] leading-snug tracking-tight flex-1"
-              style={{ color: t.tone === "yellow" ? "#1a0d00" : "white" }}
+              className={`relative font-display text-xl md:text-[1.4rem] leading-snug tracking-tight flex-1 ${t.tone === "yellow" ? "text-brand-900" : "text-white"}`}
             >
               &ldquo;{t.quote}&rdquo;
             </blockquote>
@@ -149,8 +154,7 @@ export function TestimonialStrip() {
                 <Star
                   key={i}
                   aria-hidden="true"
-                  className="h-3.5 w-3.5"
-                  style={t.tone === "yellow" ? { fill: "#1a0d00", color: "#1a0d00" } : { fill: "#F5A623", color: "#F5A623" }}
+                  className={`h-3.5 w-3.5 ${t.tone === "yellow" ? "fill-brand-900 text-brand-900" : "fill-accent text-accent"}`}
                 />
               ))}
             </div>
@@ -158,15 +162,13 @@ export function TestimonialStrip() {
             {/* Author */}
             <footer className="flex items-center gap-3">
               <span
-                className="flex h-10 w-10 items-center justify-center rounded-full font-ui text-xs font-bold"
-                style={TONE_AVATAR[t.tone]}
+                className={`flex h-10 w-10 items-center justify-center rounded-full font-ui text-xs font-bold ${TONE_AVATAR_CLASS[t.tone]}`}
               >
                 {t.initials}
               </span>
               <div className="leading-tight">
                 <div
-                  className="font-ui text-sm font-semibold"
-                  style={{ color: t.tone === "yellow" ? "#1a0d00" : "white" }}
+                  className={`font-ui text-sm font-semibold ${t.tone === "yellow" ? "text-brand-900" : "text-white"}`}
                 >
                   {t.author}
                 </div>

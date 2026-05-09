@@ -6,10 +6,10 @@ import Link from "next/link";
 import { Minus, Plus, X } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
-import type { ShopifyCartLine } from "@/types/shopify";
+import type { CartItem } from "@/types";
 
 export interface CartLineItemProps {
-  line: ShopifyCartLine;
+  line: CartItem;
   onNavigate?: () => void;
 }
 
@@ -18,47 +18,30 @@ export function CartLineItem({ line, onNavigate }: CartLineItemProps) {
   const removeItem = useCartStore((s) => s.removeItem);
   const isLoading = useCartStore((s) => s.isLoading);
 
-  const { merchandise, quantity, cost } = line;
-  const { product } = merchandise;
+  const { id, quantity, product_title, variant_title, price, image_url } = line;
 
-  const image = merchandise.image ?? product.featuredImage ?? null;
-
-  // Compare-at price per-unit is on the merchandise; the cart `cost` also
-  // exposes `compareAtAmountPerQuantity`. Prefer the cart-level one when
-  // present since Shopify can apply automatic discounts there.
-  const hasCompare =
-    !!cost.compareAtAmountPerQuantity &&
-    Number.parseFloat(cost.compareAtAmountPerQuantity.amount) >
-      Number.parseFloat(cost.amountPerQuantity?.amount ?? "0");
-
-  // Hide the default "Default Title" variant label Shopify uses when a
-  // product has no options.
+  // Hide the default "Default Title" variant label
   const variantLabel = useMemo(() => {
-    if (!merchandise.title || merchandise.title === "Default Title") return null;
-    return merchandise.title;
-  }, [merchandise.title]);
+    if (!variant_title || variant_title === "Default Title") return null;
+    return variant_title;
+  }, [variant_title]);
 
-  const lineTotal = cost.totalAmount;
-  const compareLineTotal = cost.compareAtAmountPerQuantity
-    ? {
-        amount: (
-          Number.parseFloat(cost.compareAtAmountPerQuantity.amount) * quantity
-        ).toFixed(2),
-        currencyCode: cost.compareAtAmountPerQuantity.currencyCode,
-      }
-    : null;
+  const lineTotal = price * quantity;
+
+  // Generate a handle from the product title for the link
+  const handle = product_title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
   return (
     <li className="flex gap-4 py-5 border-b border-brand-200 last:border-0">
       <Link
-        href={`/products/${product.handle}`}
+        href={`/products/${handle}`}
         onClick={onNavigate}
         className="relative block h-[60px] w-[60px] shrink-0 overflow-hidden rounded-lg bg-brand-100"
       >
-        {image ? (
+        {image_url ? (
           <Image
-            src={image.url}
-            alt={image.altText ?? product.title}
+            src={image_url}
+            alt={product_title}
             width={120}
             height={120}
             sizes="60px"
@@ -73,11 +56,11 @@ export function CartLineItem({ line, onNavigate }: CartLineItemProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <Link
-              href={`/products/${product.handle}`}
+              href={`/products/${handle}`}
               onClick={onNavigate}
               className="block font-medium text-sm text-brand-900 hover:text-brand-600 transition-colors truncate"
             >
-              {product.title}
+              {product_title}
             </Link>
             {variantLabel && (
               <p className="text-xs text-brand-500 mt-0.5 truncate">{variantLabel}</p>
@@ -86,8 +69,8 @@ export function CartLineItem({ line, onNavigate }: CartLineItemProps) {
 
           <button
             type="button"
-            aria-label={`Remove ${product.title} from cart`}
-            onClick={() => removeItem(line.id)}
+            aria-label={`Remove ${product_title} from cart`}
+            onClick={() => removeItem(id)}
             disabled={isLoading}
             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-brand-500 hover:text-brand-900 hover:bg-brand-100 transition-colors disabled:opacity-50"
           >
@@ -99,21 +82,13 @@ export function CartLineItem({ line, onNavigate }: CartLineItemProps) {
           <QuantityStepper
             value={quantity}
             disabled={isLoading}
-            onChange={(next) => updateItem(line.id, next)}
+            onChange={(next) => updateItem(id, next)}
           />
 
           <div className="text-right">
             <div className="text-sm font-medium text-brand-900">
-              {formatPrice(lineTotal.amount, lineTotal.currencyCode)}
+              {formatPrice(String(lineTotal), "PKR")}
             </div>
-            {hasCompare && compareLineTotal && (
-              <div className="text-xs text-brand-400 line-through">
-                {formatPrice(
-                  compareLineTotal.amount,
-                  compareLineTotal.currencyCode,
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -10,6 +10,7 @@ import {
   PlusCircle,
   Megaphone,
   Home,
+  SlidersHorizontal,
 } from "lucide-react";
 
 interface NavItem {
@@ -24,6 +25,7 @@ const ITEMS: NavItem[] = [
   { href: "/admin/orders", label: "Orders", Icon: ShoppingBag },
   { href: "/admin/products", label: "Products", Icon: Package },
   { href: "/admin/promo-banner", label: "Promo", Icon: Megaphone },
+  { href: "/admin/banner-slider", label: "Slider", Icon: SlidersHorizontal },
   { href: "/admin/landing-products", label: "Landing", Icon: Home },
 ];
 
@@ -31,7 +33,7 @@ export function AdminMobileNav() {
   const pathname = usePathname();
   return (
     <nav
-      className="md:hidden sticky bottom-0 z-20 grid grid-cols-5 border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+      className="md:hidden sticky bottom-0 z-20 grid grid-cols-6 border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
       aria-label="Admin sections"
     >
       {ITEMS.map(({ href, label, Icon, exact }) => {

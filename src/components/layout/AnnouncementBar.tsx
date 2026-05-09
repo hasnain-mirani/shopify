@@ -51,20 +51,16 @@ export function AnnouncementBar({
       className={cn(
         "relative w-full flex items-center justify-center px-10 py-2 min-h-8",
         "font-ui text-[11px] font-bold uppercase tracking-[0.18em]",
+        "bg-gradient-to-r from-accent-dark via-accent via-brand-200 to-accent to-accent-dark text-brand-900",
         className,
       )}
-      style={{
-        background: "linear-gradient(90deg, #E8850A 0%, #F5A623 40%, #FFD580 60%, #F5A623 80%, #E8850A 100%)",
-        color: "#1a0d00",
-      }}
     >
       <p className="text-center leading-none">{message}</p>
       <button
         type="button"
         onClick={dismiss}
         aria-label="Dismiss announcement"
-        className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-6 w-6 items-center justify-center rounded-full transition-colors"
-        style={{ color: "rgba(26,13,0,0.6)" }}
+        className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-6 w-6 items-center justify-center rounded-full transition-colors text-brand-900/60 hover:text-brand-900"
       >
         <X className="h-3.5 w-3.5" aria-hidden="true" />
       </button>

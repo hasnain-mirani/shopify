@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const nextConfig: NextConfig = {
+  // Nodemailer is CommonJS; bundling it in Turbopack dev can throw "Can't resolve".
+  serverExternalPackages: ["nodemailer"],
   images: {
     remotePatterns: [
       {
@@ -13,12 +20,19 @@ const nextConfig: NextConfig = {
         hostname: "*.myshopify.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
     ],
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 3600,
+    unoptimized: process.env.NODE_ENV === "development",
   },
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

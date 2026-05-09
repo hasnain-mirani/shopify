@@ -32,21 +32,56 @@ export function AdminPage({
   );
 }
 
-/** Rounded card block. */
+/** Rounded card block. Optional `title` / `description` render a real header (not the HTML `title` tooltip). */
 export function AdminCard({
   className,
+  title,
+  description,
+  contentClassName,
   children,
   ...rest
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: React.HTMLAttributes<HTMLDivElement> & {
+  title?: string;
+  description?: string;
+  /** Padding/flush layout for the body under the header (default: p-5 md:p-6). */
+  contentClassName?: string;
+}) {
+  const hasHeader = Boolean(title?.trim() || description?.trim());
+  if (!hasHeader) {
+    return (
+      <div
+        {...rest}
+        className={cn(
+          "rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
+          className,
+        )}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       {...rest}
       className={cn(
-        "rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
+        "rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden",
         className,
       )}
     >
-      {children}
+      <div className="border-b border-zinc-200 bg-zinc-50/90 px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+        {title?.trim() ? (
+          <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+            {title}
+          </h2>
+        ) : null}
+        {description?.trim() ? (
+          <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+            {description}
+          </p>
+        ) : null}
+      </div>
+      <div className={cn(contentClassName ?? "p-5 md:p-6")}>{children}</div>
     </div>
   );
 }

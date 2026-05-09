@@ -1,34 +1,20 @@
 /**
- * Shopify Admin API client.
- *
- * Uses a long-lived access token from a Custom App (prefix `shpat_`).
- *
- * ⚠️  SERVER-ONLY. Never import this file from a Client Component. Enforced
- *     by the "server-only" marker: importing from the client will fail build.
+ * Error thrown for any Shopify Admin API failure
+ * (network error, non-2xx response, or GraphQL `errors` in the payload).
  */
-import "server-only";
-
 export class ShopifyAdminError extends Error {
   readonly status?: number;
   readonly errors?: unknown[];
-  readonly userErrors?: Array<{ field?: string[]; message: string; code?: string }>;
   readonly query?: string;
 
   constructor(
     message: string,
-    options?: {
-      status?: number;
-      errors?: unknown[];
-      userErrors?: Array<{ field?: string[]; message: string; code?: string }>;
-      query?: string;
-      cause?: unknown;
-    },
+    options?: { status?: number; errors?: unknown[]; query?: string; cause?: unknown },
   ) {
     super(message);
     this.name = "ShopifyAdminError";
     this.status = options?.status;
     this.errors = options?.errors;
-    this.userErrors = options?.userErrors;
     this.query = options?.query;
     if (options?.cause !== undefined) {
       (this as { cause?: unknown }).cause = options.cause;
@@ -36,43 +22,49 @@ export class ShopifyAdminError extends Error {
   }
 }
 
-export interface AdminFetchOptions {
+export interface ShopifyAdminFetchOptions {
   query: string;
   variables?: Record<string, unknown>;
   tags?: string[];
-  /** Seconds. `0` opts out of caching (typical for mutations). */
+  /** Seconds. Use 0 to disable caching, or omit to use defaults. */
   revalidate?: number;
 }
 
-export interface AdminFetchResult<T> {
+export interface ShopifyAdminFetchResult<T> {
   data: T;
-  extensions?: Record<string, unknown>;
+  errors?: unknown[];
 }
 
-interface AdminGraphQLResponse<T> {
+interface ShopifyAdminGraphQLResponse<T> {
   data?: T;
   errors?: Array<{ message: string; [key: string]: unknown }>;
-  extensions?: Record<string, unknown>;
+  userErrors?: Array<{ field: string[]; message: string }>;
 }
 
 function getAdminEndpoint(): string {
   const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
-  const version = process.env.SHOPIFY_ADMIN_API_VERSION ?? "2026-04";
+  const version = process.env.SHOPIFY_ADMIN_API_VERSION;
+
   if (!domain) {
     throw new ShopifyAdminError(
-      "Missing NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN (e.g. your-store.myshopify.com).",
+      "Missing env var NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN (e.g. your-store.myshopify.com).",
     );
   }
+  if (!version) {
+    throw new ShopifyAdminError(
+      "Missing env var SHOPIFY_ADMIN_API_VERSION (e.g. 2026-04).",
+    );
+  }
+
   return `https://${domain}/admin/api/${version}/graphql.json`;
 }
 
-function getAdminToken(): string {
+function getAdminAccessToken(): string {
   const token = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN;
-  if (!token || token === "your_admin_api_token_here") {
+
+  if (!token) {
     throw new ShopifyAdminError(
-      "SHOPIFY_ADMIN_API_ACCESS_TOKEN is not set. Create a Custom App in Shopify admin " +
-        "(Settings → Apps and sales channels → Develop apps), configure Admin API scopes, " +
-        "install the app, and paste the `shpat_…` token into .env.local.",
+      "Missing env var SHOPIFY_ADMIN_API_ACCESS_TOKEN (private Admin API access token).",
     );
   }
   return token;
@@ -81,17 +73,21 @@ function getAdminToken(): string {
 /**
  * Typed wrapper around the Shopify Admin GraphQL API.
  *
- * Integrates with the Next.js fetch cache via `next.tags` / `next.revalidate`
- * so queries can be tagged for on-demand revalidation.
+ * Integrates with Next.js fetch cache via `next.tags` and `next.revalidate`,
+ * so callers can tag requests for on-demand revalidation with `revalidateTag`.
+ *
+ * IMPORTANT: This function must only be called from server-side code
+ * (Server Actions, Route Handlers, or Server Components). It is marked
+ * with "use server" to prevent client-side usage.
  */
 export async function shopifyAdminFetch<T>({
   query,
   variables,
   tags,
   revalidate,
-}: AdminFetchOptions): Promise<AdminFetchResult<T>> {
+}: ShopifyAdminFetchOptions): Promise<ShopifyAdminFetchResult<T>> {
   const endpoint = getAdminEndpoint();
-  const token = getAdminToken();
+  const token = getAdminAccessToken();
 
   let response: Response;
   try {
@@ -122,9 +118,9 @@ export async function shopifyAdminFetch<T>({
     );
   }
 
-  let payload: AdminGraphQLResponse<T>;
+  let payload: ShopifyAdminGraphQLResponse<T>;
   try {
-    payload = (await response.json()) as AdminGraphQLResponse<T>;
+    payload = (await response.json()) as ShopifyAdminGraphQLResponse<T>;
   } catch (cause) {
     throw new ShopifyAdminError("Failed to parse Shopify Admin API response as JSON.", {
       status: response.status,
@@ -151,34 +147,23 @@ export async function shopifyAdminFetch<T>({
     });
   }
 
-  return { data: payload.data, extensions: payload.extensions };
+  return { data: payload.data, errors: payload.errors };
 }
 
 /**
- * Small helper to surface `userErrors` from a mutation payload. Shopify returns
- * HTTP 200 with `userErrors` for validation failures (duplicate handle,
- * invalid price, etc.) — these aren't top-level GraphQL errors.
+ * Helper to throw an error if a mutation response contains userErrors.
+ * This is the standard pattern for handling Shopify mutation errors.
+ *
+ * @param response The mutation response from Shopify
+ * @param errorKey The key to check for userErrors (e.g., "userErrors", "mediaUserErrors")
  */
-export function throwIfUserErrors(
-  userErrors: Array<{ field?: string[]; message: string; code?: string }> | null | undefined,
-  query?: string,
+export function throwIfUserErrors<T extends { userErrors?: Array<{ message: string }> }>(
+  response: T,
+  errorKey: keyof T = "userErrors" as keyof T,
 ): void {
-  if (!userErrors || userErrors.length === 0) return;
-  const message = userErrors
-    .map((e) => `${e.field?.join(".") ?? "(root)"}: ${e.message}${e.code ? ` [${e.code}]` : ""}`)
-    .join("; ");
-  throw new ShopifyAdminError(`Shopify rejected the mutation: ${message}`, {
-    userErrors,
-    query,
-  });
-}
-
-/** Unwrap a `{ edges: [{ node }] }` connection into a plain array. */
-export function connectionToArray<T>(
-  connection: { edges?: Array<{ node: T }> | null; nodes?: T[] | null } | null | undefined,
-): T[] {
-  if (!connection) return [];
-  if (Array.isArray(connection.nodes)) return connection.nodes;
-  if (Array.isArray(connection.edges)) return connection.edges.map((e) => e.node);
-  return [];
+  const errors = response[errorKey] as Array<{ message: string }> | undefined;
+  if (errors && errors.length > 0) {
+    const messages = errors.map((e) => e.message).join(", ");
+    throw new ShopifyAdminError(`Mutation failed: ${messages}`);
+  }
 }

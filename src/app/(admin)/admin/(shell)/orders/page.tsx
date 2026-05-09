@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getRecentOrders } from "@/lib/admin-data";
+import Link from "next/link";
 import { AdminPage, AdminCard, AdminEmpty } from "@/components/admin/AdminShell";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatPrice, truncate } from "@/lib/utils";
@@ -49,17 +50,19 @@ export default async function AdminOrdersPage() {
               </thead>
               <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                 {orders.map((o) => {
-                  const itemCount = o.lineItems.reduce(
-                    (s, li) => s + li.quantity,
-                    0,
-                  );
+                  const itemCount = o.lineItems?.nodes?.reduce((s, li) => s + li.quantity, 0) || 0;
                   return (
                     <tr
                       key={o.id}
                       className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                     >
                       <td className="px-5 py-3">
-                        <div className="font-medium">{o.name}</div>
+                        <Link 
+                          href={`/admin/orders/${o.id}`}
+                          className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        >
+                          {o.name}
+                        </Link>
                         <div className="text-xs text-zinc-500">
                           {new Date(o.createdAt).toLocaleString()}
                         </div>
@@ -67,13 +70,23 @@ export default async function AdminOrdersPage() {
                       <td className="px-5 py-3">
                         {o.customer ? (
                           <>
-                            <div>{truncate(o.customer.displayName ?? "—", 30)}</div>
-                            <div className="text-xs text-zinc-500">
-                              {o.customer.email ?? ""}
+                            <div>{truncate(o.customer.displayName, 30)}</div>
+                            <div className="text-xs text-zinc-500 space-y-0.5">
+                              {o.customer.email ? (
+                                <div>{o.customer.email}</div>
+                              ) : null}
+                              {o.customer.phone ? (
+                                <div className={o.customer.email ? "text-zinc-400" : ""}>
+                                  {o.customer.phone}
+                                </div>
+                              ) : null}
+                              {!o.customer.email && !o.customer.phone ? (
+                                <span className="text-zinc-400">No contact saved</span>
+                              ) : null}
                             </div>
                           </>
                         ) : (
-                          <span className="text-zinc-400">Guest</span>
+                          <span className="text-zinc-400">No customer details</span>
                         )}
                       </td>
                       <td className="px-5 py-3 text-zinc-600 dark:text-zinc-400">
@@ -82,19 +95,19 @@ export default async function AdminOrdersPage() {
                       <td className="px-5 py-3">
                         <StatusBadge
                           kind="financial"
-                          value={o.displayFinancialStatus}
+                          value={o.displayFinancialStatus || "PAID"}
                         />
                       </td>
                       <td className="px-5 py-3">
                         <StatusBadge
                           kind="fulfillment"
-                          value={o.displayFulfillmentStatus}
+                          value={o.displayFulfillmentStatus || "UNFULFILLED"}
                         />
                       </td>
                       <td className="px-5 py-3 text-right font-medium">
                         {formatPrice(
-                          o.currentTotalPriceSet.shopMoney.amount,
-                          o.currentTotalPriceSet.shopMoney.currencyCode,
+                          o.currentTotalPriceSet?.shopMoney?.amount || "0",
+                          o.currentTotalPriceSet?.shopMoney?.currencyCode || "PKR"
                         )}
                       </td>
                     </tr>

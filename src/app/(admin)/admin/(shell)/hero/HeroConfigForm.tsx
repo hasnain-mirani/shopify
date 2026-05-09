@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { ExternalLink, LayoutGrid, Megaphone, Star } from "lucide-react";
+import {
+  ExternalLink,
+  LayoutGrid,
+  Loader2,
+  Megaphone,
+  Star,
+  Upload,
+  X,
+} from "lucide-react";
 import { AdminCard } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { api } from "@/lib/api-client";
 import {
   HERO_PILL_ICONS,
   type HeroConfig,
@@ -36,6 +45,11 @@ export function HeroConfigForm({ initial }: Props) {
     saveHeroConfigAction,
     initialState,
   );
+  const [uploadingPromoImage, setUploadingPromoImage] = useState(false);
+  const [promoPersonImageUrl, setPromoPersonImageUrl] = useState(
+    initial.promoPersonImageUrl || "",
+  );
+  const promoImageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (state.ok) toast.success("Hero saved");
@@ -44,8 +58,31 @@ export function HeroConfigForm({ initial }: Props) {
 
   const fe = state.fieldErrors ?? {};
 
+  async function handlePromoImageUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPromoImage(true);
+    try {
+      const result = await api.upload.image(file);
+      setPromoPersonImageUrl(result.url);
+      toast.success("Promo model image uploaded");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Image upload failed");
+    } finally {
+      setUploadingPromoImage(false);
+      if (promoImageInputRef.current) promoImageInputRef.current.value = "";
+    }
+  }
+
   return (
     <form action={formAction} className="grid gap-6 xl:grid-cols-3">
+      <input
+        type="hidden"
+        name="promoPersonImageUrl"
+        value={promoPersonImageUrl}
+      />
       {/* ─────────── LEFT / main columns ─────────── */}
       <div className="space-y-6 xl:col-span-2">
         {/* Copy card */}
@@ -357,6 +394,68 @@ export function HeroConfigForm({ initial }: Props) {
 
       {/* ─────────── RIGHT / sticky save rail ─────────── */}
       <div className="space-y-6">
+        <AdminCard className="p-6 space-y-4">
+          <p className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
+            Promo model image
+          </p>
+          <div className="space-y-3">
+            <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+              {promoPersonImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={promoPersonImageUrl}
+                  alt="Promo model"
+                  className="h-52 w-full object-contain p-3"
+                />
+              ) : (
+                <div className="flex h-52 items-center justify-center text-xs text-zinc-500">
+                  No model image selected
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => promoImageInputRef.current?.click()}
+                disabled={uploadingPromoImage}
+              >
+                {uploadingPromoImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                {uploadingPromoImage ? "Uploading…" : "Upload image"}
+              </Button>
+              {promoPersonImageUrl ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPromoPersonImageUrl("")}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Remove
+                </Button>
+              ) : null}
+            </div>
+            <input
+              ref={promoImageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePromoImageUpload}
+            />
+            <p className="text-[11px] text-zinc-500">
+              Used by the homepage unified promo banner left model column.
+            </p>
+            {fe.promoPersonImageUrl && (
+              <p className="text-xs text-red-600">{fe.promoPersonImageUrl}</p>
+            )}
+          </div>
+        </AdminCard>
+
         <AdminCard className="p-6 space-y-4">
           <p className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
             Quick preview

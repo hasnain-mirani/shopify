@@ -10,7 +10,7 @@ import {
   UPDATE_CART_MUTATION,
 } from "./queries";
 import { TAGS, normalizeCart, type RawCart } from "./normalizers";
-import type { ShopifyCart } from "@/types/shopify";
+import type { Cart } from "@/types/shopify";
 
 interface UserError {
   field?: string[] | null;
@@ -26,7 +26,7 @@ interface CartMutationPayload {
 function assertCart(
   payload: CartMutationPayload | null | undefined,
   operation: string,
-): ShopifyCart {
+): Cart {
   if (!payload) {
     throw new ShopifyError(`Shopify returned no payload for ${operation}.`);
   }
@@ -43,7 +43,7 @@ function assertCart(
   return cart;
 }
 
-export async function createCart(): Promise<ShopifyCart> {
+export async function createCart(): Promise<Cart> {
   const { data } = await shopifyFetch<{ cartCreate: CartMutationPayload }>({
     query: CREATE_CART_MUTATION,
     variables: { input: {} },
@@ -59,7 +59,7 @@ export async function createCart(): Promise<ShopifyCart> {
 export async function addToCart(
   cartId: string,
   lines: Array<{ merchandiseId: string; quantity: number }>,
-): Promise<ShopifyCart> {
+): Promise<Cart> {
   if (!cartId) throw new ShopifyError("addToCart: cartId is required.");
   if (!lines?.length) throw new ShopifyError("addToCart: lines must be non-empty.");
 
@@ -78,7 +78,7 @@ export async function addToCart(
 export async function updateCartLines(
   cartId: string,
   lines: Array<{ id: string; quantity: number }>,
-): Promise<ShopifyCart> {
+): Promise<Cart> {
   if (!cartId) throw new ShopifyError("updateCartLines: cartId is required.");
   if (!lines?.length) throw new ShopifyError("updateCartLines: lines must be non-empty.");
 
@@ -97,7 +97,7 @@ export async function updateCartLines(
 export async function removeFromCart(
   cartId: string,
   lineIds: string[],
-): Promise<ShopifyCart> {
+): Promise<Cart> {
   if (!cartId) throw new ShopifyError("removeFromCart: cartId is required.");
   if (!lineIds?.length) {
     throw new ShopifyError("removeFromCart: lineIds must be non-empty.");
@@ -115,7 +115,7 @@ export async function removeFromCart(
   return cart;
 }
 
-export async function getCart(cartId: string): Promise<ShopifyCart | null> {
+export async function getCart(cartId: string): Promise<Cart | null> {
   if (!cartId) return null;
 
   const { data } = await shopifyFetch<{

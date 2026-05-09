@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
+import { motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
@@ -24,41 +25,44 @@ export function CartDrawer({ className }: CartDrawerProps) {
     void initCart();
   }, [initCart]);
 
-  const lines = cart?.lines ?? [];
+  const lines = cart?.items ?? [];
   const totalQuantity = cart?.totalQuantity ?? 0;
   const isEmpty = lines.length === 0;
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(next) => !next && closeCart()}>
       <Dialog.Portal>
-        <Dialog.Overlay
-          className={cn(
-            "fixed inset-0 z-50 bg-black/40",
-            "data-[state=open]:animate-fade-in",
-            "data-[state=closed]:opacity-0 transition-opacity duration-300",
-          )}
-        />
+        <Dialog.Overlay asChild>
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+          />
+        </Dialog.Overlay>
 
-        <Dialog.Content
-          aria-describedby={undefined}
-          className={cn(
-            "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-md flex-col",
-            "bg-white shadow-2xl will-change-transform",
-            "translate-x-full data-[state=open]:translate-x-0",
-            "transition-transform duration-300 ease-out",
-            "focus:outline-none",
-            className,
-          )}
-        >
-          <header className="flex items-center justify-between border-b border-brand-200 px-6 h-16 shrink-0">
-            <Dialog.Title className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-900">
+        <Dialog.Content asChild>
+          <motion.div
+            aria-describedby={undefined}
+            className={cn(
+              "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-md flex-col",
+              "border-l border-border bg-card text-foreground shadow-elevated will-change-transform",
+              "focus:outline-none",
+              className,
+            )}
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          >
+          <header className="flex h-16 shrink-0 items-center justify-between border-b border-border px-6">
+            <Dialog.Title className="font-ui text-sm font-semibold uppercase tracking-widest text-foreground">
               Your bag ({totalQuantity})
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
                 aria-label="Close cart"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-brand-600 hover:text-brand-900 hover:bg-brand-100 transition-colors"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -82,10 +86,10 @@ export function CartDrawer({ className }: CartDrawerProps) {
           </div>
 
           {!isEmpty && cart && (
-            <footer className="border-t border-brand-200 px-6 py-5 space-y-4 shrink-0">
+            <footer className="shrink-0 space-y-4 border-t border-border px-6 py-5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-brand-600">Subtotal</span>
-                <span className="font-medium text-brand-900 tabular-nums">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium tabular-nums text-foreground">
                   {formatPrice(
                     cart.cost.subtotalAmount.amount,
                     cart.cost.subtotalAmount.currencyCode,
@@ -93,19 +97,20 @@ export function CartDrawer({ className }: CartDrawerProps) {
                 </span>
               </div>
 
-              <p className="text-xs text-brand-500 leading-relaxed">
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 Shipping and taxes calculated at checkout.
               </p>
 
               <a
-                href={cart.checkoutUrl}
+                href={(cart as any).checkoutUrl || "/checkout"}
                 className="btn-primary w-full flex items-center justify-center gap-2"
               >
-                Checkout
+                Continue to pay
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </a>
             </footer>
           )}
+          </motion.div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -119,12 +124,12 @@ export function CartDrawer({ className }: CartDrawerProps) {
 function EmptyState({ onClose }: { onClose: () => void }) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center px-8 py-12 gap-5">
-      <BagIllustration className="h-20 w-20 text-brand-300" />
-      <div className="space-y-1.5">
-        <h3 className="heading-display text-2xl text-brand-900">
+      <BagIllustration className="h-20 w-20 text-muted-foreground" />
+      <div className="space-y-2">
+        <h3 className="heading-display text-2xl text-foreground">
           Your bag is empty
         </h3>
-        <p className="text-sm text-brand-500 max-w-[28ch] mx-auto">
+        <p className="mx-auto max-w-sm text-sm text-muted-foreground">
           Nothing in here yet. Start with a considered piece that speaks to you.
         </p>
       </div>

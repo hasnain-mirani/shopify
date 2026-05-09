@@ -48,6 +48,8 @@ export interface HeroConfig {
 
   /** Circular rotating badge text. */
   badgeText: string;
+  /** Admin-uploaded model/person image for unified promo banner. */
+  promoPersonImageUrl: string;
 
   updatedAt: string;
 }
@@ -98,6 +100,7 @@ export const DEFAULT_HERO_CONFIG: HeroConfig = {
   lovedBySub: "Aesthetic shoppers",
 
   badgeText: "BUNDLE · SAVE 15% · GLOW DROP ·",
+  promoPersonImageUrl: "/images/promo-person.png",
 
   updatedAt: new Date(0).toISOString(),
 };

@@ -1,17 +1,5 @@
-import { Header, Footer } from "@/components/layout";
-import { CartDrawer } from "@/components/cart";
+import { SiteChrome } from "@/components/layout/SiteChrome";
 
-export default function SiteLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <>
-      <Header />
-      <main className="flex-1 flex flex-col" style={{ background: "#1A0D00" }}>{children}</main>
-      <Footer />
-      <CartDrawer />
-    </>
-  );
+export default function SiteLayout({ children }: { children: React.ReactNode }) {
+  return <SiteChrome>{children}</SiteChrome>;
 }

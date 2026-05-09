@@ -1,193 +1,181 @@
-/**
- * Admin API data fetchers. All server-only.
- */
-import "server-only";
+import { api } from "@/lib/api-client";
+import type { AdminProductListItem, OrderKPIs, ShopInfo } from "@/types";
 
-import { shopifyAdminFetch, connectionToArray } from "@/lib/shopify-admin";
-import {
-  ADMIN_SHOP_INFO_QUERY,
-  ADMIN_ORDER_KPIS_QUERY,
-  ADMIN_RECENT_ORDERS_QUERY,
-  ADMIN_PRODUCTS_LIST_QUERY,
-} from "@/lib/shopify/admin-queries";
-
-/* ─── Types ──────────────────────────────────────────────────────────── */
-
-export interface AdminMoney {
-  amount: string;
-  currencyCode: string;
-}
-
-export interface AdminShopInfo {
-  id: string;
-  name: string;
-  email: string;
-  myshopifyDomain: string;
-  currencyCode: string;
-}
-
-export interface AdminOrder {
+// Dashboard-specific order type (matches Shopify structure expected by dashboard)
+interface DashboardOrder {
   id: string;
   name: string;
   createdAt: string;
-  processedAt: string | null;
-  displayFinancialStatus: string | null;
-  displayFulfillmentStatus: string | null;
+  processedAt: string;
+  displayFinancialStatus: string;
+  displayFulfillmentStatus: string;
   customer: {
     id: string;
-    displayName: string | null;
-    email: string | null;
+    displayName: string;
+    email: string;
+    phone?: string;
   } | null;
-  totalPriceSet: { shopMoney: AdminMoney };
-  subtotalPriceSet: { shopMoney: AdminMoney };
-  currentTotalPriceSet: { shopMoney: AdminMoney };
-  lineItems: Array<{ id: string; title: string; quantity: number }>;
-}
-
-export interface AdminProductListItem {
-  id: string;
-  title: string;
-  handle: string;
-  status: "ACTIVE" | "ARCHIVED" | "DRAFT";
-  totalInventory: number | null;
-  vendor: string | null;
-  productType: string | null;
-  updatedAt: string;
-  featuredImage: { url: string; altText: string | null } | null;
-  priceRange: {
-    min: AdminMoney;
-    max: AdminMoney;
+  totalPriceSet: {
+    shopMoney: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
+  subtotalPriceSet: {
+    shopMoney: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
+  currentTotalPriceSet: {
+    shopMoney: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
+  lineItems: {
+    nodes: Array<{
+      id: string;
+      title: string;
+      quantity: number;
+    }>;
   };
 }
-
-export interface OrderKPIs {
-  ordersToday: number;
-  revenueToday: AdminMoney;
-  averageOrderValue: AdminMoney;
-}
-
-/* ─── Fetchers ───────────────────────────────────────────────────────── */
 
 export const ADMIN_ORDER_TAG = "admin-orders";
 export const ADMIN_PRODUCT_TAG = "admin-products";
 export const ADMIN_SHOP_TAG = "admin-shop";
 
-interface RawConnection<T> {
-  nodes?: T[] | null;
-  edges?: Array<{ node: T }> | null;
-  pageInfo?: { hasNextPage: boolean; endCursor: string | null };
-}
-
-export async function getShopInfo(): Promise<AdminShopInfo> {
-  const { data } = await shopifyAdminFetch<{ shop: AdminShopInfo }>({
-    query: ADMIN_SHOP_INFO_QUERY,
-    tags: [ADMIN_SHOP_TAG],
-    revalidate: 3600,
-  });
-  return data.shop;
-}
-
-type RawOrder = Omit<AdminOrder, "lineItems" | "customer"> & {
-  customer: AdminOrder["customer"];
-  lineItems: RawConnection<AdminOrder["lineItems"][number]>;
-};
-
-export async function getRecentOrders(first = 10): Promise<AdminOrder[]> {
-  const { data } = await shopifyAdminFetch<{
-    orders: RawConnection<RawOrder>;
-  }>({
-    query: ADMIN_RECENT_ORDERS_QUERY,
-    variables: { first, query: null },
-    tags: [ADMIN_ORDER_TAG],
-    revalidate: 0,
-  });
-
-  return connectionToArray(data.orders).map((o) => ({
-    ...o,
-    lineItems: connectionToArray(o.lineItems),
-  }));
-}
-
-/**
- * Compute today's KPIs (orders count, revenue, AOV) from the Admin API.
- * Uses Shopify's query syntax to pull orders created today.
- */
-export async function getOrderKPIs(): Promise<OrderKPIs> {
-  const today = new Date();
-  const iso = today.toISOString().slice(0, 10); // YYYY-MM-DD
-  const query = `created_at:>=${iso}`;
-
-  const { data } = await shopifyAdminFetch<{
-    orders: RawConnection<{
-      id: string;
-      createdAt: string;
-      currentTotalPriceSet: { shopMoney: AdminMoney };
-    }>;
-  }>({
-    query: ADMIN_ORDER_KPIS_QUERY,
-    variables: { query },
-    tags: [ADMIN_ORDER_TAG],
-    revalidate: 0,
-  });
-
-  const orders = connectionToArray(data.orders);
-
-  const currency = orders[0]?.currentTotalPriceSet.shopMoney.currencyCode ?? "USD";
-  let sum = 0;
-  for (const o of orders) {
-    const n = Number.parseFloat(o.currentTotalPriceSet.shopMoney.amount);
-    if (Number.isFinite(n)) sum += n;
-  }
-  const aov = orders.length > 0 ? sum / orders.length : 0;
-
+/** Normalize API/DB shapes (snake_case or camelCase) for custom order rows */
+function normalizeOrderPayload(o: any) {
+  if (!o) return o;
   return {
-    ordersToday: orders.length,
-    revenueToday: { amount: sum.toFixed(2), currencyCode: currency },
-    averageOrderValue: { amount: aov.toFixed(2), currencyCode: currency },
+    ...o,
+    customer_name: (o.customer_name ?? o.customerName ?? "").trim() || "",
+    customer_email: (o.customer_email ?? o.customerEmail ?? "").trim().toLowerCase(),
+    customer_phone: (o.customer_phone ?? o.customerPhone ?? "").trim() || "",
   };
 }
 
-type RawAdminProduct = {
-  id: string;
-  title: string;
-  handle: string;
-  status: AdminProductListItem["status"];
-  totalInventory: number | null;
-  vendor: string | null;
-  productType: string | null;
-  updatedAt: string;
-  featuredMedia: {
-    preview?: { image?: { url: string; altText: string | null } | null } | null;
-  } | null;
-  priceRangeV2: {
-    minVariantPrice: AdminMoney;
-    maxVariantPrice: AdminMoney;
+/** Show customer column whenever we have contact or name — not only email */
+function mapOrderCustomerSnapshot(o: any): DashboardOrder["customer"] {
+  const name = String(o.customer_name ?? "").trim();
+  const email = String(o.customer_email ?? "").trim();
+  const phone = String(o.customer_phone ?? "").trim();
+  if (!name && !email && !phone) return null;
+  return {
+    id: String(o.id),
+    displayName: name || (phone ? `Phone: ${phone}` : email ? email : "Customer"),
+    email: email || "",
+    phone: phone || undefined,
   };
-};
+}
+
+/** Maps a `/orders` or `/orders/:id` API row (+ items) into dashboard order shape */
+export function mapRawOrderToDashboard(o: any): DashboardOrder {
+  const row = normalizeOrderPayload(o);
+  return {
+      id: row.id,
+      name: `#${String(row.id).split('-')[0].toUpperCase()}`,
+      createdAt: row.created_at ?? row.createdAt,
+      processedAt: row.created_at ?? row.createdAt,
+      displayFinancialStatus: row.financial_status || row.financialStatus || 'pending',
+      displayFulfillmentStatus: row.fulfillment_status || row.fulfillmentStatus || 'unfulfilled',
+      customer: mapOrderCustomerSnapshot(row),
+      totalPriceSet: {
+        shopMoney: {
+          amount: String(row.total ?? 0),
+          currencyCode: 'PKR',
+        },
+      },
+      subtotalPriceSet: {
+        shopMoney: {
+          amount: String(row.subtotal ?? row.total ?? 0),
+          currencyCode: 'PKR',
+        },
+      },
+      currentTotalPriceSet: {
+        shopMoney: {
+          amount: String(row.total ?? 0),
+          currencyCode: 'PKR',
+        },
+      },
+      lineItems: {
+        nodes: (row.items || []).map((item: any) => ({
+          id: item.id,
+          title: item.product_title ?? item.productTitle ?? "",
+          quantity: Number(item.quantity ?? 0),
+        })),
+      },
+    };
+}
+
+export async function getShopInfo(): Promise<ShopInfo> {
+  try {
+    const settings = await api.settings.get();
+    return {
+      id: "local",
+      name: settings.shop_name || "My Store",
+      email: settings.shop_email || "",
+      currencyCode: settings.currency_code || "PKR",
+    };
+  } catch {
+    return { id: "local", name: "My Store", email: "", currencyCode: "PKR" };
+  }
+}
+
+export async function getRecentOrders(first = 10): Promise<DashboardOrder[]> {
+  try {
+    const orders = await api.orders.list(first);
+    return orders.map((o: any) => mapRawOrderToDashboard(o));
+  } catch {
+    return [];
+  }
+}
+
+export async function getAdminOrder(id: string): Promise<DashboardOrder | null> {
+  try {
+    const o = await api.orders.get(id);
+    if (!o) return null;
+    return mapRawOrderToDashboard(o);
+  } catch {
+    return null;
+  }
+}
+
+export async function getOrderKPIs(): Promise<OrderKPIs> {
+  try {
+    return await api.orders.getKPIs();
+  } catch {
+    return {
+      ordersToday: 0,
+      revenueToday: { amount: "0.00", currencyCode: "PKR" },
+      averageOrderValue: { amount: "0.00", currencyCode: "PKR" },
+    };
+  }
+}
 
 export async function getAdminProducts(first = 50): Promise<AdminProductListItem[]> {
-  const { data } = await shopifyAdminFetch<{
-    products: RawConnection<RawAdminProduct>;
-  }>({
-    query: ADMIN_PRODUCTS_LIST_QUERY,
-    variables: { first, query: null },
-    tags: [ADMIN_PRODUCT_TAG],
-    revalidate: 0,
-  });
-
-  return connectionToArray(data.products).map((p) => ({
-    id: p.id,
-    title: p.title,
-    handle: p.handle,
-    status: p.status,
-    totalInventory: p.totalInventory,
-    vendor: p.vendor,
-    productType: p.productType,
-    updatedAt: p.updatedAt,
-    featuredImage: p.featuredMedia?.preview?.image ?? null,
-    priceRange: {
-      min: p.priceRangeV2.minVariantPrice,
-      max: p.priceRangeV2.maxVariantPrice,
-    },
-  }));
+  try {
+    const products = await api.products.list({ limit: first });
+    return products.map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      handle: p.handle,
+      status: p.status as AdminProductListItem["status"],
+      totalInventory: p.variants?.reduce((sum: number, v: any) => sum + (v.quantityAvailable || 0), 0) ?? 0,
+      vendor: p.vendor || null,
+      productType: p.productType || null,
+      updatedAt: p.updatedAt,
+      featuredImage: p.featuredImage
+        ? { url: p.featuredImage.url, altText: p.featuredImage.alt_text || null }
+        : null,
+      priceRange: {
+        min: p.priceRange?.minVariantPrice ?? { amount: "0", currencyCode: "PKR" },
+        max: p.priceRange?.maxVariantPrice ?? { amount: "0", currencyCode: "PKR" },
+      },
+    }));
+  } catch {
+    return [];
+  }
 }

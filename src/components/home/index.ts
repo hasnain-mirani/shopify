@@ -11,3 +11,6 @@ export type { FeatureSpotlightProps } from "./FeatureSpotlight";
 export { StorySection } from "./StorySection";
 export { TestimonialStrip } from "./TestimonialStrip";
 export { PromoBanner } from "./PromoBanner";
+export { BannerSlider } from "./BannerSlider";
+export { ProductRow } from "./ProductRow";
+export { FinanceBanner } from "./FinanceBanner";

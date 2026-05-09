@@ -1,3 +1,4 @@
+export { CatalogGridClient } from "./CatalogGridClient";
 export { ShopHero } from "./ShopHero";
 export type { ShopHeroProps } from "./ShopHero";
 export { TagStrip } from "./TagStrip";

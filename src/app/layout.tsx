@@ -1,39 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import {
-  DM_Sans,
-  Outfit,
-  Geist_Mono,
-  Playfair_Display,
-} from "next/font/google";
+import { Geist_Mono, Inter, Playfair_Display } from "next/font/google";
+import Script from "next/script";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { AppProviders } from "@/components/providers/AppProviders";
 import "./globals.css";
 
-/* Typography:
- *   - Playfair Display → hero / section headings (900 weight, italic)
- *   - DM Sans          → body copy (300/400/500/600)
- *   - Outfit           → UI chrome, numbers, micro-labels
- *   - Geist Mono       → code snippets
- */
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
-  weight: ["400", "700", "900"],
+  weight: ["400", "600", "700"],
   style: ["normal", "italic"],
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-  display: "swap",
-  weight: ["300", "400", "500", "600"],
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -43,7 +27,7 @@ const geistMono = Geist_Mono({
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const siteName = "Glow Store PK";
+const siteName = "SSHUB.STORE";
 const siteTagline = "Premium Mobile Accessories & Smart Tech";
 const defaultDescription =
   "Premium phone accessories, smartwatches, power banks, and smart tech — hand-picked for tech enthusiasts. Free shipping worldwide.";
@@ -65,7 +49,7 @@ export const metadata: Metadata = {
     "wireless charger",
     "earbuds",
     "mobile accessories",
-    "glow store",
+    "sshub.store",
     "tech accessories",
     "pakistan",
   ],
@@ -100,8 +84,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#1a0d00" },
-    { media: "(prefers-color-scheme: dark)",  color: "#0d0600" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -117,10 +101,21 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${playfair.variable} ${dmSans.variable} ${outfit.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${playfair.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-brand-900">
-        <ThemeProvider>{children}</ThemeProvider>
+      <head>
+        <Script
+          id="theme-script"
+          strategy="beforeInteractive"
+        >{`try{var t=localStorage.getItem('theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}`}</Script>
+      </head>
+      <body
+        className="flex min-h-full flex-col bg-background text-foreground"
+        suppressHydrationWarning
+      >
+        <ThemeProvider>
+          <AppProviders>{children}</AppProviders>
+        </ThemeProvider>
       </body>
     </html>
   );

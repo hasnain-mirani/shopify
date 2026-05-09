@@ -82,6 +82,11 @@ function sanitize(raw: unknown): HeroConfig {
     lovedByHighlight: str(r.lovedByHighlight, d.lovedByHighlight, 20),
     lovedBySub: str(r.lovedBySub, d.lovedBySub, 40),
     badgeText: str(r.badgeText, d.badgeText, 80),
+    promoPersonImageUrl: str(
+      r.promoPersonImageUrl,
+      d.promoPersonImageUrl,
+      1600,
+    ),
     updatedAt: typeof r.updatedAt === "string" ? r.updatedAt : d.updatedAt,
   };
 }

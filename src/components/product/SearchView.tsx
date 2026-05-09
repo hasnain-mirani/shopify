@@ -12,12 +12,12 @@ import {
 } from "lucide-react";
 import { ProductGrid } from "./ProductGrid";
 import { ProductGridSkeleton } from "./ProductGridSkeleton";
-import { searchProducts } from "@/lib/shopify/actions";
-import type { ShopifyProduct } from "@/types";
+import { searchProducts } from "@/lib/catalog";
+import type { Product } from "@/types";
 
 export interface SearchViewProps {
   initialQuery: string;
-  initialResults: ShopifyProduct[];
+  initialResults: Product[];
   /** Optional popular suggestion chips. Falls back to a default list. */
   suggestions?: string[];
 }
@@ -55,7 +55,7 @@ export function SearchView({
   const searchParams = useSearchParams();
 
   const [query, setQuery] = useState(initialQuery);
-  const [results, setResults] = useState<ShopifyProduct[]>(initialResults);
+  const [results, setResults] = useState<Product[]>(initialResults);
   const [loading, setLoading] = useState(false);
   const [, startTransition] = useTransition();
 

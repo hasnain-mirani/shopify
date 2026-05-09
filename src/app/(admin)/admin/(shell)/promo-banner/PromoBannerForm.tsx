@@ -15,6 +15,7 @@ import {
   savePromoBannerAction,
   type PromoBannerFormState,
 } from "./actions";
+import { ProductPickerField } from "@/components/admin/ProductPickerField";
 
 const MAX_SELECTED = 12;
 
@@ -46,6 +47,7 @@ export function PromoBannerForm({ initial, products }: Props) {
     () => new Set(initial.productHandles),
   );
   const [query, setQuery] = useState("");
+  const [ctaHref, setCtaHref] = useState(initial.ctaHref);
 
   useEffect(() => {
     if (state.ok) {
@@ -172,16 +174,34 @@ export function PromoBannerForm({ initial, products }: Props) {
               variant="outline"
               error={fe.ctaLabel}
             />
-            <Input
-              name="ctaHref"
-              label="CTA link"
-              defaultValue={initial.ctaHref}
-              placeholder="/collections/bundle-deals"
-              required
-              variant="outline"
-              error={fe.ctaHref}
-              hint="A storefront path like /collections/... or a full URL."
-            />
+            <div className="space-y-3 rounded-xl border border-dashed border-brand-300/60 dark:border-zinc-700 p-4 bg-zinc-50/50 dark:bg-zinc-900/40">
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                CTA Destination
+              </p>
+              
+              <ProductPickerField
+                slideIndex={0}
+                value={ctaHref}
+                onChange={(val) => setCtaHref(val)}
+              />
+              <input type="hidden" name="ctaHref" value={ctaHref} />
+              
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  Or type a custom URL
+                </label>
+                <input
+                  type="text"
+                  placeholder="/collections/bundle-deals"
+                  value={ctaHref}
+                  onChange={(e) => setCtaHref(e.target.value)}
+                  className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm outline-none transition-colors focus:border-brand-900 dark:focus:border-zinc-400 placeholder-zinc-400"
+                />
+              </div>
+              {fe.ctaHref && (
+                <p className="text-xs text-red-600">{fe.ctaHref}</p>
+              )}
+            </div>
           </div>
         </AdminCard>
 

@@ -6,7 +6,7 @@ import { AdminPage, AdminCard, AdminEmpty } from "@/components/admin/AdminShell"
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { DeleteProductButton } from "./DeleteProductButton";
 
 export const metadata: Metadata = {
@@ -60,7 +60,7 @@ export default async function AdminProductsPage() {
                   <th className="px-5 py-3 text-left font-medium">Inventory</th>
                   <th className="px-5 py-3 text-left font-medium">Vendor</th>
                   <th className="px-5 py-3 text-right font-medium">Price</th>
-                  <th className="px-5 py-3 text-right font-medium w-12">
+                  <th className="px-5 py-3 text-right font-medium w-32">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
@@ -119,11 +119,18 @@ export default async function AdminProductsPage() {
                         {priceLabel}
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <DeleteProductButton
-                          productId={p.id}
-                          productTitle={p.title}
-                          productHandle={p.handle}
-                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <Link href={`/admin/products/${p.id}/edit`}>
+                            <Button size="sm" variant="ghost">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <DeleteProductButton
+                            productId={p.id}
+                            productTitle={p.title}
+                            productHandle={p.handle}
+                          />
+                        </div>
                       </td>
                     </tr>
                   );

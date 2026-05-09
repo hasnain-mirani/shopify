@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SearchView } from "@/components/product/SearchView";
-import { searchProducts } from "@/lib/shopify";
+import { searchProducts } from "@/lib/catalog";
 import { buildPageMetadata } from "@/lib/metadata";
 
 interface PageProps {

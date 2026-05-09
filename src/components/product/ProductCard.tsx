@@ -6,13 +6,15 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Plus, Sparkles } from "lucide-react";
 import { Spinner } from "@/components/ui/Spinner";
+import { IMAGE_BLUR_DATA_URL } from "@/lib/image-blur";
 import { useCartStore } from "@/store/cart-store";
+import { useWishlistStore } from "@/store/wishlist-store";
 import { useOutsideClick } from "@/hooks/useOutsideClick";
 import { cn, formatPrice, isVariantAvailable } from "@/lib/utils";
-import type { ShopifyProduct, ShopifyVariant } from "@/types/shopify";
+import type { Product, Variant } from "@/types";
 
 export interface ProductCardProps {
-  product: ShopifyProduct;
+  product: Product;
   /** Pass true for above-the-fold cards so next/image eagerly loads. */
   priority?: boolean;
   /** Position in the grid — used for staggered entrance animation. */
@@ -54,16 +56,19 @@ export function ProductCard({
   const [panelOpen, setPanelOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
-  const [wishlisted, setWishlisted] = useState(false);
+
+  const isInWishlist = useWishlistStore((s) => s.isInWishlist);
+  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
+  const wishlisted = isInWishlist(product.id);
 
   const rootRef = useRef<HTMLElement>(null);
   useOutsideClick(rootRef, () => setPanelOpen(false), panelOpen);
 
   /* ---------------- derived product data --------------------------------- */
 
-  const primaryImage = product.featuredImage ?? product.images[0] ?? null;
+  const primaryImage = product.featuredImage ?? (product.images?.[0] ?? null);
   const secondaryImage =
-    product.images.find((img) => img.url !== primaryImage?.url) ?? null;
+    product.images?.find((img) => img.url !== primaryImage?.url) ?? null;
 
   const { min, compareMin, percentOff, onSale } = useMemo(() => {
     const minAmt = Number.parseFloat(product.priceRange.minVariantPrice.amount);
@@ -87,7 +92,7 @@ export function ProductCard({
   // freeze it into a stable state value.
   const [nowSnapshot] = useState(() => Date.now());
   const isNew = useMemo(() => {
-    if (product.tags.some((t) => t.toLowerCase() === "new")) return true;
+    if (product.tags?.some((t) => t.toLowerCase() === "new")) return true;
     if (!product.publishedAt) return false;
     const days =
       (nowSnapshot - new Date(product.publishedAt).getTime()) /
@@ -96,7 +101,7 @@ export function ProductCard({
   }, [product.tags, product.publishedAt, nowSnapshot]);
 
   const purchasableVariants = useMemo(
-    () => product.variants.filter(isVariantAvailable),
+    () => product.variants?.filter(isVariantAvailable) ?? [],
     [product.variants],
   );
 
@@ -104,14 +109,17 @@ export function ProductCard({
   const showQuickAdd = !isSoldOut && purchasableVariants.length > 0;
 
   const swatches = useMemo(() => extractColorSwatches(product), [product]);
-  const variantCount = product.variants.length;
+  const variantCount = product.variants?.length ?? 0;
 
   /* ---------------- actions --------------------------------------------- */
 
   const addVariant = async (variantId: string) => {
     setAdding(true);
     try {
-      await addItem(variantId, 1);
+      const variant = product.variants?.find(v => v.id === variantId);
+      const price = Number.parseFloat(variant?.price.amount || "0");
+      const imageUrl = variant?.image?.url || product.featuredImage?.url || "";
+      await addItem(variantId, product.title, price, imageUrl, 1);
       setPanelOpen(false);
       setJustAdded(true);
       window.setTimeout(() => setJustAdded(false), 1400);
@@ -154,9 +162,9 @@ export function ProductCard({
           href={`/products/${product.handle}`}
           aria-label={product.title}
           className={cn(
-            "relative block overflow-hidden rounded-[20px] bg-brand-100 aspect-[3/4]",
-            "ring-0 ring-brand-900/0 transition-[box-shadow,transform] duration-500 ease-out",
-            "group-hover:shadow-[0_22px_50px_-20px_rgba(26,14,46,0.35)] group-hover:scale-[1.02]",
+            "relative block overflow-hidden rounded-2xl bg-card aspect-[3/4]",
+            "ring-0 transition-[box-shadow] duration-500 ease-out",
+            "group-hover:shadow-elevated",
             isSoldOut && "opacity-90",
           )}
         >
@@ -165,10 +173,13 @@ export function ProductCard({
               src={primaryImage.url}
               alt={primaryImage.altText ?? product.title}
               fill
-              sizes="(max-width: 768px) 50vw, 25vw"
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               priority={priority}
+              placeholder="blur"
+              blurDataURL={IMAGE_BLUR_DATA_URL}
               className={cn(
-                "object-cover transition-opacity duration-500 ease-out",
+                "object-cover transition-all duration-500 ease-out",
+                "scale-100 group-hover:scale-[1.04]",
                 secondaryImage && hovered ? "opacity-0" : "opacity-100",
               )}
             />
@@ -181,10 +192,13 @@ export function ProductCard({
               src={secondaryImage.url}
               alt=""
               fill
-              sizes="(max-width: 768px) 50vw, 25vw"
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               aria-hidden="true"
+              placeholder="blur"
+              blurDataURL={IMAGE_BLUR_DATA_URL}
               className={cn(
-                "object-cover absolute inset-0 transition-opacity duration-500 ease-out",
+                "absolute inset-0 object-cover transition-all duration-500 ease-out",
+                "scale-100 group-hover:scale-[1.04]",
                 hovered ? "opacity-100" : "opacity-0",
               )}
             />
@@ -234,7 +248,7 @@ export function ProductCard({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setWishlisted((w) => !w);
+            toggleWishlist(product);
           }}
           className={cn(
             "absolute top-3 right-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full",
@@ -499,15 +513,15 @@ const LIGHT_COLORS = new Set([
   "silver",
 ]);
 
-function extractColorSwatches(product: ShopifyProduct): ColorSwatch[] {
-  const colorOption = product.options.find((o) =>
+function extractColorSwatches(product: Product): ColorSwatch[] {
+  const colorOption = product.options?.find((o) =>
     /^colou?r$/i.test(o.name.trim()),
   );
   if (!colorOption) return [];
 
   const out: ColorSwatch[] = [];
   const seen = new Set<string>();
-  for (const raw of colorOption.values) {
+  for (const raw of colorOption.values ?? []) {
     const value = raw.trim();
     if (!value) continue;
     const key = value.toLowerCase();
@@ -542,7 +556,7 @@ function extractColorSwatches(product: ShopifyProduct): ColorSwatch[] {
 
 interface VariantPanelProps {
   open: boolean;
-  variants: ShopifyVariant[];
+  variants: Variant[];
   onPick: (variantId: string) => void;
   fallbackCurrency: string;
   disabled?: boolean;

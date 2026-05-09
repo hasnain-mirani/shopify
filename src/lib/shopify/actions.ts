@@ -1,33 +1,11 @@
-"use server";
+import { api } from "@/lib/api-client";
+import type { Product } from "@/types";
 
-import { shopifyFetch } from "./client";
-import {
-  COLLECTIONS_QUERY,
-  COLLECTION_PRODUCTS_QUERY,
-  PRODUCTS_QUERY,
-  PRODUCT_BY_HANDLE_QUERY,
-  PRODUCT_RECOMMENDATIONS_QUERY,
-  SEARCH_QUERY,
-} from "./queries";
-import {
-  TAGS,
-  normalizeCollection,
-  normalizeProduct,
-  normalizeProducts,
-  type RawCollection,
-  type RawProduct,
-} from "./normalizers";
-import type {
-  ShopifyCollection,
-  ShopifyConnection,
-  ShopifyProduct,
-} from "@/types/shopify";
-
-/**
- * Default revalidation window (seconds) for catalog reads.
- * Mutations call `revalidateTag` to invalidate these on demand.
- */
-const CATALOG_REVALIDATE = 60 * 15;
+export const TAGS = {
+  products: "products",
+  collections: "collections",
+  search: "search",
+} as const;
 
 export interface GetProductsParams {
   sortKey?: string;
@@ -37,112 +15,117 @@ export interface GetProductsParams {
   after?: string;
 }
 
-export async function getProducts(
-  params: GetProductsParams = {},
-): Promise<ShopifyProduct[]> {
-  const { sortKey = "BEST_SELLING", reverse = false, limit = 24, query, after } = params;
-
-  const { data } = await shopifyFetch<{
-    products: ShopifyConnection<RawProduct>;
-  }>({
-    query: PRODUCTS_QUERY,
-    variables: { first: limit, sortKey, reverse, query, after },
-    tags: [TAGS.products],
-    revalidate: CATALOG_REVALIDATE,
+export async function getProducts(params: GetProductsParams = {}): Promise<Product[]> {
+  const { limit = 24, query, after } = params;
+  const offset = after ? Number.parseInt(after, 10) : 0;
+  const safeOffset = Number.isFinite(offset) && offset > 0 ? offset : 0;
+  return api.products.list({
+    limit,
+    search: query || undefined,
+    offset: safeOffset,
   });
-
-  const nodes = (data.products?.edges ?? []).map((e) => e.node);
-  return normalizeProducts(nodes);
 }
 
-export async function getProductByHandle(
-  handle: string,
-): Promise<ShopifyProduct | null> {
+export async function getProductByHandle(handle: string): Promise<Product | null> {
   if (!handle) return null;
-
-  const { data } = await shopifyFetch<{
-    product: RawProduct | null;
-  }>({
-    query: PRODUCT_BY_HANDLE_QUERY,
-    variables: { handle },
-    tags: [TAGS.products, `${TAGS.products}:${handle}`],
-    revalidate: CATALOG_REVALIDATE,
-  });
-
-  return normalizeProduct(data.product);
+  try { return await api.products.getByHandle(handle); } catch { return null; }
 }
 
-export async function getProductRecommendations(
-  productId: string,
-): Promise<ShopifyProduct[]> {
-  if (!productId) return [];
-
-  const { data } = await shopifyFetch<{
-    productRecommendations: RawProduct[] | null;
-  }>({
-    query: PRODUCT_RECOMMENDATIONS_QUERY,
-    variables: { productId },
-    tags: [TAGS.products, `${TAGS.products}:recommendations:${productId}`],
-    revalidate: CATALOG_REVALIDATE,
-  });
-
-  return normalizeProducts(data.productRecommendations ?? []).slice(0, 8);
+export async function getProductRecommendations(_productId: string): Promise<Product[]> {
+  try {
+    const all = await api.products.list({ limit: 8 });
+    return all.sort(() => Math.random() - 0.5).slice(0, 4);
+  } catch { return []; }
 }
 
-export async function getCollections(): Promise<
-  Array<Pick<ShopifyCollection, "id" | "handle" | "title" | "description" | "image">>
-> {
-  const { data } = await shopifyFetch<{
-    collections: ShopifyConnection<
-      Pick<ShopifyCollection, "id" | "handle" | "title" | "description" | "image"> & {
-        updatedAt?: string;
+export async function getCollections(): Promise<Array<{
+  id: string; handle: string; title: string; description: string;
+  image: import("@/types").Image | null;
+}>> {
+  try {
+    const products = await api.products.list({ limit: 120 });
+    const bucketMap = new Map<string, { title: string; products: Product[] }>();
+
+    const ensureBucket = (handle: string, title: string) => {
+      if (!handle) return;
+      if (!bucketMap.has(handle)) {
+        bucketMap.set(handle, { title, products: [] });
       }
-    >;
-  }>({
-    query: COLLECTIONS_QUERY,
-    variables: { first: 12 },
-    tags: [TAGS.collections],
-    revalidate: CATALOG_REVALIDATE,
-  });
+    };
 
-  return (data.collections?.edges ?? []).map((e) => e.node);
+    for (const p of products) {
+      const typeHandle = slugify(p.productType || "");
+      if (typeHandle) {
+        ensureBucket(typeHandle, humanizeHandle(typeHandle));
+        bucketMap.get(typeHandle)!.products.push(p);
+      }
+
+      for (const tag of p.tags || []) {
+        const tagHandle = slugify(tag);
+        if (!tagHandle) continue;
+        ensureBucket(tagHandle, humanizeHandle(tagHandle));
+        bucketMap.get(tagHandle)!.products.push(p);
+      }
+    }
+
+    return Array.from(bucketMap.entries())
+      .filter(([, bucket]) => bucket.products.length > 0)
+      .slice(0, 24)
+      .map(([handle, bucket]) => ({
+        id: handle,
+        handle,
+        title: bucket.title,
+        description: `${bucket.products.length} products`,
+        image: bucket.products[0]?.featuredImage || null,
+      }));
+  } catch { return []; }
 }
 
-export async function getCollectionProducts(
-  handle: string,
-): Promise<ShopifyCollection | null> {
+export async function getCollectionProducts(handle: string): Promise<{
+  id: string; handle: string; title: string; description: string; descriptionHtml: string;
+  image: import("@/types").Image | null;
+  products: Product[];
+} | null> {
   if (!handle) return null;
-
-  const { data } = await shopifyFetch<{
-    collection: RawCollection | null;
-  }>({
-    query: COLLECTION_PRODUCTS_QUERY,
-    variables: { handle, first: 24 },
-    tags: [
-      TAGS.collections,
-      TAGS.products,
-      `${TAGS.collections}:${handle}`,
-    ],
-    revalidate: CATALOG_REVALIDATE,
-  });
-
-  return normalizeCollection(data.collection);
+  try {
+    const normalizedHandle = slugify(handle);
+    // Do NOT rely on backend search here: many backends only search title,
+    // while our collection mapping is based on `productType` + tags.
+    const allProducts = await api.products.list({ limit: 250 });
+    const matched = allProducts.filter((p) => matchesCollectionHandle(p, normalizedHandle));
+    return {
+      id: normalizedHandle,
+      handle: normalizedHandle,
+      title: humanizeHandle(normalizedHandle),
+      description: "",
+      descriptionHtml: "",
+      image: matched[0]?.featuredImage || null,
+      products: matched,
+    };
+  } catch { return null; }
 }
 
-export async function searchProducts(query: string): Promise<ShopifyProduct[]> {
+function slugify(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function humanizeHandle(handle: string): string {
+  return handle
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function matchesCollectionHandle(product: Product, handle: string): boolean {
+  const typeHandle = slugify(product.productType || "");
+  if (typeHandle === handle) return true;
+  const tagHandles = (product.tags || []).map((t) => slugify(t));
+  return tagHandles.includes(handle);
+}
+
+export async function searchProducts(query: string): Promise<Product[]> {
   const trimmed = query?.trim();
   if (!trimmed) return [];
-
-  const { data } = await shopifyFetch<{
-    products: ShopifyConnection<RawProduct>;
-  }>({
-    query: SEARCH_QUERY,
-    variables: { query: trimmed, first: 24 },
-    tags: [TAGS.search, TAGS.products],
-    // Search is highly dynamic; keep it short.
-    revalidate: 30,
-  });
-
-  const nodes = (data.products?.edges ?? []).map((e) => e.node);
-  return normalizeProducts(nodes);
+  return api.products.list({ search: trimmed, limit: 24 });
 }

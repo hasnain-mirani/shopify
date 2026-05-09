@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Compass, Layers, Sparkles } from "lucide-react";
 import { CollectionCard } from "@/components/home";
 import { MarqueeBand } from "@/components/home";
-import { getCollections } from "@/lib/shopify";
+import { getCollections } from "@/lib/catalog";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export const revalidate = 900;
@@ -11,7 +11,7 @@ export const revalidate = 900;
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(
     "Collections",
-    "Shop phone accessories, home decor, and bundle deals — three curated collections from Glow Store PK.",
+    "Shop phone accessories, home decor, and bundle deals — three curated collections from SSHUB.STORE.",
     "/collections",
   );
 }

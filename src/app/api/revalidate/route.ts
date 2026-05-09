@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { updateTag } from "next/cache";
-import { TAGS } from "@/lib/shopify";
+import { TAGS } from "@/lib/catalog";
 
 /**
  * Shopify webhook → on-demand cache invalidation.

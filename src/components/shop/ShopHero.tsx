@@ -22,24 +22,23 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
 
   return (
     <section aria-labelledby="shop-hero-heading" className="relative overflow-hidden isolate">
-      {/* Soft radial sun-wash + late-afternoon orange pool — same system
-          as the home hero but dialed back so the toolbar/grid dominate. */}
+      {/* Dark, professional gradient layer matching global theme. */}
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(800px 420px at 88% 20%, rgba(245,164,124,0.22), transparent 60%), " +
-            "radial-gradient(600px 360px at 8% 85%, rgba(242,138,173,0.18), transparent 60%), " +
-            "linear-gradient(180deg, #fbf7f9 0%, #f1eaf4 100%)",
+            "radial-gradient(900px 420px at 88% 20%, rgba(245,158,11,0.2), transparent 62%), " +
+            "radial-gradient(700px 360px at 6% 90%, rgba(30,64,175,0.18), transparent 62%), " +
+            "linear-gradient(180deg, #0b1224 0%, #0f172a 100%)",
         }}
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 opacity-[0.3]"
+          className="absolute inset-0 -z-10 opacity-[0.16]"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(26,14,46,0.08) 1px, transparent 1px)",
+            "radial-gradient(circle, rgba(148,163,184,0.18) 1px, transparent 1px)",
           backgroundSize: "28px 28px",
           maskImage:
             "radial-gradient(ellipse at center, black 40%, transparent 85%)",
@@ -49,12 +48,12 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
       <div className="container-shop relative pt-10 pb-8 md:pt-14 md:pb-12">
         {/* Top rail: accent bar + eyebrow on the left, index counter on the right */}
         <div className="flex items-center justify-between gap-4 mb-6 md:mb-8">
-          <span className="inline-flex items-center gap-3 font-ui text-[11px] uppercase tracking-[0.28em] text-brand-700">
+          <span className="inline-flex items-center gap-3 font-ui text-[11px] uppercase tracking-[0.28em] text-slate-300">
             <span aria-hidden="true" className="h-px w-10 bg-accent" />
             The shop · Glow Drop &rsquo;26
           </span>
-          <span className="inline-flex items-baseline gap-1 font-ui text-[11px] uppercase tracking-[0.24em] text-brand-500">
-            <span className="font-display text-brand-900 text-lg md:text-xl leading-none">
+          <span className="inline-flex items-baseline gap-1 font-ui text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <span className="font-display text-slate-100 text-lg md:text-xl leading-none">
               {indexLabel}
             </span>
             <span>pieces in stock</span>
@@ -66,13 +65,13 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
           <div className="max-w-2xl">
             <h1
               id="shop-hero-heading"
-              className="heading-display text-[clamp(2.25rem,5.5vw,4.5rem)] text-brand-900"
+              className="heading-display text-[clamp(2.25rem,5.5vw,4.5rem)] text-slate-100"
             >
               {tag ? (
                 <>
                   All things{" "}
                   <span className="relative inline-block">
-                    <em className="italic relative z-10 text-brand-700">
+                    <em className="italic relative z-10 text-accent-light">
                       {tag}
                     </em>
                     <svg
@@ -97,7 +96,7 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
                 <>
                   Everything we&rsquo;ve{" "}
                   <span className="relative inline-block">
-                    <em className="italic relative z-10 text-brand-700">
+                    <em className="italic relative z-10 text-accent-light">
                       made
                     </em>
                     <svg
@@ -121,7 +120,7 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
               )}
             </h1>
 
-            <p className="font-sans text-brand-600 text-[15px] md:text-base max-w-lg mt-5 leading-relaxed">
+            <p className="font-sans text-slate-300 text-[15px] md:text-base max-w-lg mt-5 leading-relaxed">
               {tag
                 ? `Pieces tagged ${tag} — filtered for you. Clear the filter to browse the full catalog.`
                 : "Phone accessories and home pieces, hand-picked for the aesthetically curious. Filter by mood, sort by whim."}
@@ -134,10 +133,10 @@ export function ShopHero({ tag, count }: ShopHeroProps) {
             <MetaChip icon={<Compass className="h-3.5 w-3.5" />} label="Free worldwide shipping" />
             <Link
               href="/collections"
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-900 text-white pl-3.5 pr-2 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.2em] hover:bg-brand-800 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full bg-accent text-brand-950 pl-3.5 pr-2 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.2em] hover:bg-accent-light transition-colors"
             >
               Browse collections
-              <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-brand-900 text-[10px]">
+              <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-950 text-accent text-[10px]">
                 →
               </span>
             </Link>
@@ -156,8 +155,8 @@ function MetaChip({
   label: string;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 backdrop-blur-sm border border-brand-200/60 pl-2.5 pr-3 py-1.5 font-ui text-[11px] font-medium uppercase tracking-[0.18em] text-brand-800">
-      <span aria-hidden="true" className="text-accent-dark">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-900/70 backdrop-blur-sm border border-brand-200/20 pl-2.5 pr-3 py-1.5 font-ui text-[11px] font-medium uppercase tracking-[0.18em] text-slate-200">
+      <span aria-hidden="true" className="text-accent">
         {icon}
       </span>
       {label}

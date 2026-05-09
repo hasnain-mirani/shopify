@@ -2,10 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Quote, Star } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-import type { ShopifyProduct } from "@/types/shopify";
+import type { Product } from "@/types";
 
 export interface FeatureSpotlightProps {
-  product: ShopifyProduct;
+  product: Product;
   /** Editorial eyebrow. Defaults to "Editor's pick". */
   eyebrow?: string;
   /** Optional headline override. */
@@ -83,16 +83,16 @@ export function FeatureSpotlight({
         {/* ─── Section eyebrow rail (top) ─────────────────────────────── */}
         <div className="flex items-center justify-between mb-12 md:mb-16">
           <div className="flex items-center gap-3">
-            <span className="h-[1px] w-10" style={{ background: "rgba(245,166,35,0.5)" }} />
-            <span className="font-ui text-[11px] uppercase tracking-[0.3em]" style={{ color: "rgba(245,166,35,0.7)" }}>
+            <span className="h-[1px] w-10 bg-accent/50" />
+            <span className="font-ui text-[11px] uppercase tracking-[0.3em] text-accent/70">
               {eyebrow}
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-2 font-ui text-[11px] uppercase tracking-[0.22em]" style={{ color: "rgba(255,255,255,0.3)" }}>
-            <span className="font-display text-lg leading-none" style={{ color: "#F5A623" }}>
+          <div className="hidden md:flex items-center gap-2 font-ui text-[11px] uppercase tracking-[0.22em] text-white/30">
+            <span className="font-display text-lg leading-none text-accent">
               {watermark}
             </span>
-            <span className="h-[1px] w-6" style={{ background: "rgba(245,166,35,0.3)" }} />
+            <span className="h-[1px] w-6 bg-accent/30" />
             <span>Featured</span>
           </div>
         </div>

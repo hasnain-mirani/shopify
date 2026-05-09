@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProductGrid } from "@/components/product";
-import { getCollectionProducts, getCollections } from "@/lib/shopify";
+import { getCollectionProducts, getCollections } from "@/lib/catalog";
 import { buildCollectionMetadata } from "@/lib/metadata";
 
 interface PageProps {

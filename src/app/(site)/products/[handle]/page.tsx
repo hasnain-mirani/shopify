@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
-  ProductGrid,
   ProductImageGallery,
   ProductPurchasePanel,
 } from "@/components/product";
@@ -10,21 +10,53 @@ import {
   getProductByHandle,
   getProductRecommendations,
   getProducts,
-} from "@/lib/shopify";
+} from "@/lib/catalog";
 import { buildProductMetadata } from "@/lib/metadata";
+import { ProductPageTabs } from "@/components/product/ProductPageTabs";
+import type { Product } from "@/types";
 
 interface PageProps {
   params: Promise<{ handle: string }>;
 }
 
-/**
- * Pre-render popular products at build time. New products rendered on demand.
- * `dynamicParams` defaults to true so any unlisted handle still works.
- */
+function parseSpecifications(specifications?: string): Array<{ key: string; value: string }> {
+  if (!specifications) return [];
+  const raw = specifications.trim();
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return Object.entries(parsed as Record<string, unknown>)
+        .map(([key, value]) => ({
+          key: key.trim(),
+          value: String(value ?? "").trim(),
+        }))
+        .filter((row) => row.key && row.value);
+    }
+  } catch {
+    // If it's not JSON, we'll parse as plain text rows below.
+  }
+
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const idx = line.indexOf(":");
+      if (idx === -1) return null;
+      return {
+        key: line.slice(0, idx).trim(),
+        value: line.slice(idx + 1).trim(),
+      };
+    })
+    .filter((row): row is { key: string; value: string } => !!row && !!row.key && !!row.value);
+}
+
 export async function generateStaticParams() {
   try {
     const products = await getProducts({ limit: 50 });
-    return products.map((p) => ({ handle: p.handle }));
+    return products.map((p: Product) => ({ handle: p.handle }));
   } catch {
     return [];
   }
@@ -42,75 +74,314 @@ export default async function ProductPage({ params }: PageProps) {
   const product = await getProductByHandle(handle);
   if (!product) notFound();
 
-  const recommendations = await getProductRecommendations(product.id).catch(
-    () => [],
-  );
+  const [recommendations, allProducts] = await Promise.all([
+    getProductRecommendations(product.id).catch(() => []),
+    getProducts({ limit: 8 }).catch(() => []),
+  ]);
+
+  const similar = recommendations.length > 0
+    ? recommendations.slice(0, 4)
+    : allProducts.filter((p: Product) => p.id !== product.id).slice(0, 4);
+
+  const goTogether = allProducts.filter((p: Product) => p.id !== product.id).slice(0, 4);
+
+  const price = parseFloat(product.priceRange?.minVariantPrice?.amount ?? "0");
+  const compareAtPrice = product.compareAtPriceRange?.minVariantPrice?.amount
+    ?? product.variants?.[0]?.compareAtPrice?.amount
+    ?? (typeof product.marketPrice === "number" ? String(product.marketPrice) : undefined);
+  const compareAmt = compareAtPrice ? parseFloat(compareAtPrice) : 0;
+  const discount = compareAmt > price
+    ? Math.round(((compareAmt - price) / compareAmt) * 100)
+    : 0;
+  const currency = product.priceRange?.minVariantPrice?.currencyCode === "PKR" ? "Rs" :
+    (product.priceRange?.minVariantPrice?.currencyCode ?? "Rs");
+  const specs = parseSpecifications(product.specifications);
+  const keySpecs = specs.slice(0, 6);
+  const topTags = (product.tags ?? []).filter(Boolean).slice(0, 5);
 
   return (
-    <>
-      <div className="container-shop pt-10 pb-20">
-        {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-6 text-xs text-brand-500">
-          <ol className="flex items-center gap-1.5">
-            <li>
-              <Link href="/" className="hover:text-brand-900 transition-colors">
-                Home
-              </Link>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li>
-              <Link href="/shop" className="hover:text-brand-900 transition-colors">
-                Shop
-              </Link>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li className="text-brand-900 truncate max-w-[40ch]">{product.title}</li>
-          </ol>
-        </nav>
+    <div style={{ background: "transparent", minHeight: "100vh" }}>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-          <ProductImageGallery
-            images={product.images}
-            productTitle={product.title}
-          />
+      {/* ── Breadcrumb ── */}
+      <div style={{ background: "rgba(2,6,23,0.7)", borderBottom: "1px solid rgba(148,163,184,0.2)" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "10px 16px" }}>
+          <nav style={{ fontSize: "12px", color: "#94a3b8", display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            <Link href="/" style={{ color: "#f59e0b", textDecoration: "none" }}>Home</Link>
+            <span>/</span>
+            <Link href="/products" style={{ color: "#f59e0b", textDecoration: "none" }}>Products</Link>
+            <span>/</span>
+            <span style={{ color: "#e2e8f0" }}>{product.title}</span>
+          </nav>
+        </div>
+      </div>
 
-          <div className="flex flex-col gap-8 lg:sticky lg:top-24 lg:self-start">
-            <div className="flex flex-col gap-3">
-              {product.vendor && (
-                <span className="text-xs uppercase tracking-widest text-brand-500">
-                  {product.vendor}
-                </span>
-              )}
-              <h1 className="heading-display text-3xl md:text-4xl">
+      {/* ── Main product section ── */}
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "16px" }}>
+        <div style={{ background: "rgba(15,23,42,0.78)", borderRadius: "14px", padding: "24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", border: "1px solid rgba(148,163,184,0.18)" }} className="pdp-main-grid">
+
+          {/* Left: Gallery */}
+          <ProductImageGallery images={product.images} productTitle={product.title} />
+
+          {/* Right: Info */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {/* Title + badges */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "8px" }}>
+              <h1 style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "26px", fontWeight: 700, color: "#f8fafc", margin: 0, lineHeight: 1.25 }}>
                 {product.title}
               </h1>
             </div>
 
+            {/* Trust chips */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <span style={{ background: "rgba(34,197,94,0.16)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.4)", fontSize: "10px", fontWeight: 700, padding: "3px 10px", borderRadius: "999px", fontFamily: "var(--font-outfit, sans-serif)" }}>
+                {product.availableForSale ? "In Stock" : "Out of Stock"}
+              </span>
+              {product.vendor && (
+                <span style={{ background: "rgba(56,189,248,0.14)", color: "#7dd3fc", border: "1px solid rgba(56,189,248,0.36)", fontSize: "10px", fontWeight: 700, padding: "3px 10px", borderRadius: "999px", fontFamily: "var(--font-outfit, sans-serif)" }}>
+                  {product.vendor}
+                </span>
+              )}
+              {product.productType && (
+                <span style={{ background: "rgba(168,85,247,0.16)", color: "#d8b4fe", border: "1px solid rgba(168,85,247,0.34)", fontSize: "10px", fontWeight: 700, padding: "3px 10px", borderRadius: "999px", fontFamily: "var(--font-outfit, sans-serif)" }}>
+                  {product.productType}
+                </span>
+              )}
+            </div>
+
+            {/* Rating + Fast Delivery */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                {"★★★★☆".split("").map((s, i) => (
+                  <span key={i} style={{ color: "#F5A623", fontSize: "14px" }}>{s}</span>
+                ))}
+                <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", color: "#cbd5e1", marginLeft: "4px" }}>4.0</span>
+                <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", color: "#94a3b8" }}>| Reviews</span>
+              </div>
+              <span style={{ background: "rgba(245,158,11,0.16)", color: "#fbbf24", border: "1px solid rgba(245,158,11,0.35)", fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "999px", fontFamily: "var(--font-outfit, sans-serif)" }}>
+                Fast Delivery
+              </span>
+            </div>
+
+            {/* Price */}
+            <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
+              <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "30px", fontWeight: 800, color: "#f8fafc" }}>
+                {currency} {price.toLocaleString("en-PK")}
+              </span>
+              {compareAmt > price && (
+                <>
+                  <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "14px", color: "#94a3b8", textDecoration: "line-through" }}>
+                    {currency} {compareAmt.toLocaleString("en-PK")}
+                  </span>
+                  <span style={{ background: "#f0fdf4", color: "#16a34a", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px" }}>
+                    {discount}% OFF
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Key technical snapshot */}
+            {keySpecs.length > 0 && (
+              <div style={{ border: "1px solid rgba(148,163,184,0.24)", background: "rgba(2,6,23,0.45)", borderRadius: "12px", padding: "12px 14px" }}>
+                <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", letterSpacing: "0.08em", textTransform: "uppercase", color: "#93c5fd" }}>
+                  Key Specifications
+                </h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }} className="quick-specs-grid">
+                  {keySpecs.map((row) => (
+                    <div key={`${row.key}-${row.value}`} style={{ border: "1px solid rgba(148,163,184,0.15)", borderRadius: "9px", padding: "8px 10px", background: "rgba(15,23,42,0.6)" }}>
+                      <p style={{ margin: 0, fontFamily: "var(--font-outfit, sans-serif)", fontSize: "10px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.key}</p>
+                      <p style={{ margin: "4px 0 0", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", color: "#e2e8f0", fontWeight: 600, lineHeight: 1.4 }}>{row.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Purchase panel (variant selector + add to cart) */}
             <ProductPurchasePanel product={product} />
 
+            {/* Description */}
             {product.descriptionHtml && (
-              <div className="pt-6 border-t border-brand-200">
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-brand-600 mb-3">
-                  Details
-                </h2>
+              <div style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "12px" }}>
                 <div
-                  className="prose prose-sm max-w-none text-brand-700 leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                  style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.7 }}
                   dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
                 />
+              </div>
+            )}
+
+            {topTags.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
+                {topTags.map((tag) => (
+                  <span
+                    key={tag}
+                    style={{
+                      borderRadius: "999px",
+                      border: "1px solid rgba(148,163,184,0.25)",
+                      background: "rgba(15,23,42,0.75)",
+                      color: "#cbd5e1",
+                      fontFamily: "var(--font-outfit, sans-serif)",
+                      fontSize: "11px",
+                      padding: "5px 10px",
+                    }}
+                  >
+                    #{tag}
+                  </span>
+                ))}
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {recommendations.length > 0 && (
-        <section className="container-shop pb-20">
-          <ProductGrid
-            products={recommendations.slice(0, 4)}
-            heading="You may also like"
-          />
-        </section>
+      {/* ── Similar products ── */}
+      {similar.length > 0 && (
+        <div style={{ maxWidth: "1200px", margin: "16px auto 0", padding: "0 16px" }}>
+          <div style={{ background: "rgba(15,23,42,0.78)", borderRadius: "14px", padding: "20px 24px", border: "1px solid rgba(148,163,184,0.18)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <div>
+                <h2 style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "16px", fontWeight: 700, color: "#f8fafc", margin: 0 }}>
+                  Similar Products
+                </h2>
+                <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", color: "#94a3b8", margin: "4px 0 0" }}>
+                  Products similar to {product.title}
+                </p>
+              </div>
+              <Link href="/products" style={{ padding: "7px 18px", borderRadius: "999px", border: "1px solid rgba(148,163,184,0.3)", color: "#e2e8f0", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                View All
+              </Link>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }} className="similar-grid">
+              {similar.map((p: Product) => {
+                const sp = parseFloat(p.priceRange?.minVariantPrice?.amount ?? "0");
+                const scp = p.variants?.[0]?.compareAtPrice;
+                const sc = scp ? parseFloat(scp.amount) : 0;
+                const sd = sc > sp ? Math.round(((sc - sp) / sc) * 100) : 0;
+                return (
+                  <Link key={p.id} href={`/products/${p.handle}`} style={{ display: "flex", flexDirection: "column", padding: "12px", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "12px", textDecoration: "none", transition: "box-shadow 0.18s", background: "rgba(2,6,23,0.45)" }}>
+                    <div style={{ position: "relative", aspectRatio: "1", background: "#0b1224", borderRadius: "10px", overflow: "hidden", marginBottom: "10px" }}>
+                      {p.featuredImage?.url ? (
+                        <Image src={p.featuredImage.url} alt={p.title} fill sizes="180px" style={{ objectFit: "contain" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>📦</div>
+                      )}
+                    </div>
+                    <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", fontWeight: 500, color: "#e2e8f0", margin: "0 0 6px", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {p.title}
+                    </p>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "4px" }}>
+                      <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", fontWeight: 700, color: "#f8fafc" }}>
+                        Rs {sp.toLocaleString("en-PK")}
+                      </span>
+                      {sd > 0 && <span style={{ fontSize: "10px", fontWeight: 600, color: "#16a34a" }}>{sd}% OFF</span>}
+                    </div>
+                    <span style={{ marginTop: "6px", display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 7px", borderRadius: "4px", background: "rgba(245,166,35,0.12)", border: "1px solid rgba(245,166,35,0.25)", color: "#E8850A", fontSize: "9px", fontWeight: 700, width: "fit-content" }}>
+                      ⚡ Fast Delivery
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       )}
-    </>
+
+      {/* ── Trust badges ── */}
+      <div style={{ maxWidth: "1200px", margin: "16px auto 0", padding: "0 16px" }}>
+        <div style={{ background: "rgba(15,23,42,0.78)", borderRadius: "14px", padding: "20px 24px", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", textAlign: "center", border: "1px solid rgba(148,163,184,0.18)" }} className="trust-grid">
+          {[
+            { icon: "🛡️", title: "3 Days", sub: "Brand Warranty" },
+            { icon: "🔄", title: "Easy Returns", sub: "Free of Charge" },
+            { icon: "📦", title: "Fast Delivery", sub: "Nationwide" },
+          ].map((b) => (
+            <div key={b.title} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "28px" }}>{b.icon}</span>
+              <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", fontWeight: 700, color: "#e2e8f0" }}>{b.title}</span>
+              <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "11px", color: "#94a3b8" }}>{b.sub}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Tabs: Similar Products / Specifications / Reviews / FAQs ── */}
+      <div style={{ maxWidth: "1200px", margin: "16px auto 0", padding: "0 16px" }}>
+        <ProductPageTabs product={product} similar={similar} />
+      </div>
+
+      {/* ── Products That Go Together ── */}
+      {goTogether.length > 0 && (
+        <div style={{ maxWidth: "1200px", margin: "16px auto 0", padding: "0 16px" }}>
+          <div style={{ background: "rgba(15,23,42,0.78)", borderRadius: "14px", padding: "20px 24px", border: "1px solid rgba(148,163,184,0.18)" }}>
+            <h2 style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "16px", fontWeight: 700, color: "#f8fafc", margin: "0 0 16px" }}>
+              Products That Go Together
+            </h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }} className="similar-grid">
+              {goTogether.map((p: Product) => {
+                const sp = parseFloat(p.priceRange?.minVariantPrice?.amount ?? "0");
+                const gcp = p.variants?.[0]?.compareAtPrice;
+                const sc = gcp ? parseFloat(gcp.amount) : 0;
+                const sd = sc > sp ? Math.round(((sc - sp) / sc) * 100) : 0;
+                return (
+                  <Link key={p.id} href={`/products/${p.handle}`} style={{ display: "flex", flexDirection: "column", padding: "12px", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "12px", textDecoration: "none", background: "rgba(2,6,23,0.45)" }}>
+                    <div style={{ position: "relative", aspectRatio: "1", background: "#0b1224", borderRadius: "10px", overflow: "hidden", marginBottom: "10px" }}>
+                      {p.featuredImage?.url ? (
+                        <Image src={p.featuredImage.url} alt={p.title} fill sizes="180px" style={{ objectFit: "contain" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>📦</div>
+                      )}
+                    </div>
+                    <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "12px", fontWeight: 500, color: "#e2e8f0", margin: "0 0 6px", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {p.title}
+                    </p>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+                      <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", fontWeight: 700, color: "#f8fafc" }}>
+                        Rs {sp.toLocaleString("en-PK")}
+                      </span>
+                      {sd > 0 && <span style={{ fontSize: "10px", fontWeight: 600, color: "#16a34a" }}>{sd}% OFF</span>}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Shop More Categories ── */}
+      <div style={{ maxWidth: "1200px", margin: "16px auto 0", padding: "0 16px 32px" }}>
+        <div style={{ background: "rgba(15,23,42,0.78)", borderRadius: "14px", padding: "20px 24px", border: "1px solid rgba(148,163,184,0.18)" }}>
+          <h2 style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "16px", fontWeight: 700, color: "#f8fafc", margin: "0 0 16px" }}>
+            Shop More Categories
+          </h2>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            {[
+              { label: "Mobiles", emoji: "📱", color: "#7C3AED" },
+              { label: "Earbuds", emoji: "🎧", color: "#DB2777" },
+              { label: "Watches", emoji: "⌚", color: "#0EA5E9" },
+              { label: "Chargers", emoji: "🔌", color: "#16A34A" },
+              { label: "Speakers", emoji: "🔊", color: "#EA580C" },
+              { label: "Tablets", emoji: "📟", color: "#8B5CF6" },
+            ].map((c) => (
+              <Link
+                key={c.label}
+                href="/products"
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", width: "90px", height: "90px", borderRadius: "10px", background: c.color, padding: "8px", textDecoration: "none", gap: "4px", transition: "opacity 0.18s" }}
+              >
+                <span style={{ fontSize: "28px" }}>{c.emoji}</span>
+                <span style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "11px", fontWeight: 700, color: "#fff", textAlign: "center" }}>{c.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .pdp-main-grid { grid-template-columns: 1fr !important; }
+          .similar-grid  { grid-template-columns: repeat(2, 1fr) !important; }
+          .trust-grid    { grid-template-columns: 1fr !important; }
+          .quick-specs-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </div>
   );
 }

@@ -39,7 +39,7 @@ orders without leaving the app.
 
 ### Admin (`/admin`)
 - **Password-gated** — a signed JWT session cookie (via `jose`) set on
-  successful login, validated in middleware (`src/proxy.ts`).
+  successful login, validated in middleware (`src/middleware.ts`).
 - **Dashboard** with KPI cards (orders, revenue, customers).
 - **Products** — list, create (with images, variants, pricing), delete
   with two-step confirmation.
@@ -110,7 +110,7 @@ src/
 │   └── utils.ts                # cn, formatPrice, isVariantAvailable
 ├── hooks/                      # useScrollPosition, useOutsideClick, useIsMounted
 ├── store/cart-store.ts         # Zustand cart with optimistic counter
-├── proxy.ts                    # Next.js 16 middleware (admin gate)
+├── middleware.ts               # Next.js middleware (admin gate)
 ├── types/shopify.ts            # normalized Shopify shapes
 └── app/globals.css             # Tailwind @theme + custom components
 ```
@@ -211,7 +211,7 @@ The route verifies Shopify's HMAC signature using
 | `/admin/orders`          | Recent orders with status badges.                      |
 | `/admin/logout` (POST)   | Clears the session cookie.                             |
 
-Middleware (`src/proxy.ts`) redirects any unauthenticated request under
+Middleware (`src/middleware.ts`) redirects any unauthenticated request under
 `/admin/**` (except `/admin/login`) back to `/admin/login`.
 
 ---
@@ -304,7 +304,7 @@ Designed for Vercel but works on any Node 20+ host:
 | 401 on `/admin/**`                             | Session cookie is missing or secret changed. Log in again; confirm `ADMIN_SESSION_SECRET`.   |
 | Prices not filtering                           | Shopify Storefront API doesn't expose reliable price query operators — filter happens client-side after fetch (see `shop/page.tsx`). |
 | LCP warnings on the hero image                 | The hero `<Image>` uses `priority`; make sure your own hero swaps don't drop that prop.      |
-| `middleware.ts is deprecated`                  | We already renamed to `src/proxy.ts` per Next.js 16. If you restore the file, fix the name.  |
+| `middleware.ts is deprecated`                  | This is the correct filename for Next.js middleware. No action needed.  |
 
 ---
 

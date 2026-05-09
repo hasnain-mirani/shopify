@@ -26,8 +26,7 @@ export function NewsletterSection() {
   return (
     <section
       aria-labelledby="newsletter-heading"
-      className="relative overflow-hidden"
-      style={{ background: "#1A0D00" }}
+      className="relative overflow-hidden bg-brand-900"
     >
       {/* Centered radial amber glow */}
       <div
@@ -68,10 +67,9 @@ export function NewsletterSection() {
       <div className="container-shop relative py-20 md:py-28 flex flex-col items-center text-center gap-10">
         {/* Eyebrow */}
         <span
-          className="inline-flex items-center gap-2 font-ui text-[11px] uppercase tracking-[0.3em]"
-          style={{ color: "#F5A623" }}
+          className="inline-flex items-center gap-2 font-ui text-[11px] uppercase tracking-[0.3em] text-accent"
         >
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#F5A623" }} />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
           The Glow List
         </span>
 

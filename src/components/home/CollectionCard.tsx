@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ShopifyCollection } from "@/types";
+import type { Collection } from "@/types";
 
 export type CollectionCardData = Pick<
-  ShopifyCollection,
+  Collection,
   "id" | "handle" | "title" | "image"
 >;
 

@@ -1,3 +1,4 @@
+export { SiteChrome } from "./SiteChrome";
 export { Header } from "./Header";
 export type { HeaderProps } from "./Header";
 

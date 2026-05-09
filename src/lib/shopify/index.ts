@@ -1,25 +1,4 @@
 export {
-  ShopifyError,
-  shopifyFetch,
-  removeEdgesAndNodes,
-  formatMoney,
-} from "./client";
-export type {
-  ShopifyFetchOptions,
-  ShopifyFetchResult,
-} from "./client";
-
-export {
-  TAGS,
-  normalizeCart,
-  normalizeCollection,
-  normalizeProduct,
-  normalizeProducts,
-} from "./normalizers";
-
-export * from "./queries";
-
-export {
   getProducts,
   getProductByHandle,
   getProductRecommendations,
@@ -29,12 +8,6 @@ export {
 } from "./actions";
 export type { GetProductsParams } from "./actions";
 
-export {
-  createCart,
-  addToCart,
-  updateCartLines,
-  removeFromCart,
-  getCart,
-} from "./cart-actions";
+export { TAGS } from "./actions";
 
-export type * from "@/types/shopify";
+export type * from "@/types";

@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { ProductGrid, SortDropdown } from "@/components/product";
+import { SortDropdown } from "@/components/product";
 import { decodeSort } from "@/components/product/sort-utils";
 import {
+  CatalogGridClient,
   FilterPanel,
   ShopEmpty,
   ShopHero,
   TagStrip,
 } from "@/components/shop";
-import { getProducts } from "@/lib/shopify";
+import { getProducts } from "@/lib/catalog";
 import { buildPageMetadata } from "@/lib/metadata";
-import type { ShopifyProduct } from "@/types/shopify";
+import type { Product } from "@/types";
 
 interface ShopSearchParams {
   sort?: string;
@@ -26,7 +27,7 @@ interface PageProps {
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(
     "Shop all",
-    "Browse every piece in the Glow Store PK catalog — phone accessories, home decor, and bundle deals.",
+    "Browse every piece in the SSHUB.STORE catalog — phone accessories, home decor, and bundle deals.",
     "/shop",
   );
 }
@@ -66,7 +67,7 @@ export default async function ShopPage({ searchParams }: PageProps) {
     reverse,
     limit: 48,
     query: shopQuery,
-  }).catch<ShopifyProduct[]>(() => []);
+  }).catch<Product[]>(() => []);
 
   // Client-side price filter. We parse numeric inputs defensively and
   // keep a product if ANY of its variants falls inside the range.
@@ -123,20 +124,20 @@ export default async function ShopPage({ searchParams }: PageProps) {
               the user is deep in the grid. */}
           <section
             aria-label="Catalog filters"
-            className="sticky top-[68px] md:top-[72px] z-30 bg-brand-50/85 backdrop-blur-md border-y border-brand-200/60"
+            className="sticky top-[68px] md:top-[72px] z-30 bg-brand-950/80 backdrop-blur-xl border-y border-brand-200/15"
           >
             <div className="container-shop flex items-center gap-3 md:gap-4 py-3">
               <div className="min-w-0 flex-1">
                 <TagStrip tags={tagList} activeTag={tag} />
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="hidden sm:inline-flex font-ui text-[11px] uppercase tracking-[0.22em] text-brand-500 tabular-nums">
+                <span className="hidden sm:inline-flex font-ui text-[11px] uppercase tracking-[0.22em] text-slate-300 tabular-nums">
                   {products.length}{" "}
                   {products.length === 1 ? "piece" : "pieces"}
                 </span>
                 <span
                   aria-hidden="true"
-                  className="hidden sm:inline-block h-4 w-px bg-brand-300"
+                  className="hidden sm:inline-block h-4 w-px bg-brand-200/25"
                 />
                 <FilterPanel
                   currencyCode={currencyCode}
@@ -152,20 +153,20 @@ export default async function ShopPage({ searchParams }: PageProps) {
             className="container-shop pt-8 pb-16 md:pt-12 md:pb-24"
           >
             <header className="flex items-baseline justify-between gap-4 mb-6 md:mb-8">
-              <span className="inline-flex items-center gap-3 font-ui text-[11px] uppercase tracking-[0.28em] text-brand-700">
+              <span className="inline-flex items-center gap-3 font-ui text-[11px] uppercase tracking-[0.28em] text-slate-300">
                 <span aria-hidden="true" className="h-px w-8 bg-accent" />
                 The full catalog
               </span>
               <h2 id="shop-grid-heading" className="sr-only">
                 All products
               </h2>
-              <span className="font-ui text-[11px] uppercase tracking-[0.22em] text-brand-500 tabular-nums">
+              <span className="font-ui text-[11px] uppercase tracking-[0.22em] text-slate-400 tabular-nums">
                 Showing {products.length}
                 {raw.length !== products.length && ` / ${raw.length}`}
               </span>
             </header>
 
-            <ProductGrid products={products} priorityFirstRow />
+            <CatalogGridClient products={products} priorityFirstRow />
           </section>
         </>
       )}
@@ -193,7 +194,7 @@ function parsePositiveNumber(raw: string | undefined): number | null {
 }
 
 function computePriceBounds(
-  products: ShopifyProduct[],
+  products: Product[],
 ): { min: number; max: number } | undefined {
   let lo = Number.POSITIVE_INFINITY;
   let hi = 0;

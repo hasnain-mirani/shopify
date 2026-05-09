@@ -21,5 +21,7 @@ export type { ProductPurchasePanelProps } from "./ProductPurchasePanel";
 
 export { SortDropdown } from "./SortDropdown";
 export type { SortDropdownProps } from "./SortDropdown";
+
+export { ProductPageTabs } from "./ProductPageTabs";
 export { decodeSort, SORT_OPTIONS } from "./sort-utils";
 export type { SortValue, SortOption } from "./sort-utils";

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { getPromoBanner } from "@/lib/promo-banner";
-import { getProductByHandle } from "@/lib/shopify";
+import { getProductByHandle } from "@/lib/catalog";
 import { formatPrice } from "@/lib/utils";
 
 /**
@@ -63,8 +63,7 @@ export async function PromoBanner() {
         <div className="relative grid gap-10 md:grid-cols-12 md:items-center">
           {/* ─── Copy ─── */}
           <div className="md:col-span-5">
-            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 font-ui text-[11px] uppercase tracking-[0.3em] backdrop-blur-sm"
-              style={{ border: "1px solid rgba(245,166,35,0.2)", background: "rgba(245,166,35,0.08)", color: "#F5A623" }}
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 font-ui text-[11px] uppercase tracking-[0.3em] backdrop-blur-sm border border-accent/20 bg-accent/8 text-accent"
             >
               <Sparkles className="h-3 w-3" aria-hidden="true" />
               Limited drop

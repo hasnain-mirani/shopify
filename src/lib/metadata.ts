@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import type { ShopifyCollection, ShopifyProduct } from "@/types";
+import type { Collection, Product } from "@/types";
 import { formatPrice, truncate } from "./utils";
 
-const SITE_NAME = "Glow Store PK";
+const SITE_NAME = "SSHUB.STORE";
 const DEFAULT_DESCRIPTION =
   "Phone accessories, home decor, and cosy bundle deals — hand-picked for the aesthetically curious.";
 
@@ -27,7 +27,7 @@ function firstImage(images: Array<{ url: string; altText?: string | null }> | un
  *   - First product image for OG / Twitter cards.
  *   - Price prefix in description so it surfaces in SERP snippets.
  */
-export function buildProductMetadata(product: ShopifyProduct): Metadata {
+export function buildProductMetadata(product: Product): Metadata {
   const title = product.seo?.title ?? product.title;
   const descSource =
     product.seo?.description?.trim() || product.description?.trim() || "";
@@ -73,7 +73,7 @@ export function buildProductMetadata(product: ShopifyProduct): Metadata {
 /**
  * Build `Metadata` for a collection page.
  */
-export function buildCollectionMetadata(collection: ShopifyCollection): Metadata {
+export function buildCollectionMetadata(collection: Collection): Metadata {
   const title = collection.seo?.title ?? collection.title;
   const descSource =
     collection.seo?.description?.trim() ||

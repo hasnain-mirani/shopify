@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAdminOrderAlerts } from "@/hooks/useAdminOrderAlerts";
 import {
   LayoutDashboard,
   Package,
@@ -13,6 +14,9 @@ import {
   Megaphone,
   Sparkles,
   Home,
+  SlidersHorizontal,
+  Bell,
+  Users,
 } from "lucide-react";
 
 interface NavItem {
@@ -36,6 +40,12 @@ const NAV: NavItem[] = [
     match: (p) => p.startsWith("/admin/orders"),
   },
   {
+    href: "/admin/customers",
+    label: "Customers",
+    Icon: Users,
+    match: (p) => p.startsWith("/admin/customers"),
+  },
+  {
     href: "/admin/products",
     label: "Products",
     Icon: Package,
@@ -55,6 +65,12 @@ const NAV: NavItem[] = [
     match: (p) => p.startsWith("/admin/promo-banner"),
   },
   {
+    href: "/admin/banner-slider",
+    label: "Main slider",
+    Icon: SlidersHorizontal,
+    match: (p) => p.startsWith("/admin/banner-slider"),
+  },
+  {
     href: "/admin/hero",
     label: "Home hero",
     Icon: Sparkles,
@@ -66,6 +82,12 @@ const NAV: NavItem[] = [
     Icon: Home,
     match: (p) => p.startsWith("/admin/landing-products"),
   },
+  {
+    href: "/admin/notifications",
+    label: "Notifications",
+    Icon: Bell,
+    match: (p) => p.startsWith("/admin/notifications"),
+  },
 ];
 
 interface Props {
@@ -75,6 +97,7 @@ interface Props {
 
 export function AdminSidebar({ shopName = "Store", storefrontUrl = "/" }: Props) {
   const pathname = usePathname();
+  useAdminOrderAlerts();
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">

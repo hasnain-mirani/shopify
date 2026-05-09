@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { cn, getVariantId, isVariantAvailable } from "@/lib/utils";
-import type { ShopifyProduct, ShopifyVariant } from "@/types";
+import type { Product, Variant } from "@/types";
 
 export interface ProductVariantSelectorProps {
-  product: ShopifyProduct;
+  product: Product;
   /** Receives the variant id whenever the complete option set matches one. */
-  onChange?: (variant: ShopifyVariant | null) => void;
+  onChange?: (variant: Variant | null) => void;
   className?: string;
 }
 
@@ -27,7 +27,7 @@ export function ProductVariantSelector({
 }: ProductVariantSelectorProps) {
   // Seed with the first purchasable variant's options (fallback to first variant).
   const initial = useMemo(() => {
-    const seed = product.variants.find(isVariantAvailable) ?? product.variants[0];
+    const seed = product.variants?.find(isVariantAvailable) ?? product.variants?.[0];
     const record: Record<string, string> = {};
     seed?.selectedOptions.forEach((o) => {
       record[o.name] = o.value;
@@ -49,12 +49,15 @@ export function ProductVariantSelector({
 
   // Emit the resolved variant (if all options chosen combine to something).
   useEffect(() => {
-    const id = getVariantId(product, selected);
-    const variant = id ? product.variants.find((v) => v.id === id) ?? null : null;
+    let id = getVariantId(product, selected);
+    if (!id && product.variants?.length === 1) {
+      id = product.variants[0].id;
+    }
+    const variant = id ? (product.variants?.find((v) => v.id === id) ?? null) : null;
     onChange?.(variant);
   }, [selected, product, onChange]);
 
-  if (product.options.length === 0) return null;
+  if (!product.options || product.options.length === 0) return null;
 
   const pick = (name: string, value: string) =>
     setSelected((prev) => ({ ...prev, [name]: value }));
@@ -117,16 +120,16 @@ export function ProductVariantSelector({
  * option buttons that would lead to out-of-stock combinations.
  */
 function canSelect(
-  product: ShopifyProduct,
+  product: Product,
   current: Record<string, string>,
   name: string,
   value: string,
 ): boolean {
   const candidate = { ...current, [name]: value };
-  return product.variants.some((v) => {
+  return product.variants?.some((v) => {
     if (!isVariantAvailable(v)) return false;
     return v.selectedOptions.every((opt) => candidate[opt.name] === opt.value);
-  });
+  }) ?? false;
 }
 
 export default ProductVariantSelector;

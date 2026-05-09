@@ -80,6 +80,26 @@ export function LandingProductsForm({ initial, products }: Props) {
         </div>
         <div className="px-5 py-5 space-y-4">
           <div>
+            <label htmlFor="trendingHref" className="block text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">
+              Trending Category Link
+            </label>
+            <input
+              id="trendingHref"
+              name="trendingHref"
+              type="text"
+              defaultValue={saved.trendingHref}
+              maxLength={400}
+              placeholder="/shop"
+              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-zinc-400"
+            />
+            <p className="mt-1 text-[11px] text-zinc-500">
+              Controls the homepage top-strip <strong>Trending Products</strong> redirect.
+            </p>
+            {state.fieldErrors?.trendingHref && (
+              <p className="mt-1 text-xs text-red-600">{state.fieldErrors.trendingHref}</p>
+            )}
+          </div>
+          <div>
             <label htmlFor="sectionHeading" className="block text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">
               Section Heading
             </label>

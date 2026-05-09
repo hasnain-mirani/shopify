@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import {
   DEFAULT_LANDING_PRODUCTS,
   LANDING_PRODUCTS_TAG,
+  normalizeTrendingHref,
   saveLandingProducts,
   type LandingProductsConfig,
 } from "@/lib/landing-products";
@@ -32,12 +33,16 @@ export async function saveLandingProductsAction(
 
   const sectionHeading = String(formData.get("sectionHeading") ?? "").trim();
   const sectionSubcopy = String(formData.get("sectionSubcopy") ?? "").trim();
+  const trendingHrefInput = String(formData.get("trendingHref") ?? "").trim();
+  const trendingHref = normalizeTrendingHref(trendingHrefInput);
   const productHandles = collectHandles(formData);
 
   if (sectionHeading.length > 80)
     errors.sectionHeading = "Keep the heading under 80 characters.";
   if (sectionSubcopy.length > 240)
     errors.sectionSubcopy = "Keep the sub-copy under 240 characters.";
+  if (trendingHrefInput && !/^(https?:\/\/|\/|[a-z0-9_-])/i.test(trendingHrefInput))
+    errors.trendingHref = "Enter a valid path or URL.";
 
   if (Object.keys(errors).length > 0) {
     return { ok: false, error: "Please fix the errors below.", fieldErrors: errors };
@@ -48,6 +53,7 @@ export async function saveLandingProductsAction(
       productHandles,
       sectionHeading: sectionHeading || DEFAULT_LANDING_PRODUCTS.sectionHeading,
       sectionSubcopy: sectionSubcopy || DEFAULT_LANDING_PRODUCTS.sectionSubcopy,
+      trendingHref: trendingHref || DEFAULT_LANDING_PRODUCTS.trendingHref,
     });
 
     revalidateTag(LANDING_PRODUCTS_TAG, {});

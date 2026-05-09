@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getCollections, getProducts } from "@/lib/shopify";
+import { getCollections, getProducts } from "@/lib/catalog";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";

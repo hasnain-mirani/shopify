@@ -100,6 +100,9 @@ export async function saveHeroConfigAction(
   const lovedByHighlight = req("lovedByHighlight", "Loved-by highlight");
   const lovedBySub = req("lovedBySub", "Loved-by sub-label");
   const badgeText = req("badgeText", "Badge text");
+  const promoPersonImageUrl = String(
+    formData.get("promoPersonImageUrl") ?? "",
+  ).trim();
 
   if (Object.keys(errors).length > 0) {
     return {
@@ -134,6 +137,7 @@ export async function saveHeroConfigAction(
       lovedByHighlight,
       lovedBySub,
       badgeText,
+      promoPersonImageUrl,
     });
 
     revalidateTag(HERO_CONFIG_TAG, {});

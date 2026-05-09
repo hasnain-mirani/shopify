@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
-import type { ShopifyProduct } from "@/types/shopify";
+import type { Product } from "@/types/shopify";
 import { ProductCard } from "./ProductCard";
 
 export interface ProductGridProps {
-  products: ShopifyProduct[];
+  products: Product[];
   heading?: React.ReactNode;
   /**
    * When true, the first row's images use `priority` so they're treated as LCP

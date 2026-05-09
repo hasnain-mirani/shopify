@@ -20,6 +20,8 @@ export interface LandingProductsConfig {
   sectionHeading: string;
   /** Section sub-copy override */
   sectionSubcopy: string;
+  /** Category strip "Trending Products" destination URL. */
+  trendingHref: string;
   updatedAt: string;
 }
 
@@ -28,11 +30,20 @@ export const DEFAULT_LANDING_PRODUCTS: LandingProductsConfig = {
   sectionHeading: "Featured Products",
   sectionSubcopy:
     "Hand-picked tech accessories, smartwatches and power banks — restocked and updated every week.",
+  trendingHref: "/shop",
   updatedAt: new Date(0).toISOString(),
 };
 
 const DATA_DIR = path.join(process.cwd(), ".data");
 const FILE_PATH = path.join(DATA_DIR, "landing-products.json");
+
+export function normalizeTrendingHref(raw: string | null | undefined): string {
+  const input = String(raw ?? "").trim();
+  if (!input) return DEFAULT_LANDING_PRODUCTS.trendingHref;
+  if (/^https?:\/\//i.test(input)) return input;
+  if (input.startsWith("/")) return input;
+  return `/${input}`;
+}
 
 function sanitize(raw: unknown): LandingProductsConfig {
   if (!raw || typeof raw !== "object") return DEFAULT_LANDING_PRODUCTS;
@@ -51,6 +62,7 @@ function sanitize(raw: unknown): LandingProductsConfig {
       typeof r.sectionSubcopy === "string"
         ? r.sectionSubcopy
         : DEFAULT_LANDING_PRODUCTS.sectionSubcopy,
+    trendingHref: normalizeTrendingHref(r.trendingHref),
     updatedAt:
       typeof r.updatedAt === "string"
         ? r.updatedAt

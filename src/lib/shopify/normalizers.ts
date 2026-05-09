@@ -6,6 +6,7 @@ import type {
   ShopifyImage,
   ShopifyProduct,
   ShopifyVariant,
+  Cart,
 } from "@/types/shopify";
 
 /**
@@ -67,26 +68,23 @@ export function normalizeCollection(
   };
 }
 
-export function normalizeCart(raw: RawCart | null | undefined): ShopifyCart | null {
+export function normalizeCart(raw: RawCart | null | undefined): Cart | null {
   if (!raw) return null;
   const lines = removeEdgesAndNodes(raw.lines);
   return {
     ...raw,
-    lines: lines.map((line) => {
+    items: lines.map((line) => {
       const product = line.merchandise.product;
       const featuredImage =
         product.featuredImage ?? removeEdgesAndNodes(product.images)[0] ?? null;
       return {
-        ...line,
-        merchandise: {
-          ...line.merchandise,
-          product: {
-            id: product.id,
-            handle: product.handle,
-            title: product.title,
-            featuredImage,
-          },
-        },
+        id: line.id,
+        quantity: line.quantity,
+        variant_id: line.merchandise.id,
+        product_title: product.title,
+        variant_title: line.merchandise.title,
+        price: 0, // TODO: Extract from line.merchandise.price
+        image_url: featuredImage?.url ?? "",
       };
     }),
   };

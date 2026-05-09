@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import type { ShopifyImage } from "@/types";
+import type { Image as ShopifyImage } from "@/types";
 
 export interface ProductImageGalleryProps {
   images: ShopifyImage[];

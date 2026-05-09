@@ -18,7 +18,7 @@ export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata(
     "About",
-    "Glow Store PK — who we are, how we curate, and why our phone accessories and home decor feel like they belong together.",
+    "SSHUB.STORE — who we are, how we curate, and why our phone accessories and home decor feel like they belong together.",
     "/about",
   );
 }
@@ -167,7 +167,7 @@ export default function AboutPage() {
                 <em className="italic text-brand-700">home</em>.
               </h1>
               <p className="font-sans text-brand-600 text-base md:text-lg max-w-xl mt-6 leading-relaxed">
-                Glow Store PK is a small, independent online shop for the
+                SSHUB.STORE is a small, independent online shop for the
                 aesthetically curious. We curate phone accessories, home
                 decor, and bundle deals — so the things on your desk look as
                 good as the feed they end up on.

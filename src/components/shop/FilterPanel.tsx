@@ -104,14 +104,14 @@ export function FilterPanel({
         data-pending={pending}
         className={cn(
           "group inline-flex items-center gap-2 h-10 pl-3.5 pr-3 rounded-full",
-          "bg-white/80 backdrop-blur-sm border border-brand-200/70",
-          "hover:border-brand-900/30 text-brand-900 font-ui text-[13px] font-semibold",
-          "transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-900",
+          "bg-brand-900/70 backdrop-blur-sm border border-brand-200/25",
+          "hover:border-accent/55 text-slate-100 font-ui text-[13px] font-semibold",
+          "transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent",
           "data-[pending=true]:opacity-60",
-          activeCount > 0 && "border-brand-900/30",
+          activeCount > 0 && "border-accent/55",
         )}
       >
-        <SlidersHorizontal className="h-3.5 w-3.5 text-brand-700" aria-hidden="true" />
+        <SlidersHorizontal className="h-3.5 w-3.5 text-slate-200" aria-hidden="true" />
         <span>Filters</span>
         {activeCount > 0 && (
           <span
@@ -123,7 +123,7 @@ export function FilterPanel({
         )}
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-brand-700 transition-transform duration-200",
+            "h-4 w-4 text-slate-300 transition-transform duration-200",
             open && "rotate-180",
           )}
           aria-hidden="true"
@@ -148,15 +148,15 @@ export function FilterPanel({
             <form onSubmit={handleApply} className="flex flex-col gap-5">
               {/* Header rail */}
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-2 font-ui text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-800">
-                  <SlidersHorizontal className="h-3.5 w-3.5 text-accent-dark" aria-hidden="true" />
+                <span className="inline-flex items-center gap-2 font-ui text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-200">
+                  <SlidersHorizontal className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
                   Refine
                 </span>
                 <button
                   type="button"
                   aria-label="Close filters"
                   onClick={() => setOpen(false)}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full text-brand-500 hover:text-brand-900 hover:bg-brand-100/80 transition-colors"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:text-slate-100 hover:bg-brand-800/70 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -164,7 +164,7 @@ export function FilterPanel({
 
               {/* Price range */}
               <fieldset className="flex flex-col gap-2">
-                <legend className="font-ui text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-500 mb-1">
+                <legend className="font-ui text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400 mb-1">
                   Price
                 </legend>
                 <div className="grid grid-cols-2 gap-2">
@@ -184,7 +184,7 @@ export function FilterPanel({
                   />
                 </div>
                 {priceBounds && (
-                  <span className="font-ui text-[10px] uppercase tracking-[0.2em] text-brand-400">
+                  <span className="font-ui text-[10px] uppercase tracking-[0.2em] text-slate-400">
                     Catalog range {symbol}
                     {Math.floor(priceBounds.min)} – {symbol}
                     {Math.ceil(priceBounds.max)}
@@ -198,8 +198,8 @@ export function FilterPanel({
                 <label
                   className={cn(
                     "flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 cursor-pointer",
-                    "bg-white/60 hover:bg-white transition-colors border",
-                    inStock ? "border-accent/60" : "border-brand-200/70",
+                    "bg-brand-900/65 hover:bg-brand-800/65 transition-colors border",
+                    inStock ? "border-accent/60" : "border-brand-200/25",
                   )}
                 >
                   <span className="flex items-center gap-2.5">
@@ -207,16 +207,16 @@ export function FilterPanel({
                       aria-hidden="true"
                       className={cn(
                         "inline-flex h-7 w-7 items-center justify-center rounded-full",
-                        inStock ? "bg-accent text-brand-900" : "bg-brand-100 text-brand-500",
+                        inStock ? "bg-accent text-brand-950" : "bg-brand-800 text-slate-400",
                       )}
                     >
                       <PackageCheck className="h-4 w-4" />
                     </span>
                     <span className="flex flex-col leading-tight">
-                      <span className="font-ui text-[13px] font-semibold text-brand-900">
+                      <span className="font-ui text-[13px] font-semibold text-slate-100">
                         In stock only
                       </span>
-                      <span className="font-ui text-[11px] text-brand-500">
+                      <span className="font-ui text-[11px] text-slate-400">
                         Hide sold-out pieces
                       </span>
                     </span>
@@ -235,18 +235,18 @@ export function FilterPanel({
                   type="button"
                   onClick={handleClear}
                   disabled={activeCount === 0 && !minInput && !maxInput && !inStock}
-                  className="font-ui text-[12px] font-semibold uppercase tracking-[0.18em] text-brand-500 hover:text-brand-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="font-ui text-[12px] font-semibold uppercase tracking-[0.18em] text-slate-400 hover:text-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Clear all
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 rounded-full bg-brand-900 text-white pl-4 pr-3 h-9 font-ui text-[12px] font-semibold uppercase tracking-[0.18em] hover:bg-brand-800 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-accent text-brand-950 pl-4 pr-3 h-9 font-ui text-[12px] font-semibold uppercase tracking-[0.18em] hover:bg-accent-light transition-colors"
                 >
                   Apply
                   <span
                     aria-hidden="true"
-                    className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-brand-900 text-[10px]"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-950 text-accent text-[10px]"
                   >
                     →
                   </span>
@@ -282,13 +282,13 @@ function PriceInput({
     <div className="relative">
       <label
         htmlFor={id}
-        className="absolute top-1 left-3 font-ui text-[9px] font-semibold uppercase tracking-[0.2em] text-brand-500"
+        className="absolute top-1 left-3 font-ui text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400"
       >
         {label}
       </label>
       <span
         aria-hidden="true"
-        className="absolute left-3 bottom-2 font-ui text-sm text-brand-500 tabular-nums"
+        className="absolute left-3 bottom-2 font-ui text-sm text-slate-400 tabular-nums"
       >
         {symbol}
       </span>
@@ -302,9 +302,9 @@ function PriceInput({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "peer w-full h-14 rounded-xl bg-white/60 border border-brand-200/70 outline-none",
-          "pt-5 pb-2 pl-7 pr-3 font-ui text-sm font-semibold text-brand-900 tabular-nums",
-          "focus:border-brand-900/40 focus:bg-white transition-colors",
+          "peer w-full h-14 rounded-xl bg-brand-900/65 border border-brand-200/25 outline-none",
+          "pt-5 pb-2 pl-7 pr-3 font-ui text-sm font-semibold text-slate-100 tabular-nums",
+          "focus:border-accent/55 focus:bg-brand-900 transition-colors",
           "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
         )}
       />
@@ -330,7 +330,7 @@ function Toggle({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex items-center h-6 w-11 rounded-full transition-colors outline-none shrink-0",
-        "focus-visible:ring-2 focus-visible:ring-brand-900",
+        "focus-visible:ring-2 focus-visible:ring-accent",
         checked ? "bg-brand-900" : "bg-brand-300",
       )}
     >

@@ -2,9 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getHeroConfig } from "@/lib/hero-config";
-import { getProducts } from "@/lib/shopify";
+import { getProducts } from "@/lib/catalog";
 import { HeroParallax } from "./HeroClient";
 import { CategoryMenu } from "./CategoryMenu";
+import { HeroWordReveal } from "./HeroWordReveal";
 
 /**
  * Dark amber/gold luxury hero — full viewport height.
@@ -15,7 +16,7 @@ import { CategoryMenu } from "./CategoryMenu";
  *   3. 40 floating gold CSS particles
  *   4. 3 expanding smoke/ring circles
  *   5. Left: hero text content with Playfair Display headings
- *   6. Right: product cluster scene (real Shopify product images)
+ *   6. Right: product cluster scene (real catalog product images)
  *      — admin-configurable via Landing Products panel
  *   7. Top-right of scene: "Up to 50% OFF" badge
  *
@@ -24,7 +25,7 @@ import { CategoryMenu } from "./CategoryMenu";
  */
 export async function Hero() {
   const { getLandingProducts } = await import("@/lib/landing-products");
-  const { getProductByHandle } = await import("@/lib/shopify");
+  const { getProductByHandle } = await import("@/lib/catalog");
 
   const [config, defaultProducts, landingConfig] = await Promise.all([
     getHeroConfig(),
@@ -44,18 +45,19 @@ export async function Hero() {
   }
 
   return (
-    <section
-      className="relative overflow-hidden isolate"
-      style={{ minHeight: "100vh", background: "#1A0D00" }}
-    >
-      {/* ── Layer 1: Radial amber glow (top-right) ─────────────────── */}
+    <section className="relative isolate min-h-screen overflow-hidden bg-[#0a0f1e]">
+      {/* ── Animated amber/brown mesh + depth ─────────────────────── */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 pointer-events-none"
+        className="hero-animated-mesh pointer-events-none absolute inset-0 -z-10"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(900px 700px at 85% 10%, rgba(245,166,35,0.18) 0%, transparent 60%), " +
-            "radial-gradient(600px 500px at 10% 80%, rgba(232,133,10,0.12) 0%, transparent 60%)",
+            "radial-gradient(900px 700px at 85% 10%, rgba(245,166,35,0.14) 0%, transparent 58%), " +
+            "radial-gradient(520px 420px at 12% 75%, rgba(61,31,0,0.5) 0%, transparent 55%)",
         }}
       />
 
@@ -110,20 +112,17 @@ export async function Hero() {
         >
           {/* Eyebrow */}
           <span
-            className="inline-flex items-center gap-2 self-start font-ui text-[11px] uppercase tracking-[0.28em]"
+            className="inline-flex items-center gap-2 self-start font-ui text-[11px] uppercase tracking-[0.28em] text-accent"
             style={{
-              color: "#F5A623",
               animation: "fadeSlideUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.05s both",
             }}
           >
             <span className="relative flex h-2 w-2">
               <span
-                className="absolute inset-0 rounded-full animate-ping opacity-75"
-                style={{ background: "#F5A623" }}
+                className="absolute inset-0 rounded-full animate-ping opacity-75 bg-accent"
               />
               <span
-                className="relative rounded-full h-2 w-2"
-                style={{ background: "#F5A623" }}
+                className="relative rounded-full h-2 w-2 bg-accent"
               />
             </span>
             {config.eyebrow || "Premium Tech Accessories · This Weekend Sale"}
@@ -132,37 +131,20 @@ export async function Hero() {
           {/* Main heading */}
           <div style={{ animation: "fadeSlideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s both" }}>
             <h1
-              className="heading-display"
-              style={{ fontSize: "clamp(3.5rem, 8vw, 6.5rem)", color: "white", lineHeight: "0.92" }}
+              className="heading-display text-white"
+              style={{ fontSize: "clamp(3.5rem, 8vw, 6.5rem)", lineHeight: "0.92" }}
             >
               <span
-                style={{
-                  fontStyle: "italic",
-                  fontSize: "0.55em",
-                  color: "#F5A623",
-                  display: "block",
-                  marginBottom: "0.1em",
-                  fontWeight: 400,
-                }}
+                className="block italic font-normal text-accent mb-1"
+                style={{ fontSize: "0.55em" }}
               >
                 Super
               </span>
               {config.headlinePrefix || "MOBILE"}{" "}
-              <span
-                className="heading-display block"
-                style={{
-                  fontSize: "1em",
-                  background: "linear-gradient(120deg, #FFD580 0%, #F5A623 35%, #FFD580 50%, #E8850A 70%, #FFD580 100%)",
-                  backgroundSize: "200% auto",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  animation: "shine 3s linear infinite",
-                }}
-              >
-                {config.headlineEm || "ACCESSORIES"}
+              <span className="block">
+                <HeroWordReveal text={config.headlineEm || "ACCESSORIES"} />
               </span>
-              <span style={{ fontSize: "0.65em", display: "block", color: "rgba(255,255,255,0.85)" }}>
+              <span className="block text-white/85" style={{ fontSize: "0.65em" }}>
                 {config.headlineSuffix || "& SMART TECH"}
               </span>
             </h1>
@@ -202,12 +184,17 @@ export async function Hero() {
             className="flex flex-wrap gap-3 pt-2"
             style={{ animation: "fadeSlideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.45s both" }}
           >
-            <Link href={config.primaryCtaHref || "/shop"} className="btn-primary group">
+            <Link
+              href={config.primaryCtaHref || "/shop"}
+              className="btn-primary hero-cta-primary group inline-flex items-center gap-2"
+            >
               {config.primaryCtaLabel || "Shop the Sale"}
-              <ArrowRight
-                aria-hidden="true"
-                className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-              />
+              <span className="relative inline-flex h-4 w-4 overflow-hidden">
+                <ArrowRight
+                  aria-hidden="true"
+                  className="h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-1"
+                />
+              </span>
             </Link>
             <Link href={config.secondaryCtaHref || "/collections"} className="btn-outline">
               {config.secondaryCtaLabel || "Browse Collections"}
@@ -230,11 +217,11 @@ export async function Hero() {
               >
                 <span className="text-sm">{pill.icon}</span>
                 <div className="leading-none">
-                  <div className="font-ui text-[11px] font-semibold" style={{ color: "#FFD580" }}>
+                  <div className="font-ui text-[11px] font-semibold text-brand-200">
                     {pill.label}
                   </div>
                   {pill.sub && (
-                    <div className="font-ui text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                    <div className="font-ui text-[10px] mt-0.5 text-white/45">
                       {pill.sub}
                     </div>
                   )}
@@ -293,12 +280,12 @@ export async function Hero() {
               }}
             >
               <div style={{ position: "absolute", width: "88px", height: "88px", borderRadius: "50%", background: "rgba(245,166,35,0.15)", animation: "pulse-dot 2.6s ease-in-out infinite", top: "50%", left: "50%", transform: "translate(-50%, -58%)" }} />
-              <div style={{ width: "74px", height: "74px", borderRadius: "50%", background: "linear-gradient(135deg, #FFD580 0%, #F5A623 50%, #E8850A 100%)", boxShadow: "0 8px 28px rgba(245,166,35,0.55), 0 2px 8px rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1px" }}>
-                <span style={{ fontFamily: "var(--font-outfit)", fontSize: "8px", fontWeight: 700, color: "rgba(26,13,0,0.6)", letterSpacing: "0.14em", textTransform: "uppercase", lineHeight: 1 }}>UP TO</span>
-                <span style={{ fontFamily: "var(--font-playfair)", fontSize: "22px", fontWeight: 900, color: "#1a0d00", lineHeight: 1 }}>50%</span>
-                <span style={{ fontFamily: "var(--font-outfit)", fontSize: "8px", fontWeight: 700, color: "rgba(26,13,0,0.6)", letterSpacing: "0.14em", textTransform: "uppercase", lineHeight: 1 }}>OFF</span>
+              <div className="hero-badge-shimmer" style={{ width: "74px", height: "74px", borderRadius: "50%", background: "linear-gradient(135deg, #FFD580 0%, #F5A623 50%, #E8850A 100%)", boxShadow: "0 8px 28px rgba(245,166,35,0.55), 0 2px 8px rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1px" }}>
+                <span className="font-ui text-[8px] font-bold tracking-widest uppercase leading-none text-brand-900/60">UP TO</span>
+                <span className="font-display text-[22px] font-black leading-none text-brand-900">50%</span>
+                <span className="font-ui text-[8px] font-bold tracking-widest uppercase leading-none text-brand-900/60">OFF</span>
               </div>
-              <div style={{ marginTop: "6px", background: "rgba(245,166,35,0.1)", border: "1px solid rgba(245,166,35,0.4)", borderRadius: "8px", padding: "3px 8px", fontFamily: "var(--font-outfit)", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", color: "#FFD580", textTransform: "uppercase", whiteSpace: "nowrap" }}>⚡ Weekend</div>
+              <div className="mt-1.5 bg-accent/10 border border-accent/40 rounded-lg px-2 py-0.5 font-ui text-[8px] font-bold tracking-widest uppercase text-brand-200 whitespace-nowrap">⚡ Weekend</div>
             </div>
 
             {heroProducts[3] && (
@@ -395,7 +382,7 @@ const TRUST_PILLS = [
 
 
 /* -------------------------------------------------------------------------- */
-/* ProductCard — real Shopify product image in a glassy floating frame        */
+/* ProductCard — real catalog product image in a glassy floating frame         */
 /* -------------------------------------------------------------------------- */
 
 interface ProductCardProps {

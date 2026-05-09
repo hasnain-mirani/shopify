@@ -37,5 +37,8 @@ function labelForPath(pathname: string): string {
   if (pathname.startsWith("/admin/orders")) return "Orders";
   if (pathname.startsWith("/admin/products/new")) return "New product";
   if (pathname.startsWith("/admin/products")) return "Products";
+  if (pathname.startsWith("/admin/promo-banner")) return "Promo banner";
+  if (pathname.startsWith("/admin/banner-slider")) return "Main slider";
+  if (pathname.startsWith("/admin/landing-products")) return "Landing";
   return "Admin";
 }
