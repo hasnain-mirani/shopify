@@ -34,18 +34,19 @@ export function BannerControls({
           type="button"
           aria-label={`Go to slide ${i + 1}`}
           onClick={() => onSelect(i)}
-          className={`relative h-0.5 cursor-pointer overflow-hidden rounded-full border-0 p-0 ${inactiveBg}`}
+          className={`relative h-0.5 w-14 shrink-0 cursor-pointer overflow-hidden rounded-full border-0 p-0 ${inactiveBg}`}
           style={{
-            width: i === active ? 56 : 20,
-            transition: "width 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+            transform: `scaleX(${i === active ? 1 : 20 / 56})`,
+            transformOrigin: "center",
+            transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         >
           {i === active ? (
             <motion.span
               key={`fill-${active}-${progressEpoch}`}
-              className="absolute inset-y-0 left-0 bg-[#f5a623]"
-              initial={{ width: "0%" }}
-              animate={{ width: "100%" }}
+              className="absolute inset-y-0 left-0 right-0 origin-left bg-[#f5a623]"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
               transition={{ duration: sec, ease: "linear" }}
             />
           ) : null}

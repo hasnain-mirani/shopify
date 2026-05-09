@@ -121,7 +121,7 @@ export function CollectionCard({
           Shop now
           <span
             aria-hidden="true"
-            className="inline-block h-px w-5 bg-accent transition-[width] duration-300 group-hover:w-9"
+            className="inline-block h-px w-9 origin-left scale-x-[0.5556] bg-accent transition-transform duration-300 group-hover:scale-x-100"
           />
         </span>
       </div>

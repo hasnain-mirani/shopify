@@ -474,6 +474,7 @@ function UnifiedBannerImpl({
           inView={inView}
           glowTint={slide.glow}
           imageUrl={promoPersonImageUrl}
+          imagePriority={!isMobile}
         />
 
         {/* Center 40% — on mobile, stack below floating products so category strip stays visible */}
@@ -511,6 +512,7 @@ function UnifiedBannerImpl({
                 products={products}
                 animationKey={`${active}-${slide.id}`}
                 mobileLayout={isMobile ? "unified" : "hero"}
+                prioritizeLcpImage={isMobile}
               />
             </motion.div>
           </AnimatePresence>

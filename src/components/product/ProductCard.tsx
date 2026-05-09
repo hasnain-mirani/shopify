@@ -367,8 +367,8 @@ export function ProductCard({
             "relative inline-block self-start pr-1 max-w-full",
             "font-display text-[17px] md:text-[18px] leading-[1.15] tracking-tight",
             "text-brand-900 hover:text-brand-700 dark:text-zinc-100 dark:hover:text-amber-200/90 transition-colors line-clamp-1",
-            "after:content-[''] after:block after:h-px after:w-0 after:bg-current after:transition-[width] after:duration-300",
-            "group-hover:after:w-[calc(100%-0.25rem)]",
+            "after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:h-px after:w-[calc(100%-0.25rem)] after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300",
+            "group-hover:after:scale-x-100",
           )}
         >
           {product.title}

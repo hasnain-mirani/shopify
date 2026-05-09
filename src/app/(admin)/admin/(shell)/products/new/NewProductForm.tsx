@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { createProductAction, type ProductFormState, type ProductOption, type ProductVariant } from "./actions";
@@ -512,11 +513,17 @@ export function NewProductForm() {
                     i === featuredImageIndex ? "border-blue-500 ring-2 ring-blue-500 ring-offset-2" : "border-gray-200"
                   }`}
                 >
-                  <img
-                    src={url}
-                    alt={`Product image ${i + 1}`}
-                    className="h-32 w-full object-cover"
-                  />
+                  <div className="relative h-32 w-full">
+                    <Image
+                      src={url}
+                      alt={`Product image ${i + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="120px"
+                      loading="lazy"
+                      unoptimized
+                    />
+                  </div>
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button
                       type="button"

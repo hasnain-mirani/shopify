@@ -24,6 +24,14 @@ export function buildHomeJsonLd() {
   const logo = `${base}/brand/sshub-mark.svg`;
   const orgId = `${base}/#organization`;
   const webId = `${base}/#website`;
+  const storeId = `${base}/#store`;
+
+  const sameAs = Array.from(
+    new Set([
+      "https://instagram.com/sshub.store",
+      ...orgSameAs(),
+    ]),
+  );
 
   return {
     "@context": "https://schema.org",
@@ -34,7 +42,7 @@ export function buildHomeJsonLd() {
         name: SITE_NAME,
         url: base,
         logo: { "@type": "ImageObject", url: logo },
-        sameAs: orgSameAs(),
+        sameAs,
       },
       {
         "@type": "WebSite",
@@ -46,6 +54,22 @@ export function buildHomeJsonLd() {
           "@type": "SearchAction",
           target: `${base}/search?q={search_term_string}`,
           "query-input": "required name=search_term_string",
+        },
+      },
+      {
+        "@type": "Store",
+        "@id": storeId,
+        name: SITE_NAME,
+        description:
+          "Premium mobile accessories in Pakistan — earbuds, smartwatches, power banks, phone cases.",
+        url: base,
+        currenciesAccepted: "PKR",
+        priceRange: "Rs 500 - Rs 15,000",
+        areaServed: "PK",
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: "4.9",
+          reviewCount: "12000",
         },
       },
     ],

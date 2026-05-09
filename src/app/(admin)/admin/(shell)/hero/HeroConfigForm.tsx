@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -399,13 +400,15 @@ export function HeroConfigForm({ initial }: Props) {
             Promo model image
           </p>
           <div className="space-y-3">
-            <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="relative h-52 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
               {promoPersonImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={promoPersonImageUrl}
                   alt="Promo model"
-                  className="h-52 w-full object-contain p-3"
+                  fill
+                  className="object-contain p-3"
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  unoptimized
                 />
               ) : (
                 <div className="flex h-52 items-center justify-center text-xs text-zinc-500">

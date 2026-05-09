@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { AdminCard } from "@/components/admin/AdminShell";
@@ -553,12 +554,17 @@ export function ProductForm({
                       : "border-zinc-200 dark:border-zinc-700",
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={url}
-                    alt=""
-                    className="aspect-square w-full object-cover"
-                  />
+                  <div className="relative aspect-square w-full">
+                    <Image
+                      src={url}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="120px"
+                      loading="lazy"
+                      unoptimized
+                    />
+                  </div>
                   <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/55 opacity-0 transition group-hover:opacity-100">
                     <Button
                       type="button"

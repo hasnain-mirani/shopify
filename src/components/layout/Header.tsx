@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   AnimatePresence,
@@ -121,12 +122,7 @@ export function Header({
           navCompact && "shadow-lg shadow-black/25",
         )}
       >
-        <div
-          className={cn(
-            "container-shop flex items-center gap-3 transition-[height,padding] duration-300 ease-out",
-            navCompact ? "h-14" : "h-[60px]",
-          )}
-        >
+        <div className="container-shop flex h-[60px] items-center gap-3">
           {/* ── Hamburger (mobile) ── */}
           <MobileMenuButton open={mobileOpen} onToggle={() => setMobileOpen((v) => !v)} />
 
@@ -468,7 +464,14 @@ function UserMenu({ user }: { user: User }) {
         className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-brand-900 font-ui font-bold text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {user.photoURL ? (
-          <img src={user.photoURL} alt={user.displayName || ""} className="h-full w-full rounded-full object-cover" />
+          <Image
+            src={user.photoURL}
+            alt={user.displayName || "Account"}
+            width={36}
+            height={36}
+            className="h-full w-full rounded-full object-cover"
+            unoptimized
+          />
         ) : (
           initial
         )}

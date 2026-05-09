@@ -89,6 +89,8 @@ type Props = {
   animationKey?: string | number;
   /** Mobile: `hero` uses 2 wide cards; `unified` horizontal scroll ~100px. */
   mobileLayout?: "hero" | "unified";
+  /** First visible card loads with priority (mobile banner LCP). */
+  prioritizeLcpImage?: boolean;
 };
 
 export const BannerFloatingProducts = memo(function BannerFloatingProducts({
@@ -99,6 +101,7 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
   products,
   animationKey,
   mobileLayout = "hero",
+  prioritizeLcpImage = false,
 }: Props) {
   const reduceMotion = useReducedMotion();
   const [move, setMove] = useState({ x: 0, y: 0 });
@@ -201,7 +204,7 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
         }
       `}</style>
 
-      {visibleProducts.map((p) => {
+      {visibleProducts.map((p, index) => {
         const w = Math.round(
           (unifiedMobile ? Math.min(p.width, 96) : p.width) * mobileScale,
         );
@@ -227,6 +230,8 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
             : p.float.rotate !== undefined
               ? { y: p.float.y, rotate: p.float.rotate }
               : { y: p.float.y };
+
+        const isLcpCard = prioritizeLcpImage && index === 0;
 
         const positionStyle: CSSProperties = unifiedMobile
           ? {
@@ -275,12 +280,14 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
                     <span className="banner-float-glow" aria-hidden />
                     <Image
                       src={p.src}
-                      alt={p.label}
+                      alt={`${p.label} - SSHUB Pakistan`}
                       width={w}
                       height={w}
                       className="relative z-[1] h-auto w-full object-contain"
                       sizes={`${w}px`}
-                      priority={false}
+                      priority={isLcpCard}
+                      fetchPriority={isLcpCard ? "high" : undefined}
+                      loading={isLcpCard ? undefined : "lazy"}
                       unoptimized={p.src.endsWith(".png")}
                     />
                   </div>

@@ -11,6 +11,8 @@ type Props = {
   /** Visual warmth shifts per slide (CSS color hints). */
   glowTint: "amber" | "warm" | "cool";
   imageUrl?: string;
+  /** When true, prioritize loading (desktop hero LCP). */
+  imagePriority?: boolean;
 };
 
 const GLOW: Record<Props["glowTint"], string> = {
@@ -24,6 +26,7 @@ export function UnifiedPersonColumn({
   inView,
   glowTint,
   imageUrl = "/images/promo-person.png",
+  imagePriority = false,
 }: Props) {
   const [imgFailed, setImgFailed] = useState(false);
   const orb = GLOW[glowTint];
@@ -70,10 +73,11 @@ export function UnifiedPersonColumn({
           >
             <Image
               src={imageUrl}
-              alt=""
+              alt="SSHUB Premium Mobile Accessories Pakistan"
               fill
-              priority={false}
-              sizes="460px"
+              priority={imagePriority}
+              fetchPriority={imagePriority ? "high" : undefined}
+              sizes="(max-width: 767px) 100vw, min(460px, 40vw)"
               onError={() => setImgFailed(true)}
               style={{
                 objectFit: "contain",

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getAdminOrder, mapRawOrderToDashboard } from "@/lib/admin-data";
 import { api } from "@/lib/api-client";
 import { AdminPage, AdminCard } from "@/components/admin/AdminShell";
@@ -82,11 +83,15 @@ export default async function OrderDetailPage({ params }: Props) {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           {item.image_url && (
-                            <div className="w-12 h-12 rounded bg-zinc-100 dark:bg-zinc-800 overflow-hidden flex-shrink-0">
-                              <img
+                            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-zinc-100 dark:bg-zinc-800">
+                              <Image
                                 src={item.image_url}
-                                alt={item.product_title}
-                                className="w-full h-full object-cover"
+                                alt={item.product_title || "Product"}
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                                loading="lazy"
+                                unoptimized
                               />
                             </div>
                           )}
