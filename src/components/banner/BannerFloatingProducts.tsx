@@ -284,10 +284,11 @@ export const BannerFloatingProducts = memo(function BannerFloatingProducts({
                       width={w}
                       height={w}
                       className="relative z-[1] h-auto w-full object-contain"
-                      sizes={`${w}px`}
+                      sizes={isLcpCard ? "100vw" : `${w}px`}
                       priority={isLcpCard}
                       fetchPriority={isLcpCard ? "high" : undefined}
-                      loading={isLcpCard ? undefined : "lazy"}
+                      loading={isLcpCard ? "eager" : "lazy"}
+                      quality={isLcpCard ? 85 : undefined}
                       unoptimized={p.src.endsWith(".png")}
                     />
                   </div>

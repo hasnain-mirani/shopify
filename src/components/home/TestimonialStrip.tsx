@@ -81,7 +81,7 @@ export function TestimonialStrip() {
         <div className="max-w-xl">
           <div className="flex items-center gap-3 mb-4">
             <span className="h-[1px] w-10" style={{ background: "rgba(245,166,35,0.5)" }} />
-            <span className="font-ui text-[11px] uppercase tracking-[0.3em] text-amber-400">
+            <span className="font-ui text-[11px] uppercase tracking-[0.3em] text-amber-300">
               Loved by 48k+
             </span>
           </div>

@@ -189,6 +189,11 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
                       height={40}
                       className="h-7 w-7 object-contain sm:h-8 sm:w-8 md:h-9 md:w-9"
                       unoptimized
+                      priority={index === 0}
+                      fetchPriority={index === 0 ? "high" : undefined}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      quality={index === 0 ? 85 : undefined}
+                      sizes={index === 0 ? "(max-width: 768px) 96px, 120px" : "48px"}
                     />
                   ) : (
                     <span

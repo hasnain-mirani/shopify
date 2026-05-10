@@ -21,8 +21,12 @@ export function FinanceBanner() {
             <Link href="/shop" className="finance-cta-primary">
               Shop with installments
             </Link>
-            <Link href="/about" className="finance-cta-secondary">
-              Learn more
+            <Link
+              href="/about"
+              className="finance-cta-secondary finance-cta-descriptive"
+              aria-label="Learn more about SSHUB"
+            >
+              Learn more about SSHUB
             </Link>
           </div>
         </div>
@@ -138,6 +142,12 @@ export function FinanceBanner() {
         .finance-cta-secondary:hover {
           border-color: rgba(252,211,77,0.45);
           color: #fcd34d;
+        }
+        .finance-cta-descriptive {
+          text-transform: none;
+          letter-spacing: 0.04em;
+          font-size: 13px;
+          font-weight: 600;
         }
         .finance-cards {
           position: relative;

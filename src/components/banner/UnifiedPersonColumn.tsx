@@ -71,23 +71,28 @@ export function UnifiedPersonColumn({
                 : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }
             }
           >
-            <Image
-              src={imageUrl}
-              alt="SSHUB Premium Mobile Accessories Pakistan"
-              width={1920}
-              height={800}
-              priority={imagePriority}
-              fetchPriority={imagePriority ? "high" : undefined}
-              sizes="(max-width: 767px) 100vw, min(460px, 40vw)"
-              onError={() => setImgFailed(true)}
-              className="h-auto w-full max-h-[min(520px,70vh)]"
-              style={{
-                objectFit: "contain",
-                objectPosition: "bottom center",
-                background: "transparent",
-                mixBlendMode: likelyOpaqueRaster ? "multiply" : "normal",
-              }}
-            />
+            <div
+              className="relative w-full aspect-[1920/800] max-h-[min(520px,70vh)] md:max-h-[min(640px,85vh)]"
+              style={{ background: "transparent" }}
+            >
+              <Image
+                src={imageUrl}
+                alt="Flash Sale - Up to 60% OFF - SSHUB Pakistan"
+                fill
+                priority={imagePriority}
+                fetchPriority={imagePriority ? "high" : undefined}
+                loading={imagePriority ? "eager" : "lazy"}
+                quality={85}
+                sizes="100vw"
+                onError={() => setImgFailed(true)}
+                style={{
+                  objectFit: "contain",
+                  objectPosition: "bottom center",
+                  background: "transparent",
+                  mixBlendMode: likelyOpaqueRaster ? "multiply" : "normal",
+                }}
+              />
+            </div>
           </motion.div>
         ) : (
           <div className="flex h-full min-h-[300px] w-full flex-col items-center justify-end pb-4 pr-6">
