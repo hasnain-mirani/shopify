@@ -10,7 +10,10 @@
     "analyze": "cross-env ANALYZE=true next build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "vercel": "vercel",
+    "vercel:whoami": "vercel whoami",
+    "vercel:link": "vercel link"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -60,6 +63,7 @@
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vercel": "^53.4.0",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
   }

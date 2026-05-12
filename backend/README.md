@@ -33,6 +33,7 @@ If you deploy this folder to **Vercel**, nested routes like `POST /api/product-a
 - In the Vercel project, set **Root Directory** to `backend` (if the repo is monorepo).
 - Set **Environment variables** from `backend/.env.example` (especially `GEMINI_API_KEY`, `DATABASE_URL`, `FRONTEND_URL`).
 - **`FRONTEND_URL`** must include your live Next.js origin (e.g. `https://your-store.vercel.app`) so CORS allows the admin browser to call this API.
+- The serverless entry skips Postgres init for `/`, `/api/health`, and `/api/product-ai/*` so Gemini and health checks still respond if `DATABASE_URL` is wrong; other routes still require a working database.
 - Redeploy after pulling so `api/[...slug].js` is picked up.
 
 Multipart AI uploads are subject to Vercel’s body size limits; use images under ~4 MB on Hobby if you hit errors.

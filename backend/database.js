@@ -8,9 +8,9 @@ async function init() {
     await pool.query("SELECT 1");
     console.log("Connected to Supabase PostgreSQL.");
 
-    // Ensure uploads directory exists (local only, but good to keep)
+    // Ensure uploads directory exists (local / Render disk). Vercel serverless FS is read-only — skip there.
     const uploadsDir = path.join(__dirname, "uploads");
-    if (!fs.existsSync(uploadsDir)) {
+    if (!process.env.VERCEL && !fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 

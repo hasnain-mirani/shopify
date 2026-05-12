@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-
-const BACKEND_API_BASE = process.env.BACKEND_API_URL || "http://localhost:4000/api";
+import { getBackendApiBase } from "@/lib/backend-url";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const limit = searchParams.get("limit") || "20";
+    const base = getBackendApiBase();
 
     const res = await fetch(
-      `${BACKEND_API_BASE.replace(/\/$/, "")}/orders?limit=${encodeURIComponent(limit)}`,
+      `${base}/orders?limit=${encodeURIComponent(limit)}`,
       { cache: "no-store" },
     );
 

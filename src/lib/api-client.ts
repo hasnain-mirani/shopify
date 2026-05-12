@@ -1,5 +1,6 @@
 import type { Product, OrderKPIs } from "@/types";
 import { getSiteUrl } from "@/lib/site-url";
+import { getBackendApiBase } from "@/lib/backend-url";
 import { uploadToCloudinary, uploadMultipleToCloudinary, type CloudinaryUploadResult } from "./cloudinary";
 
 const RAW_API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
@@ -9,17 +10,18 @@ function getApiBase(): string {
     return RAW_API_BASE.replace(/\/$/, "");
   }
 
-  // Browser can resolve relative API paths directly.
+  // Browser can resolve relative API paths directly (Next /api/* BFF).
   if (typeof window !== "undefined") {
     return RAW_API_BASE;
   }
 
-  // Server actions/route handlers need an absolute URL for fetch().
-  const serverOrigin = process.env.INTERNAL_API_ORIGIN || getSiteUrl();
-
+  // Server actions / Route Handlers: never self-fetch "https://this-app.vercel.app/api" when
+  // NEXT_PUBLIC_API_URL is "/api" — that breaks on Vercel (localhost, missing routes). Use Express.
   if (RAW_API_BASE.startsWith("/")) {
-    return `${serverOrigin}${RAW_API_BASE}`.replace(/\/$/, "");
+    return getBackendApiBase();
   }
+
+  const serverOrigin = process.env.INTERNAL_API_ORIGIN || getSiteUrl();
 
   return `${serverOrigin}/${RAW_API_BASE}`.replace(/\/$/, "");
 }
@@ -203,8 +205,8 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   } catch (cause) {
     const isServer = typeof window === "undefined";
     const hint = isServer
-      ? "Could not reach the API from the server. Check BACKEND_API_URL / INTERNAL_API_ORIGIN and that the backend is running."
-      : "Could not reach the API. Check that the backend is running and NEXT_PUBLIC_API_URL (or your deployed API URL).";
+      ? "Server could not reach the catalog API. Set BACKEND_API_URL in .env.local to your public Express base URL (e.g. https://your-backend.vercel.app/api). Do not use http://127.0.0.1 on Vercel."
+      : "Could not reach the API. If the storefront is HTTPS, the API URL must be https:// as well (mixed content is blocked). Check NEXT_PUBLIC_API_URL and that the backend is running.";
     const tail = cause instanceof Error && cause.message ? ` (${cause.message})` : "";
     throw new ApiError(`${hint}${tail}`, { cause });
   }

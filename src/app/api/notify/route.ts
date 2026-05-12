@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-
-const BACKEND_API_BASE = process.env.BACKEND_API_URL || "http://localhost:4000/api";
+import { getBackendApiBase } from "@/lib/backend-url";
 
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
 
-    const res = await fetch(`${BACKEND_API_BASE.replace(/\/$/, "")}/notify`, {
+    const base = getBackendApiBase();
+    const res = await fetch(`${base}/notify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

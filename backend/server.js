@@ -41,6 +41,15 @@ const allowedOrigins = new Set([
   ...parseOriginList(process.env.FRONTEND_URLS),  // optional dedicated list
 ].map(normalizeOrigin).filter(Boolean));
 
+// Allow this deployment’s own origin (opening the backend URL in a browser hits CORS here).
+if (process.env.VERCEL_URL) {
+  const host = String(process.env.VERCEL_URL).replace(/^https?:\/\//i, "").split("/")[0];
+  if (host) {
+    allowedOrigins.add(normalizeOrigin(`https://${host}`));
+    allowedOrigins.add(normalizeOrigin(`http://${host}`));
+  }
+}
+
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
@@ -118,10 +127,44 @@ function ensureDbInitialized() {
   return dbInitPromise;
 }
 
+/** Pathname for routing (Vercel may pass absolute or relative req.url). */
+function requestPathname(req) {
+  let raw = String(req.url || req.originalUrl || "/");
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      return new URL(raw).pathname || "/";
+    } catch (_) {
+      /* fall through */
+    }
+  }
+  const p = raw.split("?")[0] || "/";
+  return p.startsWith("/") ? p : `/${p}`;
+}
+
+/** Postgres not used by these routes — skip init so DB outages don’t 500 Gemini/health. */
+function shouldSkipDbInit(req) {
+  const path = requestPathname(req);
+  if (path === "/") return true;
+  if (path === "/api/health" || path.startsWith("/api/health/")) return true;
+  if (path.startsWith("/api/product-ai")) return true;
+  return false;
+}
+
 // For Vercel serverless runtime
 async function handler(req, res) {
-  await ensureDbInitialized();
-  return app(req, res);
+  try {
+    if (!shouldSkipDbInit(req)) {
+      await ensureDbInitialized();
+    }
+    return app(req, res);
+  } catch (err) {
+    console.error("[serverless] startup / DB init:", err);
+    if (res.headersSent) return;
+    res.status(503).json({
+      error: "Service unavailable",
+      detail: "Database did not initialize. Set DATABASE_URL on this Vercel project and redeploy.",
+    });
+  }
 }
 
 module.exports = handler;
