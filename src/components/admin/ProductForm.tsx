@@ -2,14 +2,21 @@
 
 import Image from "next/image";
 import { useActionState, useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { AdminCard } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { api } from "@/lib/api-client";
+import { api, formatApiErrorForUser, API_ERROR_TOAST_STYLE } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-import { Upload, X, Loader2, Plus, Trash2, ChevronUp } from "lucide-react";
-import type { ProductOption, ProductVariant } from "@/app/(admin)/admin/(shell)/products/new/actions";
+import {
+  ADMIN_CATEGORY_OPTIONS as CATEGORY_OPTIONS,
+  coerceAdminProductCategory,
+  normalizeAdminCategorySlug,
+} from "@/lib/admin-product-categories";
+import { normalizeProductIdentifyPayload } from "@/lib/normalize-product-identify";
+import { Upload, X, Loader2, Plus, Trash2, ChevronUp, Wand2, Sparkles } from "lucide-react";
+import type { ProductFormState, ProductOption, ProductVariant } from "@/app/(admin)/admin/(shell)/products/new/actions";
 
 export interface ProductFormData {
   title: string;
@@ -84,21 +91,6 @@ const defaultFormData: ProductFormData = {
   seoDescription: "",
 };
 
-const CATEGORY_OPTIONS = [
-  { value: "mobiles", label: "Mobiles" },
-  { value: "wireless-earbuds", label: "Wireless Earbuds" },
-  { value: "smart-watches", label: "Smart Watches" },
-  { value: "power-banks", label: "Power Banks" },
-  { value: "wall-chargers", label: "Wall Chargers" },
-  { value: "bluetooth-speakers", label: "Bluetooth Speakers" },
-  { value: "tablets", label: "Tablets" },
-  { value: "laptops", label: "Laptops" },
-  { value: "trimmers-shavers", label: "Trimmers & Shavers" },
-  { value: "hair-dryers", label: "Hair Dryers" },
-  { value: "hair-straighteners", label: "Hair Straighteners" },
-  { value: "home-appliances", label: "TV & Home Appliances" },
-] as const;
-
 const CUSTOM_CATEGORY = "__custom__";
 
 const FIELD_LABEL =
@@ -110,10 +102,6 @@ function slugifyHandleFromTitle(title: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-function normalizeCategory(raw: string): string {
-  return raw.trim().toLowerCase().replace(/\s+/g, "-");
 }
 
 function withDerivedPrices(data: ProductFormData): ProductFormData {
@@ -128,6 +116,17 @@ function withDerivedPrices(data: ProductFormData): ProductFormData {
   };
 }
 
+function buildInitialFormState(initialData?: Partial<ProductFormData>): ProductFormData {
+  const merged = {
+    ...defaultFormData,
+    ...initialData,
+  } as ProductFormData;
+  if (!String(merged.productType ?? "").trim()) {
+    merged.productType = CATEGORY_OPTIONS[0].value;
+  }
+  return withDerivedPrices(merged);
+}
+
 export function ProductForm({
   initialData,
   onSubmit,
@@ -138,33 +137,32 @@ export function ProductForm({
   fieldErrors: externalFieldErrors,
   hiddenFields,
 }: ProductFormProps) {
-  const [state, formAction, internalIsPending] = useActionState(onSubmit, null);
-  const [formData, setFormData] = useState<ProductFormData>({
-    ...withDerivedPrices({
-      ...defaultFormData,
-      ...initialData,
-    } as ProductFormData),
-  });
+  const router = useRouter();
+  const [state, formAction, internalIsPending] = useActionState(onSubmit, null as ProductFormState | null);
+  const [formData, setFormData] = useState<ProductFormData>(() => buildInitialFormState(initialData));
   const [selectedCategory, setSelectedCategory] = useState<string>(() => {
     const initialType = String(initialData?.productType ?? "");
     if (!initialType) return CATEGORY_OPTIONS[0].value;
-    const normalized = normalizeCategory(initialType);
+    const normalized = normalizeAdminCategorySlug(initialType);
     return CATEGORY_OPTIONS.some((c) => c.value === normalized)
       ? normalized
       : CUSTOM_CATEGORY;
   });
   const [uploading, setUploading] = useState(false);
   const [showVariants, setShowVariants] = useState(false);
+  const [identifyLoading, setIdentifyLoading] = useState(false);
+  const [imageGenLoading, setImageGenLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const aiIdentifyInputRef = useRef<HTMLInputElement>(null);
   const error = state?.error || externalError;
   const fieldErrors = state?.fieldErrors || externalFieldErrors;
   const isPending = externalIsPending ?? internalIsPending;
 
   useEffect(() => {
     if (initialData) {
-      const merged = { ...defaultFormData, ...initialData };
-      setFormData(withDerivedPrices(merged as ProductFormData));
-      const normalized = normalizeCategory(String(merged.productType ?? ""));
+      const merged = buildInitialFormState(initialData);
+      setFormData(merged);
+      const normalized = normalizeAdminCategorySlug(String(merged.productType ?? ""));
       setSelectedCategory(
         CATEGORY_OPTIONS.some((c) => c.value === normalized)
           ? normalized
@@ -176,7 +174,14 @@ export function ProductForm({
   }, [initialData]);
 
   useEffect(() => {
-    if (error) toast.error(error);
+    if (state?.ok && state.redirectTo) {
+      router.push(state.redirectTo);
+      router.refresh();
+    }
+  }, [state?.ok, state?.redirectTo, router]);
+
+  useEffect(() => {
+    if (error) toast.error(error, { style: API_ERROR_TOAST_STYLE, duration: 6500 });
   }, [error]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -195,10 +200,146 @@ export function ProductForm({
       }));
       toast.success(newUrls.length + " image(s) uploaded");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
+      toast.error(formatApiErrorForUser(err), { style: API_ERROR_TOAST_STYLE, duration: 6500 });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  function stripHtmlForSeo(html: string): string {
+    return String(html || "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function escapeHtmlLite(s: string): string {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  async function runIdentifyFromFile(file: File) {
+    setIdentifyLoading(true);
+    try {
+      const raw = await api.productAi.identifyFromImage(file);
+      const data = normalizeProductIdentifyPayload(raw);
+      if (!data.title || !data.description) {
+        toast.error("AI did not return a usable title and description. Try a clearer product photo.");
+        return;
+      }
+
+      const slug = slugifyHandleFromTitle(data.title);
+      const coercedCat = coerceAdminProductCategory(data.productType ?? "", data.title);
+      const descPlain = data.description;
+      const descHtml =
+        data.descriptionHtml.trim() ||
+        `<p>${escapeHtmlLite(descPlain).replace(/\n/g, "<br/>")}</p>`;
+      const tagsStr = data.tags;
+      const ourP = data.ourPrice;
+      const marketP = data.marketPrice;
+      const seoTitle = data.seoTitle.trim().slice(0, 200) || data.title.slice(0, 70);
+      const plainForSeo = stripHtmlForSeo(data.descriptionHtml || descPlain).slice(0, 160);
+      const seoDesc =
+        data.seoDescription.trim().slice(0, 320) ||
+        plainForSeo ||
+        descPlain.replace(/\s+/g, " ").trim().slice(0, 160);
+
+      const wu = data.weightUnit.toLowerCase();
+      const weightUnit: ProductFormData["weightUnit"] =
+        wu === "kg" || wu === "g" || wu === "lb" || wu === "oz" ? wu : "kg";
+
+      setSelectedCategory(coercedCat);
+
+      setFormData((prev) => {
+        const merged = withDerivedPrices({
+          ...prev,
+          title: data.title.slice(0, 200),
+          description: descPlain,
+          descriptionHtml: descHtml,
+          vendor: data.vendor.slice(0, 200),
+          productType: coercedCat,
+          tags: tagsStr.slice(0, 500),
+          specifications: data.specifications.slice(0, 8000),
+          marketPrice: marketP || prev.marketPrice,
+          ourPrice: ourP || prev.ourPrice,
+          sku: data.sku.slice(0, 120) || prev.sku,
+          barcode: data.barcode.slice(0, 120) || prev.barcode,
+          weight: data.weight.slice(0, 32) || prev.weight,
+          weightUnit,
+          seoTitle,
+          seoDescription: seoDesc,
+          handle: prev.handle.trim() ? prev.handle : slug || prev.handle,
+        });
+
+        if (merged.variants.length === 1) {
+          const v0 = merged.variants[0];
+          const p = merged.ourPrice || merged.price;
+          if (p && !String(v0.price ?? "").trim()) {
+            return {
+              ...merged,
+              variants: [{ ...v0, price: p, sku: (v0.sku || merged.sku).slice(0, 120) }],
+            };
+          }
+        }
+        return merged;
+      });
+
+      toast.success(`PKR estimate: ${data.estimatedPrice}`);
+      if (data.sources?.length) {
+        toast.success(`Grounded from ${data.sources.length} web source(s).`, { duration: 4000 });
+      }
+    } catch (err) {
+      toast.error(formatApiErrorForUser(err), { style: API_ERROR_TOAST_STYLE, duration: 8000 });
+    } finally {
+      setIdentifyLoading(false);
+    }
+  }
+
+  async function identifyFromFirstGalleryImage() {
+    const url = formData.imageUrls[0];
+    if (!url) {
+      toast.error("Upload at least one image in Media first, or pick a photo file.");
+      return;
+    }
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Could not read gallery image. Pick a file from your computer instead.");
+      const blob = await res.blob();
+      const ext = blob.type.includes("png") ? "png" : "jpg";
+      const file = new File([blob], `gallery.${ext}`, { type: blob.type || "image/jpeg" });
+      await runIdentifyFromFile(file);
+    } catch (err) {
+      toast.error(formatApiErrorForUser(err), { style: API_ERROR_TOAST_STYLE, duration: 6000 });
+    }
+  }
+
+  async function generateProfessionalPhoto() {
+    const desc = formData.description.trim();
+    if (!desc) {
+      toast.error("Add or generate a description first.");
+      return;
+    }
+    setImageGenLoading(true);
+    try {
+      const { imageUrl } = await api.productAi.generateProductImage(desc);
+      const imgRes = await fetch(imageUrl);
+      if (!imgRes.ok) throw new Error("Could not download generated image");
+      const blob = await imgRes.blob();
+      const file = new File([blob], "ai-product.webp", { type: blob.type || "image/webp" });
+      const up = await api.upload.image(file);
+      setFormData((prev) => ({
+        ...prev,
+        imageUrls: [...prev.imageUrls, up.url],
+      }));
+      toast.success("Generated image added to Media gallery");
+    } catch (err) {
+      toast.error(formatApiErrorForUser(err), { style: API_ERROR_TOAST_STYLE, duration: 6500 });
+    } finally {
+      setImageGenLoading(false);
     }
   }
 
@@ -361,6 +502,16 @@ export function ProductForm({
       <input type="hidden" name="featuredImageIndex" value={formData.featuredImageIndex} />
       <input type="hidden" name="options" value={JSON.stringify(formData.options)} />
       <input type="hidden" name="variants" value={JSON.stringify(formData.variants)} />
+      <input
+        type="hidden"
+        name="descriptionHtml"
+        value={formData.descriptionHtml || formData.description}
+      />
+      <input
+        type="hidden"
+        name="requiresShipping"
+        value={formData.requiresShipping ? "true" : "false"}
+      />
       {hiddenFields &&
         Object.entries(hiddenFields).map(([name, value]) => (
           <input key={name} type="hidden" name={name} value={value} />
@@ -399,10 +550,71 @@ export function ProductForm({
               name="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
+              rows={10}
               placeholder="Product description"
               className={textareaClassName}
             />
+            <div className="mt-3 rounded-xl border border-dashed border-amber-400/40 bg-slate-950/60 p-4">
+              <p className="text-sm font-medium text-slate-100">AI: PriceOye-style listing from a photo</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                Sends the image to Gemini with <strong>Google Search</strong> (PKR / Pakistan retailers). Fills title,
+                description + HTML, vendor, category, tags, specs, PKR prices, SKU, barcode, weight, SEO, and handle
+                (if handle was empty).
+              </p>
+              <input
+                ref={aiIdentifyInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void runIdentifyFromFile(f);
+                  e.target.value = "";
+                }}
+              />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  isLoading={identifyLoading}
+                  leftIcon={<Wand2 className="h-4 w-4" aria-hidden />}
+                  onClick={() => aiIdentifyInputRef.current?.click()}
+                  className="border-amber-400/50 text-amber-100 hover:bg-amber-500/10"
+                >
+                  Pick photo &amp; auto-fill product (PKR)
+                </Button>
+                {formData.imageUrls.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    isLoading={identifyLoading}
+                    leftIcon={<Sparkles className="h-4 w-4" aria-hidden />}
+                    onClick={() => void identifyFromFirstGalleryImage()}
+                  >
+                    Use first Media image
+                  </Button>
+                )}
+              </div>
+              <div className="mt-4 border-t border-amber-400/20 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  isLoading={imageGenLoading}
+                  leftIcon={<Sparkles className="h-4 w-4" aria-hidden />}
+                  onClick={() => void generateProfessionalPhoto()}
+                  className="border-amber-400/50 text-amber-100 hover:bg-amber-500/10"
+                >
+                  Generate professional photo (Replicate)
+                </Button>
+                <p className="mt-1.5 text-[11px] text-slate-500">
+                  Uses the description above. Needs <code className="rounded bg-slate-800 px-1">REPLICATE_API_TOKEN</code>{" "}
+                  on the backend.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 sm:grid-cols-2 dark:border-zinc-700/80 dark:bg-zinc-900/40">
@@ -482,7 +694,7 @@ export function ProductForm({
               name="specifications"
               value={formData.specifications}
               onChange={(e) => setFormData({ ...formData, specifications: e.target.value })}
-              rows={4}
+              rows={8}
               placeholder={"RAM: 8GB\nStorage: 256GB\nBattery: 5000mAh"}
               className={textareaClassName}
             />
@@ -756,10 +968,8 @@ export function ProductForm({
             <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50/50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/40">
               <input
                 type="checkbox"
-                name="requiresShipping"
                 checked={formData.requiresShipping}
                 onChange={(e) => setFormData({ ...formData, requiresShipping: e.target.checked })}
-                value="true"
                 className="h-4 w-4 rounded border-zinc-300 text-amber-600 focus:ring-amber-500"
               />
               <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">

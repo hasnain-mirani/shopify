@@ -8,13 +8,15 @@
     "seed": "node --env-file=.env seed.js"
   },
   "dependencies": {
+    "@google/genai": "^2.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
-    "sql.js": "^1.12.0",
     "pg": "^8.11.5",
+    "replicate": "^1.4.0",
+    "sql.js": "^1.12.0",
     "uuid": "^10.0.0"
   },
   "engines": {

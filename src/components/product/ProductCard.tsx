@@ -160,6 +160,7 @@ export function ProductCard({
       }}
       className={cn(
         "group relative flex flex-col animate-fade-up opacity-0",
+        "transition-transform duration-300 ease-out motion-safe:group-hover:-translate-y-1",
         className,
       )}
       style={{ animationDelay: `${delayMs}ms` }}

@@ -17,17 +17,18 @@ const VARIANT_STYLES: Record<ButtonVariant, string> = {
 };
 
 const SIZE_STYLES: Record<ButtonSize, string> = {
-  sm: "h-9 px-5 text-xs",
-  md: "h-11 px-8 text-sm",
-  lg: "h-12 px-10 text-sm",
-  icon: "h-10 w-10 p-0",
+  sm: "min-h-11 px-5 text-xs",
+  md: "min-h-11 px-8 text-sm",
+  lg: "min-h-12 px-10 text-sm",
+  icon: "min-h-11 min-w-11 p-0",
 };
 
 const BASE =
   "inline-flex items-center justify-center gap-2 rounded-full font-medium " +
   "transition-all duration-200 ease-out select-none whitespace-nowrap " +
+  "motion-safe:active:scale-[0.98] motion-safe:hover:scale-[1.02] " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-900 focus-visible:ring-offset-2 focus-visible:ring-offset-surface " +
-  "disabled:cursor-not-allowed disabled:opacity-70";
+  "disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100";
 
 export interface ButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {

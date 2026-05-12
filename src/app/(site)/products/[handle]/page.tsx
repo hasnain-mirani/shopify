@@ -18,7 +18,6 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { buildBreadcrumbJsonLd, buildProductJsonLd } from "@/lib/seo/json-ld";
 import { inferPrimaryCollection } from "@/lib/seo/infer-collection";
-import { buildProductSeoNarrative } from "@/lib/seo/product-seo-body";
 import { stripEmojisForSeo } from "@/lib/seo/text";
 import type { Product } from "@/types";
 import { isSafeStaticSegment } from "@/lib/safe-static-segment";
@@ -86,17 +85,27 @@ export default async function ProductPage({ params }: PageProps) {
   const product = await getProductByHandle(handle);
   if (!product) notFound();
 
-  const [recommendations, allProducts, collections] = await Promise.all([
+  const [recommendations, collections] = await Promise.all([
     getProductRecommendations(product.id).catch(() => []),
-    getProducts({ limit: 8 }).catch(() => []),
     getCollections().catch(() => []),
   ]);
 
-  const similar = recommendations.length > 0
-    ? recommendations.slice(0, 4)
-    : allProducts.filter((p: Product) => p.id !== product.id).slice(0, 4);
+  let allProducts: Product[] = [];
+  if (recommendations.length < 4) {
+    allProducts = await getProducts({ limit: 8 }).catch(() => []);
+  } else {
+    allProducts = await getProducts({ limit: 6 }).catch(() => []);
+  }
 
-  const goTogether = allProducts.filter((p: Product) => p.id !== product.id).slice(0, 4);
+  const similar =
+    recommendations.length > 0
+      ? recommendations.slice(0, 4)
+      : allProducts.filter((p: Product) => p.id !== product.id).slice(0, 4);
+
+  const goTogether =
+    recommendations.length >= 4
+      ? recommendations.filter((p: Product) => p.id !== product.id).slice(0, 4)
+      : allProducts.filter((p: Product) => p.id !== product.id).slice(0, 4);
 
   const price = parseFloat(product.priceRange?.minVariantPrice?.amount ?? "0");
   const compareAtPrice = product.compareAtPriceRange?.minVariantPrice?.amount
@@ -113,8 +122,6 @@ export default async function ProductPage({ params }: PageProps) {
   const topTags = (product.tags ?? []).filter(Boolean).slice(0, 5);
   const cleanTitle = stripEmojisForSeo(product.title);
   const primaryCol = inferPrimaryCollection(product, collections);
-  const primaryKeyword = `${(product.productType ?? "mobile accessories").toLowerCase()} in Pakistan`;
-  const seoNarrative = buildProductSeoNarrative(product, primaryKeyword);
 
   const breadcrumbItems = [
     { name: "Home", href: "/" },
@@ -218,66 +225,80 @@ export default async function ProductPage({ params }: PageProps) {
               )}
             </div>
 
+            {/* Compact trust strip — keeps PDP clean; full story lives in tabs */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "8px",
+                borderRadius: "10px",
+                border: "1px solid rgba(148,163,184,0.16)",
+                background: "rgba(2,6,23,0.42)",
+                padding: "12px 8px",
+              }}
+              className="pdp-trust-strip"
+            >
+              {[
+                { icon: "🛡️", t: "Warranty", s: "Genuine stock" },
+                { icon: "↩️", t: "Returns", s: "Easy process" },
+                { icon: "🚚", t: "Delivery", s: "Pakistan-wide" },
+                { icon: "✓", t: "Authentic", s: "SSHUB verified" },
+              ].map((x) => (
+                <div
+                  key={x.t}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                    gap: "3px",
+                  }}
+                >
+                  <span style={{ fontSize: "18px" }} aria-hidden>
+                    {x.icon}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-outfit, sans-serif)",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      color: "#e2e8f0",
+                    }}
+                  >
+                    {x.t}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-outfit, sans-serif)",
+                      fontSize: "9px",
+                      color: "#64748b",
+                      lineHeight: 1.25,
+                    }}
+                  >
+                    {x.s}
+                  </span>
+                </div>
+              ))}
+            </div>
+
             {/* Purchase panel (variant selector + add to cart) */}
             <ProductPurchasePanel product={product} />
 
-            {/* SEO narrative + merchant description */}
-            <div style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "12px" }}>
-              <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.75, margin: "0 0 12px" }}>
-                {seoNarrative}
+            {primaryCol ? (
+              <p
+                style={{
+                  fontFamily: "var(--font-outfit, sans-serif)",
+                  fontSize: "12px",
+                  color: "#94a3b8",
+                  margin: 0,
+                }}
+              >
+                More in{" "}
+                <Link href={primaryCol.href} style={{ color: "#f59e0b", fontWeight: 600 }}>
+                  {primaryCol.title}
+                </Link>
               </p>
-              {primaryCol ? (
-                <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#94a3b8", margin: "0 0 12px" }}>
-                  Explore more in our{" "}
-                  <Link href={primaryCol.href} style={{ color: "#f59e0b", fontWeight: 600 }}>
-                    {primaryCol.title}
-                  </Link>{" "}
-                  collection — curated mobile accessories with fast delivery across Pakistan.
-                </p>
-              ) : null}
-              {product.descriptionHtml ? (
-                <div
-                  style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.7 }}
-                  dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-                />
-              ) : null}
-            </div>
-
-            {specs.length > 0 ? (
-              <section style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "16px" }} aria-labelledby="pdp-key-features">
-                <h2 id="pdp-key-features" style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "18px", fontWeight: 700, color: "#f8fafc", margin: "0 0 10px" }}>
-                  Key Features
-                </h2>
-                <ul style={{ margin: 0, paddingLeft: "18px", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.65 }}>
-                  {specs.map((row) => (
-                    <li key={`${row.key}-${row.value}`}>
-                      <strong style={{ color: "#e2e8f0" }}>{row.key}:</strong> {row.value}
-                    </li>
-                  ))}
-                </ul>
-              </section>
             ) : null}
-
-            <section style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "16px" }} aria-labelledby="pdp-box">
-              <h2 id="pdp-box" style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "18px", fontWeight: 700, color: "#f8fafc", margin: "0 0 10px" }}>
-                What&apos;s in the Box
-              </h2>
-              <ul style={{ margin: 0, paddingLeft: "18px", fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.65 }}>
-                <li>{cleanTitle} unit</li>
-                <li>Charging cable (where applicable)</li>
-                <li>Quick start / warranty information</li>
-                <li>Retail packaging</li>
-              </ul>
-            </section>
-
-            <section style={{ borderTop: "1px solid rgba(148,163,184,0.2)", paddingTop: "16px" }} aria-labelledby="pdp-reviews">
-              <h2 id="pdp-reviews" style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "18px", fontWeight: 700, color: "#f8fafc", margin: "0 0 10px" }}>
-                Customer Reviews
-              </h2>
-              <p style={{ fontFamily: "var(--font-outfit, sans-serif)", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.7, margin: 0 }}>
-                SSHUB shoppers value clear specs, fair pricing, and support across Pakistan. See the Reviews tab below for product-specific feedback and common questions. Buying {primaryKeyword}? Add {cleanTitle} to your cart for fast dispatch and straightforward returns.
-              </p>
-            </section>
 
             {topTags.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
@@ -450,6 +471,7 @@ export default async function ProductPage({ params }: PageProps) {
           .similar-grid  { grid-template-columns: repeat(2, 1fr) !important; }
           .trust-grid    { grid-template-columns: 1fr !important; }
           .quick-specs-grid { grid-template-columns: 1fr !important; }
+          .pdp-trust-strip { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
     </div>

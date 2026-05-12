@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { api } from "@/lib/api-client";
+import { api, formatApiErrorForUser } from "@/lib/api-client";
 import { ADMIN_PRODUCT_TAG } from "@/lib/admin-data";
 
 export interface DeleteProductResult {
@@ -27,7 +27,7 @@ export async function deleteProductAction(
   } catch (e) {
     return {
       ok: false,
-      error: e instanceof Error ? e.message : "Failed to delete product.",
+      error: formatApiErrorForUser(e),
     };
   }
 }

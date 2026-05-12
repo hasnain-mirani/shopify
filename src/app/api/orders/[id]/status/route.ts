@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { execute, queryOne } from "@/lib/db";
+import { isAdminAuthenticated } from "@/lib/admin-api-auth";
 
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const admin = await isAdminAuthenticated();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const body = await req.json().catch(() => ({}));
     const { financial_status, fulfillment_status } = body as {
@@ -28,10 +34,8 @@ export async function PUT(
 
     const updated = await queryOne("SELECT * FROM orders WHERE id = ?", [id]);
     return NextResponse.json(updated);
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err?.message || "Failed to update order status" },
-      { status: 500 },
-    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to update order status";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

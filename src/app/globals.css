@@ -2,7 +2,7 @@
 
 /* ── Semantic tokens (light) ───────────────────────────────────────── */
 :root {
-  --sshub-navy: #0a0f1e;
+  --sshub-navy: #03060f;
   --sshub-amber: #f5a623;
   --ds-primary: #f5a623;
   --text-h1: 3rem;
@@ -10,8 +10,12 @@
   --text-h3: 1.75rem;
   --text-h4: 1.375rem;
   --text-h5: 1.125rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
   --text-body: 1rem;
+  --text-lg: 1.125rem;
   --leading-body: 1.6;
+  --leading-tight: 1.2;
   --radius-card: 16px;
   --radius-button: 12px;
   --radius-input: 10px;
@@ -36,15 +40,16 @@
   --accent: #f5a623;
   --accent-light: #fcd34d;
   --accent-amber: #e8850a;
-  --font-outfit: var(--font-inter);
-  --font-dm-sans: var(--font-inter);
+  --color-warning: #f59e0b;
+  --font-outfit: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-dm-sans: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --radius: var(--radius-button);
   --text-strong: var(--surface-fg);
   --text-muted: var(--surface-muted);
 }
 
 .dark {
-  --surface-bg: #0a0f1e;
+  --surface-bg: #03060f;
   --surface-fg: #fafafa;
   --surface-card: rgba(255, 255, 255, 0.04);
   --surface-muted: #9ca3af;
@@ -59,6 +64,7 @@
 
   --text-strong: #fafafa;
   --text-muted: #9ca3af;
+  --color-warning: #fbbf24;
 }
 
 @theme {
@@ -74,6 +80,7 @@
   --color-accent-orange: #d97706;
   --color-success: #10b981;
   --color-destructive: #ef4444;
+  --color-warning: #f59e0b;
 
   --color-brand-50: #fafafa;
   --color-brand-100: #f4f4f5;
@@ -91,9 +98,9 @@
   --color-surface-raised: var(--surface-card);
   --color-surface-alt: #1c1c1c;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-playfair), ui-serif, Georgia, serif;
-  --font-ui: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-ui: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --radius-lg: var(--radius-card);
@@ -323,10 +330,12 @@ body {
 }
 
 .dark body {
+  background-color: #03060f;
   background-image:
-    radial-gradient(800px 420px at 15% 0%, rgba(245, 166, 35, 0.08), transparent 65%),
-    radial-gradient(640px 380px at 90% 15%, rgba(245, 166, 35, 0.05), transparent 60%),
-    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(10, 15, 30, 0.95), #0a0f1e);
+    radial-gradient(1200px 620px at 50% -8%, rgba(245, 166, 35, 0.14), transparent 58%),
+    radial-gradient(900px 520px at 0% 35%, rgba(56, 189, 248, 0.08), transparent 55%),
+    radial-gradient(780px 460px at 100% 55%, rgba(245, 166, 35, 0.09), transparent 52%),
+    radial-gradient(ellipse 130% 90% at 50% 100%, rgba(10, 15, 30, 0.98) 0%, #03060f 68%);
   background-attachment: fixed;
 }
 
@@ -474,10 +483,23 @@ a {
   }
 
   .nav-bar-glass {
-    background: rgba(10, 15, 30, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(245, 166, 35, 0.15);
+    background: rgba(10, 15, 30, 0.82);
+    backdrop-filter: blur(16px) saturate(1.35);
+    -webkit-backdrop-filter: blur(16px) saturate(1.35);
+    border-bottom: 1px solid rgba(245, 166, 35, 0.12);
+    transition:
+      background 0.35s ease,
+      box-shadow 0.35s ease,
+      border-color 0.35s ease,
+      backdrop-filter 0.35s ease;
+  }
+
+  .nav-bar-glass--scrolled {
+    background: rgba(7, 10, 22, 0.92);
+    backdrop-filter: blur(22px) saturate(1.5);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    border-bottom-color: rgba(245, 166, 35, 0.22);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
   }
 
   .hero-cta-primary {
@@ -682,26 +704,21 @@ a {
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+    width: 0;
+    height: 0;
   }
 }
 
+/* Hide scrollbars everywhere — touch/wheel/trackpad scrolling still works. */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: #f5a623 transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 *::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-*::-webkit-scrollbar-track {
+  display: none;
+  width: 0;
+  height: 0;
   background: transparent;
-}
-*::-webkit-scrollbar-thumb {
-  background-color: #f5a623;
-  border-radius: 4px;
-}
-*::-webkit-scrollbar-thumb:hover {
-  background-color: #fcd34d;
 }
 
 .hero-particle {
@@ -791,6 +808,31 @@ html.cursor-glow-enabled * {
 
 .wa-fab-bounce {
   animation: wa-bounce-hint 5s ease-in-out infinite;
+}
+
+/* Mobile: keep WhatsApp clear of bottom nav + no ping/glow so it is not mistaken for Account */
+@media (max-width: 767px) {
+  a.wa-fab {
+    right: auto !important;
+    left: max(1rem, env(safe-area-inset-left, 0px)) !important;
+    bottom: max(5.75rem, calc(0.5rem + env(safe-area-inset-bottom, 0px))) !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  a.wa-fab .wa-fab-ring {
+    display: none !important;
+  }
+
+  a.wa-fab .wa-fab-bounce {
+    animation: none !important;
+  }
+
+  a.wa-fab svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

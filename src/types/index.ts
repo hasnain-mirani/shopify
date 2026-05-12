@@ -72,6 +72,8 @@ export interface Cart {
     subtotalAmount: Money;
     totalAmount: Money;
   };
+  /** Optional external checkout URL — must be same-origin or allowlisted host. */
+  checkoutUrl?: string | null;
 }
 
 export interface OrderItem {

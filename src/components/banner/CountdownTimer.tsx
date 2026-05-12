@@ -78,7 +78,7 @@ export function CountdownTimer({ reduceMotion }: { reduceMotion: boolean }) {
   prevSRef.current = s;
 
   return (
-    <div className="flex flex-wrap items-end justify-center gap-1.5 [perspective:500px] md:justify-start md:gap-2">
+    <div className="flex flex-wrap items-end justify-start gap-1.5 [perspective:500px] md:gap-2">
       <CountdownUnit
         value={h}
         label="Hours"

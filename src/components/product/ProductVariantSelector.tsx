@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { canSelectVariantCombination } from "@/lib/product-variant-availability";
 import { cn, getVariantId, isVariantAvailable } from "@/lib/utils";
 import type { Product, Variant } from "@/types";
 
@@ -72,16 +73,21 @@ export function ProductVariantSelector({
         return (
           <div key={option.id} className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between">
-              <span className="text-xs font-semibold uppercase tracking-widest text-brand-600">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#94a3b8]">
                 {option.name}
               </span>
-              <span className="text-xs text-brand-500">{selected[option.name]}</span>
+              <span className="text-xs font-medium text-[#f5a623]">{selected[option.name]}</span>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {option.values.map((value) => {
                 const isActive = selected[option.name] === value;
-                const availableWithPick = canSelect(product, selected, option.name, value);
+                const availableWithPick = canSelectVariantCombination(
+                  product,
+                  selected,
+                  option.name,
+                  value,
+                );
 
                 return (
                   <button
@@ -92,14 +98,14 @@ export function ProductVariantSelector({
                     disabled={!availableWithPick && !isActive}
                     className={cn(
                       "inline-flex items-center justify-center min-w-[3rem] h-10 px-4",
-                      "rounded-full text-sm transition-all duration-150",
+                      "rounded-full text-sm font-medium transition-all duration-150",
                       "border",
                       isActive
-                        ? "border-brand-900 bg-brand-900 text-white"
-                        : "border-brand-300 text-brand-800 hover:border-brand-900 hover:text-brand-900",
+                        ? "border-[#f5a623] bg-[rgba(245,166,35,0.12)] text-[#f8fafc] shadow-[inset_0_0_0_1px_rgba(245,166,35,0.25)]"
+                        : "border-white/20 bg-[rgba(2,6,23,0.35)] text-[#e2e8f0] hover:border-[#f5a623]/55 hover:text-white",
                       !availableWithPick &&
                         !isActive &&
-                        "opacity-50 line-through cursor-not-allowed hover:border-brand-300 hover:text-brand-800",
+                        "opacity-45 line-through cursor-not-allowed hover:border-white/15 hover:text-[#94a3b8]",
                     )}
                   >
                     {value}
@@ -112,24 +118,6 @@ export function ProductVariantSelector({
       })}
     </div>
   );
-}
-
-/**
- * Can the user pick `(name = value)` while keeping their other current
- * selections, and still land on an available variant? Used for disabling
- * option buttons that would lead to out-of-stock combinations.
- */
-function canSelect(
-  product: Product,
-  current: Record<string, string>,
-  name: string,
-  value: string,
-): boolean {
-  const candidate = { ...current, [name]: value };
-  return product.variants?.some((v) => {
-    if (!isVariantAvailable(v)) return false;
-    return v.selectedOptions.every((opt) => candidate[opt.name] === opt.value);
-  }) ?? false;
 }
 
 export default ProductVariantSelector;

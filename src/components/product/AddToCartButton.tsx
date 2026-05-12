@@ -16,6 +16,9 @@ export interface AddToCartButtonProps
   availableForSale: boolean;
   quantity?: number;
   label?: string;
+  /** When true, adds gift-wrap fee to the cart line (see cart-store). */
+  giftWrap?: boolean;
+  giftWrapFeePkr?: number;
   /** Called after a successful add — handy for closing a dialog, etc. */
   onAdded?: () => void;
 }
@@ -36,6 +39,8 @@ export function AddToCartButton({
   availableForSale,
   quantity = 1,
   label,
+  giftWrap = false,
+  giftWrapFeePkr = 199,
   onAdded,
   className,
   disabled,
@@ -66,7 +71,10 @@ export function AddToCartButton({
     if (!variantId || !availableForSale) return;
     setState("adding");
     try {
-      await addItem(variantId, productTitle, price, imageUrl, quantity);
+      await addItem(variantId, productTitle, price, imageUrl, quantity, {
+        giftWrap,
+        giftWrapFeePkr,
+      });
       setState("added");
       onAdded?.();
     } catch {

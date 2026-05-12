@@ -30,21 +30,20 @@ export function UnifiedPersonColumn({
 }: Props) {
   const [imgFailed, setImgFailed] = useState(false);
   const orb = GLOW[glowTint];
-  const likelyOpaqueRaster = /\.(jpe?g|webp)(\?.*)?$/i.test(imageUrl);
 
   return (
     <div
-      className="relative hidden h-full min-h-[220px] w-[30%] shrink-0 overflow-visible md:flex md:items-end md:justify-center"
+      className="relative order-2 hidden min-h-0 w-full shrink-0 flex-col items-center justify-center overflow-visible md:order-none md:flex md:h-full md:min-h-0 md:min-w-0 md:flex-1 md:justify-end md:pt-0"
       style={{ background: "transparent", backgroundColor: "transparent" }}
     >
       <div
-        className="pointer-events-none absolute bottom-[12%] left-1/2 z-0 h-[360px] w-[360px] -translate-x-1/2 rounded-full"
+        className="pointer-events-none absolute bottom-[10%] left-1/2 z-0 h-[360px] w-[360px] -translate-x-1/2 rounded-full"
         style={{
           background: `radial-gradient(circle, ${orb}, transparent 65%)`,
         }}
       />
       <motion.div
-        className="relative z-[1] -mb-px h-[700px] w-full max-w-[460px] overflow-visible md:absolute md:bottom-0 md:left-1/2 md:h-[132%] md:max-h-none md:-translate-x-1/2"
+        className="relative z-[1] flex h-full w-full max-w-[min(520px,48vw)] flex-col items-center justify-end overflow-visible md:mx-auto"
         style={{ background: "transparent", backgroundColor: "transparent" }}
         initial={reduceMotion ? undefined : { x: -60, opacity: 0 }}
         animate={
@@ -58,7 +57,7 @@ export function UnifiedPersonColumn({
       >
         {!imgFailed ? (
           <motion.div
-            className="relative w-full max-w-[460px] overflow-visible"
+            className="relative mx-auto w-full max-w-[460px] overflow-visible"
             style={{ background: "transparent", backgroundColor: "transparent" }}
             animate={
               reduceMotion
@@ -72,30 +71,29 @@ export function UnifiedPersonColumn({
             }
           >
             <div
-              className="relative w-full aspect-[1920/800] max-h-[min(520px,70vh)] md:max-h-[min(640px,85vh)]"
+              className="relative mx-auto aspect-auto h-full min-h-[320px] w-full max-w-[460px] md:max-h-[520px]"
               style={{ background: "transparent" }}
             >
               <Image
                 src={imageUrl}
                 alt="Flash Sale - Up to 60% OFF - SSHUB Pakistan"
                 fill
+                className="object-contain object-bottom object-center"
                 priority={imagePriority}
                 fetchPriority={imagePriority ? "high" : undefined}
                 loading={imagePriority ? "eager" : "lazy"}
                 quality={85}
-                sizes="100vw"
+                sizes="(min-width: 768px) min(460px, 48vw), 1px"
                 onError={() => setImgFailed(true)}
                 style={{
-                  objectFit: "contain",
-                  objectPosition: "bottom center",
                   background: "transparent",
-                  mixBlendMode: likelyOpaqueRaster ? "multiply" : "normal",
+                  mixBlendMode: "normal",
                 }}
               />
             </div>
           </motion.div>
         ) : (
-          <div className="flex h-full min-h-[300px] w-full flex-col items-center justify-end pb-4 pr-6">
+          <div className="flex h-full min-h-[300px] w-full flex-col items-center justify-end pb-4 md:pb-6">
             <div
               className="relative flex h-44 w-44 items-center justify-center rounded-full"
               style={{

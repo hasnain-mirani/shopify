@@ -15,7 +15,14 @@ export interface CartState {
   _initPromise: Promise<void> | null;
 
   initCart: () => Promise<void>;
-  addItem: (variantId: string, productTitle: string, price: number, imageUrl?: string, quantity?: number) => Promise<void>;
+  addItem: (
+    variantId: string,
+    productTitle: string,
+    price: number,
+    imageUrl?: string,
+    quantity?: number,
+    opts?: { giftWrap?: boolean; giftWrapFeePkr?: number },
+  ) => Promise<void>;
   updateItem: (lineId: string, quantity: number) => Promise<void>;
   removeItem: (lineId: string) => Promise<void>;
   openCart: () => void;
@@ -74,8 +81,12 @@ export const useCartStore = create<CartState>()(
         return promise;
       },
 
-      addItem: async (variantId, productTitle, price, imageUrl = "", quantity = 1) => {
+      addItem: async (variantId, productTitle, price, imageUrl = "", quantity = 1, opts) => {
         if (!variantId || quantity < 1) return;
+        const wrapFee = opts?.giftWrap ? (opts.giftWrapFeePkr ?? 199) : 0;
+        const lineTitle = opts?.giftWrap ? `${productTitle} (+ Gift Wrap)` : productTitle;
+        const linePrice = Number(price) + wrapFee;
+        const variantTitle = opts?.giftWrap ? `Gift wrap Rs ${wrapFee.toLocaleString("en-PK")}` : "";
         let { cartId } = get();
         if (!cartId) {
           try {
@@ -88,7 +99,14 @@ export const useCartStore = create<CartState>()(
         set((s) => ({ isLoading: true, cart: s.cart ? { ...s.cart, totalQuantity: s.cart.totalQuantity + quantity } : s.cart }));
         try {
           if (!cartId) throw new Error("Cart ID is required");
-          const cart = await api.cart.addItem(cartId, { variantId, productTitle, price, quantity, imageUrl });
+          const cart = await api.cart.addItem(cartId, {
+            variantId,
+            productTitle: lineTitle,
+            variantTitle,
+            price: linePrice,
+            quantity,
+            imageUrl,
+          });
           set({ cart, isLoading: false, lastAddedItem: variantId, isOpen: true });
           toast.success("Added to bag");
         } catch (err) {

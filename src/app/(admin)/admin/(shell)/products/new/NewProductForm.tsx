@@ -7,8 +7,18 @@ import { createProductAction, type ProductFormState, type ProductOption, type Pr
 import { AdminCard } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { api } from "@/lib/api-client";
-import { Upload, X, Loader2, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { api, formatApiErrorForUser, API_ERROR_TOAST_STYLE } from "@/lib/api-client";
+import { normalizeProductIdentifyPayload } from "@/lib/normalize-product-identify";
+import { Upload, X, Loader2, Plus, Trash2, ChevronDown, ChevronUp, Wand2, Sparkles } from "lucide-react";
+
+function slugifyHandle(title: string) {
+  const s = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return (s || "product").slice(0, 96);
+}
 
 const initialState: ProductFormState = {};
 
@@ -22,9 +32,15 @@ export function NewProductForm() {
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [showVariants, setShowVariants] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const aiIdentifyInputRef = useRef<HTMLInputElement>(null);
+  const [productTitle, setProductTitle] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+  const [productHandle, setProductHandle] = useState("");
+  const [identifyLoading, setIdentifyLoading] = useState(false);
+  const [imageGenLoading, setImageGenLoading] = useState(false);
 
   useEffect(() => {
-    if (state.error) toast.error(state.error);
+    if (state.error) toast.error(state.error, { style: API_ERROR_TOAST_STYLE, duration: 6500 });
   }, [state.error]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -40,7 +56,7 @@ export function NewProductForm() {
       setUploadedUrls((prev) => [...prev, ...newUrls]);
       toast.success(newUrls.length + " image(s) uploaded");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
+      toast.error(formatApiErrorForUser(err), { style: API_ERROR_TOAST_STYLE, duration: 6500 });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -51,6 +67,70 @@ export function NewProductForm() {
     setUploadedUrls((prev) => prev.filter((_, i) => i !== index));
     if (featuredImageIndex >= uploadedUrls.length - 1) {
       setFeaturedImageIndex(Math.max(0, uploadedUrls.length - 2));
+    }
+  }
+
+  async function runIdentifyFromFile(file: File) {
+    setIdentifyLoading(true);
+    try {
+      const raw = await api.productAi.identifyFromImage(file);
+      const data = normalizeProductIdentifyPayload(raw);
+      if (!data.title || !data.description) {
+        toast.error("AI did not return a usable title and description. Try a clearer product photo.");
+        return;
+      }
+      setProductTitle(data.title);
+      setProductDescription(data.description);
+      setProductHandle((h) => (h.trim() ? h : slugifyHandle(data.title)));
+      toast.success(`PKR estimate: ${data.estimatedPrice}`);
+      if (data.sources?.length) {
+        toast.success(`Grounded from ${data.sources.length} web source(s).`, { duration: 4000 });
+      }
+    } catch (err) {
+      toast.error(formatApiErrorForUser(err), { style: API_ERROR_TOAST_STYLE, duration: 8000 });
+    } finally {
+      setIdentifyLoading(false);
+    }
+  }
+
+  async function identifyFromFirstGalleryImage() {
+    const url = uploadedUrls[0];
+    if (!url) {
+      toast.error("Upload at least one product image first.");
+      return;
+    }
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Could not download gallery image (CORS or network). Use “Pick photo” instead.");
+      const blob = await res.blob();
+      const ext = blob.type.includes("png") ? "png" : "jpg";
+      const file = new File([blob], `gallery.${ext}`, { type: blob.type || "image/jpeg" });
+      await runIdentifyFromFile(file);
+    } catch (err) {
+      toast.error(formatApiErrorForUser(err), { style: API_ERROR_TOAST_STYLE, duration: 6000 });
+    }
+  }
+
+  async function generateProfessionalPhoto() {
+    const desc = productDescription.trim();
+    if (!desc) {
+      toast.error("Add or generate a description first.");
+      return;
+    }
+    setImageGenLoading(true);
+    try {
+      const { imageUrl } = await api.productAi.generateProductImage(desc);
+      const imgRes = await fetch(imageUrl);
+      if (!imgRes.ok) throw new Error("Could not download generated image");
+      const blob = await imgRes.blob();
+      const file = new File([blob], "ai-product.webp", { type: blob.type || "image/webp" });
+      const up = await api.upload.image(file);
+      setUploadedUrls((prev) => [...prev, up.url]);
+      toast.success("Generated image added to gallery");
+    } catch (err) {
+      toast.error(formatApiErrorForUser(err), { style: API_ERROR_TOAST_STYLE, duration: 6500 });
+    } finally {
+      setImageGenLoading(false);
     }
   }
 
@@ -162,7 +242,13 @@ export function NewProductForm() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Title *</label>
-            <Input name="title" placeholder="Product title" required />
+            <Input
+              name="title"
+              placeholder="Product title"
+              required
+              value={productTitle}
+              onChange={(e) => setProductTitle(e.target.value)}
+            />
             {fe.title && <p className="text-red-500 text-xs mt-1">{fe.title}</p>}
           </div>
 
@@ -172,8 +258,67 @@ export function NewProductForm() {
               name="description"
               rows={4}
               placeholder="Product description"
+              value={productDescription}
+              onChange={(e) => setProductDescription(e.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
+            <div className="mt-3 rounded-xl border border-dashed border-brand-300/70 bg-muted/30 p-4">
+              <p className="text-sm font-medium text-foreground">AI copy from product photo</p>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                Gemini analyzes your image with <strong>Google Search grounding</strong> (same capability as the
+                legacy “googleSearchRetrieval” tool) so titles and bullets match real listings.
+              </p>
+              <input
+                ref={aiIdentifyInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void runIdentifyFromFile(f);
+                  e.target.value = "";
+                }}
+              />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  isLoading={identifyLoading}
+                  leftIcon={<Wand2 className="h-4 w-4" aria-hidden />}
+                  onClick={() => aiIdentifyInputRef.current?.click()}
+                >
+                  Pick photo &amp; generate title + description
+                </Button>
+                {uploadedUrls.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    isLoading={identifyLoading}
+                    leftIcon={<Sparkles className="h-4 w-4" aria-hidden />}
+                    onClick={() => void identifyFromFirstGalleryImage()}
+                  >
+                    Use first gallery image
+                  </Button>
+                )}
+              </div>
+              <div className="mt-4 border-t border-border pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  isLoading={imageGenLoading}
+                  leftIcon={<Sparkles className="h-4 w-4" aria-hidden />}
+                  onClick={() => void generateProfessionalPhoto()}
+                >
+                  Generate professional photo (Replicate)
+                </Button>
+                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                  Uses your current description text. Requires <code className="rounded bg-muted px-1">REPLICATE_API_TOKEN</code> on the API server.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -190,7 +335,12 @@ export function NewProductForm() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Handle (URL slug)</label>
-              <Input name="handle" placeholder="product-handle" />
+              <Input
+                name="handle"
+                placeholder="product-handle"
+                value={productHandle}
+                onChange={(e) => setProductHandle(e.target.value)}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Tags</label>
@@ -199,6 +349,140 @@ export function NewProductForm() {
           </div>
         </div>
       </AdminCard>
+
+      {/* Options — right after basics so Size/Color are easy to find */}
+      <AdminCard title="Options (Size, Color, etc.)">
+        <div className="space-y-4">
+          <p className="mb-4 text-sm text-muted-foreground">
+            Add options like size or color, then use <strong>Generate variants</strong> to build rows. Leave
+            empty for a single-variant product (use Pricing below for one price).
+          </p>
+
+          {options.map((option) => (
+            <div key={option.id} className="space-y-3 rounded-lg border border-border p-4">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={option.name}
+                  onChange={(e) => updateOption(option.id, "name", e.target.value)}
+                  placeholder="Option name (e.g., Size, Color)"
+                  className="flex-1"
+                />
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeOption(option.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                {option.values.map((value, valIndex) => (
+                  <div key={valIndex} className="flex items-center gap-2">
+                    <Input
+                      value={value}
+                      onChange={(e) => updateOptionValue(option.id, valIndex, e.target.value)}
+                      placeholder="Option value"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeOptionValue(option.id, valIndex)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={() => addOptionValue(option.id)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add value
+                </Button>
+              </div>
+            </div>
+          ))}
+
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={addOption}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add option
+            </Button>
+            {options.length > 0 && (
+              <Button type="button" onClick={generateVariants}>
+                Generate variants
+              </Button>
+            )}
+          </div>
+        </div>
+      </AdminCard>
+
+      {showVariants && variants.length > 0 && (
+        <AdminCard title="Variants">
+          <div className="mb-4 flex justify-end">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setShowVariants(!showVariants)}>
+              {showVariants ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {variants.map((variant, index) => (
+              <div key={variant.id} className="space-y-3 rounded-lg border border-border p-4">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium">{variant.title}</div>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => removeVariant(index)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Price</label>
+                    <Input
+                      value={variant.price}
+                      onChange={(e) => updateVariant(index, "price", e.target.value)}
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">SKU</label>
+                    <Input
+                      value={variant.sku}
+                      onChange={(e) => updateVariant(index, "sku", e.target.value)}
+                      placeholder="SKU"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Quantity</label>
+                    <Input
+                      value={variant.inventoryQuantity}
+                      onChange={(e) => updateVariant(index, "inventoryQuantity", e.target.value)}
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={variant.availableForSale}
+                      onChange={(e) => updateVariant(index, "availableForSale", e.target.checked)}
+                      className="accent-primary"
+                    />
+                    <span className="text-sm">Available for sale</span>
+                  </label>
+                </div>
+              </div>
+            ))}
+
+            <Button type="button" variant="outline" onClick={addVariant}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add variant
+            </Button>
+          </div>
+        </AdminCard>
+      )}
 
       {/* Pricing */}
       <AdminCard title="Pricing">
@@ -310,171 +594,6 @@ export function NewProductForm() {
           </div>
         </div>
       </AdminCard>
-
-      {/* Options */}
-      <AdminCard title="Options (Size, Color, etc.)">
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600 mb-4">
-            Add options like size or color to create variants. Leave empty for a single variant product.
-          </p>
-
-          {options.map((option, optIndex) => (
-            <div key={option.id} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Input
-                  value={option.name}
-                  onChange={(e) => updateOption(option.id, "name", e.target.value)}
-                  placeholder="Option name (e.g., Size, Color)"
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeOption(option.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                {option.values.map((value, valIndex) => (
-                  <div key={valIndex} className="flex items-center gap-2">
-                    <Input
-                      value={value}
-                      onChange={(e) => updateOptionValue(option.id, valIndex, e.target.value)}
-                      placeholder="Option value"
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeOptionValue(option.id, valIndex)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addOptionValue(option.id)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add value
-                </Button>
-              </div>
-            </div>
-          ))}
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addOption}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add option
-          </Button>
-
-          {options.length > 0 && (
-            <Button
-              type="button"
-              onClick={generateVariants}
-              className="ml-2"
-            >
-              Generate variants
-            </Button>
-          )}
-        </div>
-      </AdminCard>
-
-      {/* Variants */}
-      {showVariants && variants.length > 0 && (
-        <AdminCard title="Variants">
-          <div className="flex justify-end mb-4">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowVariants(!showVariants)}
-            >
-              {showVariants ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {variants.map((variant, index) => (
-              <div key={variant.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium">{variant.title}</div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeVariant(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Price</label>
-                    <Input
-                      value={variant.price}
-                      onChange={(e) => updateVariant(index, "price", e.target.value)}
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">SKU</label>
-                    <Input
-                      value={variant.sku}
-                      onChange={(e) => updateVariant(index, "sku", e.target.value)}
-                      placeholder="SKU"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Quantity</label>
-                    <Input
-                      value={variant.inventoryQuantity}
-                      onChange={(e) => updateVariant(index, "inventoryQuantity", e.target.value)}
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={variant.availableForSale}
-                      onChange={(e) => updateVariant(index, "availableForSale", e.target.checked)}
-                      className="accent-primary"
-                    />
-                    <span className="text-sm">Available for sale</span>
-                  </label>
-                </div>
-              </div>
-            ))}
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addVariant}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add variant
-            </Button>
-          </div>
-        </AdminCard>
-      )}
 
       {/* Images */}
       <AdminCard title="Images">

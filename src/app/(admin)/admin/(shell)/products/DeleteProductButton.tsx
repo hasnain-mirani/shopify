@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Trash2, Loader2 } from "lucide-react";
 import { deleteProductAction } from "./actions";
+import { API_ERROR_TOAST_STYLE } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -45,7 +46,10 @@ export function DeleteProductButton({
         toast.success(`Deleted "${productTitle}".`);
         router.refresh();
       } else {
-        toast.error(result.error ?? "Failed to delete product.");
+        toast.error(result.error ?? "Failed to delete product.", {
+          style: API_ERROR_TOAST_STYLE,
+          duration: 6500,
+        });
         setArmed(false);
       }
     });

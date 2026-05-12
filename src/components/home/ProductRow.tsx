@@ -92,11 +92,11 @@ function ProductCard({ product }: { product: Product }) {
           <Image
             src={product.featuredImage.url}
             alt={product.featuredImage.altText ?? product.title}
-            fill
+            width={440}
+            height={440}
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             placeholder="blur"
             blurDataURL={IMAGE_BLUR_DATA_URL}
-            style={{ objectFit: "cover" }}
             className="pr-img"
           />
         ) : (
@@ -391,10 +391,10 @@ export function ProductRow({
           display: flex;
           flex-direction: column;
           transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
-          min-height: 280px;
+          min-height: 252px;
         }
         @media (max-width: 767px) {
-          .pr-card { min-height: 238px; }
+          .pr-card { min-height: 218px; }
         }
         .pr-card:hover {
           box-shadow: 0 8px 40px rgba(245,166,35,0.12);
@@ -404,9 +404,17 @@ export function ProductRow({
         .pr-img-wrap {
           position: relative;
           width: 100%;
-          aspect-ratio: 1;
+          height: 118px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2px 4px;
           background: radial-gradient(circle at 30% 20%, rgba(245,166,35,0.12), rgba(10,15,30,0.95));
           overflow: hidden;
+        }
+        @media (min-width: 768px) {
+          .pr-img-wrap { height: 132px; }
         }
         .pr-img-fade {
           position: absolute;
@@ -461,7 +469,12 @@ export function ProductRow({
           z-index: 0;
         }
         .pr-img {
+          position: relative;
           z-index: 1;
+          max-height: 100%;
+          width: auto !important;
+          height: auto !important;
+          object-fit: contain;
           transition: transform 0.4s ease;
         }
         .pr-card:hover .pr-img {
@@ -492,10 +505,10 @@ export function ProductRow({
           transform: rotate(-2deg);
         }
         .pr-info {
-          padding: 10px 10px 12px;
+          padding: 8px 8px 10px;
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 4px;
           flex: 1;
         }
         .pr-star-row {

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, X } from "lucide-react";
+import toast from "react-hot-toast";
 import { cn, formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import type { CartItem } from "@/types";
@@ -16,6 +17,7 @@ export interface CartLineItemProps {
 export function CartLineItem({ line, onNavigate }: CartLineItemProps) {
   const updateItem = useCartStore((s) => s.updateItem);
   const removeItem = useCartStore((s) => s.removeItem);
+  const addItem = useCartStore((s) => s.addItem);
   const isLoading = useCartStore((s) => s.isLoading);
 
   const { id, quantity, product_title, variant_title, price, image_url } = line;
@@ -70,9 +72,36 @@ export function CartLineItem({ line, onNavigate }: CartLineItemProps) {
           <button
             type="button"
             aria-label={`Remove ${product_title} from cart`}
-            onClick={() => removeItem(id)}
+            onClick={() => {
+              const snapshot = { ...line };
+              removeItem(id);
+              toast(
+                (t) => (
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-900">
+                    <span>Removed from bag</span>
+                    <button
+                      type="button"
+                      className="font-semibold text-amber-700 underline-offset-2 hover:underline"
+                      onClick={() => {
+                        void addItem(
+                          snapshot.variant_id,
+                          snapshot.product_title,
+                          snapshot.price,
+                          snapshot.image_url,
+                          snapshot.quantity,
+                        );
+                        toast.dismiss(t.id);
+                      }}
+                    >
+                      Undo
+                    </button>
+                  </div>
+                ),
+                { duration: 5000, id: `removed-${id}` },
+              );
+            }}
             disabled={isLoading}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-brand-500 hover:text-brand-900 hover:bg-brand-100 transition-colors disabled:opacity-50"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-brand-500 hover:text-brand-900 hover:bg-brand-100 transition-colors disabled:opacity-50"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -129,13 +158,13 @@ function QuantityStepper({
         aria-label="Decrease quantity"
         onClick={dec}
         disabled={disabled || value <= min}
-        className="h-8 w-8 inline-flex items-center justify-center text-brand-700 hover:text-brand-900 disabled:text-brand-300 disabled:cursor-not-allowed rounded-l-full"
+        className="min-h-11 min-w-11 inline-flex items-center justify-center text-brand-700 hover:text-brand-900 hover:bg-brand-50 disabled:text-brand-300 disabled:cursor-not-allowed rounded-l-full transition-colors"
       >
-        <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+        <Minus className="h-4 w-4" aria-hidden="true" />
       </button>
       <span
         aria-live="polite"
-        className="h-8 w-8 inline-flex items-center justify-center text-xs font-medium tabular-nums"
+        className="min-h-11 min-w-11 inline-flex items-center justify-center text-sm font-medium tabular-nums"
       >
         {value}
       </span>
@@ -144,9 +173,9 @@ function QuantityStepper({
         aria-label="Increase quantity"
         onClick={inc}
         disabled={disabled || value >= max}
-        className="h-8 w-8 inline-flex items-center justify-center text-brand-700 hover:text-brand-900 disabled:text-brand-300 disabled:cursor-not-allowed rounded-r-full"
+        className="min-h-11 min-w-11 inline-flex items-center justify-center text-brand-700 hover:text-brand-900 hover:bg-brand-50 disabled:text-brand-300 disabled:cursor-not-allowed rounded-r-full transition-colors"
       >
-        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+        <Plus className="h-4 w-4" aria-hidden="true" />
       </button>
     </div>
   );

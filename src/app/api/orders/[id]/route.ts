@@ -1,22 +1,27 @@
 import { NextResponse } from "next/server";
-import { queryAll, queryOne } from "@/lib/db";
+import { isAdminAuthenticated } from "@/lib/admin-api-auth";
+import { fetchOrderWithItems } from "@/lib/orders-server";
 
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const admin = await isAdminAuthenticated();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
-    const order = await queryOne("SELECT * FROM orders WHERE id = ?", [id]);
+    const order = await fetchOrderWithItems(id);
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const items = await queryAll("SELECT * FROM order_items WHERE order_id = ?", [id]);
-
-    return NextResponse.json({ ...order, items });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed to fetch order" }, { status: 500 });
+    return NextResponse.json(order);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to fetch order";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

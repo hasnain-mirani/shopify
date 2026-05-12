@@ -119,7 +119,7 @@ export function Header({
       <header
         className={cn(
           "nav-bar-glass sticky top-0 z-40 w-full transition-[box-shadow] duration-300",
-          navCompact && "shadow-lg shadow-black/25",
+          navCompact && "nav-bar-glass--scrolled shadow-lg shadow-black/25",
         )}
       >
         <div className="container-shop flex h-[60px] items-center gap-3">

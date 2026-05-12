@@ -1,4 +1,5 @@
 import { api } from "@/lib/api-client";
+import { fetchOrderWithItems, listRecentOrders } from "@/lib/orders-server";
 import type { AdminProductListItem, OrderKPIs, ShopInfo } from "@/types";
 
 // Dashboard-specific order type (matches Shopify structure expected by dashboard)
@@ -126,8 +127,8 @@ export async function getShopInfo(): Promise<ShopInfo> {
 
 export async function getRecentOrders(first = 10): Promise<DashboardOrder[]> {
   try {
-    const orders = await api.orders.list(first);
-    return orders.map((o: any) => mapRawOrderToDashboard(o));
+    const orders = await listRecentOrders(first);
+    return orders.map((o) => mapRawOrderToDashboard(o));
   } catch {
     return [];
   }
@@ -135,7 +136,7 @@ export async function getRecentOrders(first = 10): Promise<DashboardOrder[]> {
 
 export async function getAdminOrder(id: string): Promise<DashboardOrder | null> {
   try {
-    const o = await api.orders.get(id);
+    const o = await fetchOrderWithItems(id);
     if (!o) return null;
     return mapRawOrderToDashboard(o);
   } catch {

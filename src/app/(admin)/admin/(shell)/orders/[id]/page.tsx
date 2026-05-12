@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getAdminOrder, mapRawOrderToDashboard } from "@/lib/admin-data";
-import { api } from "@/lib/api-client";
+import { fetchOrderWithItems } from "@/lib/orders-server";
 import { AdminPage, AdminCard } from "@/components/admin/AdminShell";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatPrice } from "@/lib/utils";
@@ -16,9 +16,9 @@ interface Props {
 export default async function OrderDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let rawOrder: any = null;
+  let rawOrder: Record<string, unknown> & { items?: unknown[] } | null = null;
   try {
-    rawOrder = await api.orders.get(id);
+    rawOrder = await fetchOrderWithItems(id);
   } catch (e) {
     console.error("Failed to fetch raw order", e);
   }
@@ -32,20 +32,19 @@ export default async function OrderDetailPage({ params }: Props) {
     dashboardOrder = mapRawOrderToDashboard(rawOrder);
   }
 
-  const cName =
-    rawOrder.customer_name ?? rawOrder.customerName ?? "";
-  const cEmail =
-    rawOrder.customer_email ?? rawOrder.customerEmail ?? "";
-  const cPhone =
-    rawOrder.customer_phone ?? rawOrder.customerPhone ?? "";
-  const createdRaw =
-    rawOrder.created_at ?? rawOrder.createdAt ?? Date.now();
+  const cName = String(rawOrder.customer_name ?? rawOrder.customerName ?? "");
+  const cEmail = String(rawOrder.customer_email ?? rawOrder.customerEmail ?? "");
+  const cPhone = String(rawOrder.customer_phone ?? rawOrder.customerPhone ?? "");
+  const createdRaw = rawOrder.created_at ?? rawOrder.createdAt ?? Date.now();
+  const createdForDate: string | number =
+    typeof createdRaw === "string" || typeof createdRaw === "number"
+      ? createdRaw
+      : Date.now();
 
-  const addr = rawOrder.address ?? "";
-  const city = rawOrder.city ?? "";
-  const postal =
-    rawOrder.postal_code ?? rawOrder.postalCode ?? "";
-  const country = rawOrder.country ?? "";
+  const addr = String(rawOrder.address ?? "");
+  const city = String(rawOrder.city ?? "");
+  const postal = String(rawOrder.postal_code ?? rawOrder.postalCode ?? "");
+  const country = String(rawOrder.country ?? "");
 
   const orderDate = new Date(dashboardOrder.createdAt).toLocaleString();
 
@@ -122,7 +121,7 @@ export default async function OrderDetailPage({ params }: Props) {
               <div className="space-y-2 ml-auto max-w-xs">
                 <div className="flex justify-between text-zinc-500">
                   <span>Subtotal</span>
-                  <span>{formatPrice(rawOrder.subtotal || 0, "PKR")}</span>
+                  <span>{formatPrice(String(Number(rawOrder.subtotal) || 0), "PKR")}</span>
                 </div>
                 <div className="flex justify-between text-zinc-500">
                   <span>Shipping</span>
@@ -130,7 +129,7 @@ export default async function OrderDetailPage({ params }: Props) {
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100">
                   <span>Total</span>
-                  <span>{formatPrice(rawOrder.total || 0, "PKR")}</span>
+                  <span>{formatPrice(String(Number(rawOrder.total) || 0), "PKR")}</span>
                 </div>
               </div>
             </div>
@@ -181,7 +180,7 @@ export default async function OrderDetailPage({ params }: Props) {
                 </div>
                 <div>
                   <div className="font-medium">{cName || "Guest Customer"}</div>
-                  <div className="text-xs text-zinc-500">Order placed {new Date(createdRaw).toLocaleDateString()}</div>
+                  <div className="text-xs text-zinc-500">Order placed {new Date(createdForDate).toLocaleDateString()}</div>
                 </div>
               </div>
               

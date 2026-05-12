@@ -1,8 +1,7 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { api } from "@/lib/api-client";
+import { api, formatApiErrorForUser } from "@/lib/api-client";
 import { ADMIN_PRODUCT_TAG } from "@/lib/admin-data";
 import {
   type ProductFormState,
@@ -11,6 +10,7 @@ import {
 } from "../../new/actions";
 
 export async function updateProductAction(
+  _prevState: ProductFormState | null,
   formData: FormData,
 ): Promise<ProductFormState> {
   // Manual validation
@@ -43,7 +43,7 @@ export async function updateProductAction(
   const trackQuantity = formData.get("trackQuantity") === "true";
   const inventoryQuantity = String(formData.get("inventoryQuantity") ?? "0").trim();
   const continueSellingWhenOutOfStock = formData.get("continueSellingWhenOutOfStock") === "true";
-  const requiresShipping = formData.get("requiresShipping") !== "false";
+  const requiresShipping = String(formData.get("requiresShipping") ?? "true") === "true";
   const weight = String(formData.get("weight") ?? "").trim();
   const weightUnit = (formData.get("weightUnit") as "kg" | "g" | "lb" | "oz") || "kg";
   const imageUrlsStr = String(formData.get("imageUrls") ?? "").trim();
@@ -80,10 +80,22 @@ export async function updateProductAction(
     return { error: "Please fix the errors below.", fieldErrors: errors };
   }
 
+  let parsedOptions: ProductOption[];
+  let parsedVariants: ProductVariant[];
   try {
-    const parsedOptions: ProductOption[] = JSON.parse(options || "[]");
-    const parsedVariants: ProductVariant[] = JSON.parse(variants || "[]");
+    parsedOptions = JSON.parse(options || "[]") as ProductOption[];
+    parsedVariants = JSON.parse(variants || "[]") as ProductVariant[];
+  } catch {
+    return {
+      error: "Invalid options or variants JSON.",
+      fieldErrors: { options: "Could not parse options/variants." },
+    };
+  }
 
+  const featuredIdx = Number.parseInt(featuredImageIndex, 10);
+  const featuredImageIndexNum = Number.isFinite(featuredIdx) && featuredIdx >= 0 ? featuredIdx : 0;
+
+  try {
     await api.products.update(productId, {
       title,
       description,
@@ -108,7 +120,7 @@ export async function updateProductAction(
       weight: weight ? Number(weight) : undefined,
       weightUnit,
       imageUrls,
-      featuredImageIndex: Number(featuredImageIndex),
+      featuredImageIndex: featuredImageIndexNum,
       options: parsedOptions,
       variants: parsedVariants,
       seoTitle,
@@ -118,8 +130,8 @@ export async function updateProductAction(
     revalidatePath("/admin/products");
     // revalidateTag(ADMIN_PRODUCT_TAG);
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Failed to update product." };
+    return { error: formatApiErrorForUser(e) };
   }
 
-  redirect("/admin/products");
+  return { ok: true, redirectTo: "/admin/products" };
 }

@@ -17,7 +17,8 @@ backend/
 │   ├── upload.js
 │   ├── fcm-tokens.js
 │   ├── notify.js
-│   └── site-notifications.js
+│   ├── site-notifications.js
+│   └── product-ai.js
 ├── data/                  # SQLite database files (persisted on Render)
 ├── uploads/               # File upload storage (persisted on Render)
 ├── package.json

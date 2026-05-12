@@ -14,6 +14,7 @@ const fcmTokensRouter = require("./routes/fcm-tokens");
 const notifyRouter = require("./routes/notify");
 const usersRouter = require("./routes/users");
 const siteNotificationsRouter = require("./routes/site-notifications");
+const productAiRouter = require("./routes/product-ai");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -73,6 +74,7 @@ app.use("/api/fcm-tokens", fcmTokensRouter);
 app.use("/api/notify", notifyRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/site-notifications", siteNotificationsRouter);
+app.use("/api/product-ai", productAiRouter);
 
 // Health check
 app.get("/api/health", (_req, res) => {

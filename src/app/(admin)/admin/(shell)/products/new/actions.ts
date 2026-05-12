@@ -1,13 +1,15 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { api } from "@/lib/api-client";
+import { api, formatApiErrorForUser } from "@/lib/api-client";
 import { ADMIN_PRODUCT_TAG } from "@/lib/admin-data";
 
 export interface ProductFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
+  /** Set after successful create/update — client navigates (avoids redirect digest issues with useActionState). */
+  ok?: boolean;
+  redirectTo?: string;
 }
 
 export interface ProductVariant {
@@ -85,7 +87,7 @@ function validate(formData: FormData): {
   const trackQuantity = formData.get("trackQuantity") === "true";
   const inventoryQuantity = String(formData.get("inventoryQuantity") ?? "0").trim();
   const continueSellingWhenOutOfStock = formData.get("continueSellingWhenOutOfStock") === "true";
-  const requiresShipping = formData.get("requiresShipping") !== "false";
+  const requiresShipping = String(formData.get("requiresShipping") ?? "true") === "true";
   const weight = String(formData.get("weight") ?? "").trim();
   const weightUnit = (formData.get("weightUnit") as "kg" | "g" | "lb" | "oz") || "kg";
   const imageUrlsStr = String(formData.get("imageUrls") ?? "").trim();
@@ -181,10 +183,22 @@ export async function createProductAction(
     return { error: "Please fix the errors below.", fieldErrors: input.errors };
   }
 
+  let options: ProductOption[];
+  let variants: ProductVariant[];
   try {
-    const options: ProductOption[] = JSON.parse(input.options || "[]");
-    const variants: ProductVariant[] = JSON.parse(input.variants || "[]");
+    options = JSON.parse(input.options || "[]") as ProductOption[];
+    variants = JSON.parse(input.variants || "[]") as ProductVariant[];
+  } catch {
+    return {
+      error: "Invalid options or variants data. Reset options/variants and try again.",
+      fieldErrors: { options: "Could not parse JSON." },
+    };
+  }
 
+  const featuredIdx = Number.parseInt(input.featuredImageIndex, 10);
+  const featuredImageIndex = Number.isFinite(featuredIdx) && featuredIdx >= 0 ? featuredIdx : 0;
+
+  try {
     await api.products.create({
       title: input.title,
       description: input.description,
@@ -209,7 +223,7 @@ export async function createProductAction(
       weight: input.weight ? Number(input.weight) : undefined,
       weightUnit: input.weightUnit,
       imageUrls: input.imageUrls,
-      featuredImageIndex: Number(input.featuredImageIndex),
+      featuredImageIndex,
       options,
       variants,
       seoTitle: input.seoTitle,
@@ -219,8 +233,8 @@ export async function createProductAction(
     revalidatePath("/admin/products");
     // revalidateTag(ADMIN_PRODUCT_TAG);
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Failed to create product." };
+    return { error: formatApiErrorForUser(e) };
   }
 
-  redirect("/admin/products");
+  return { ok: true, redirectTo: "/admin/products" };
 }

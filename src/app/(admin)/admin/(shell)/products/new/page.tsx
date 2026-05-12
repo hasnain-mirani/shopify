@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPage } from "@/components/admin/AdminShell";
-import { ProductForm } from "@/components/admin/ProductForm";
+import { ProductFormNoSsr } from "@/components/admin/ProductFormNoSsr";
 import { createProductAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -64,7 +64,7 @@ export default function NewProductPage() {
           </nav>
         </div>
 
-        <ProductForm
+        <ProductFormNoSsr
           onSubmit={createProductAction}
           submitLabel="Create product"
           isPending={false}

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, useReducedMotion, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -62,6 +62,7 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
   const reduceMotion = useReducedMotion();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [centerWhenFits, setCenterWhenFits] = useState(false);
   const [isLg, setIsLg] = useState(false);
 
   useEffect(() => {
@@ -72,27 +73,40 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
     return () => mq.removeEventListener("change", fn);
   }, []);
 
-  const updateScrollState = () => {
+  const syncScrollMetrics = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
+    setCenterWhenFits(el.scrollWidth <= el.clientWidth + 2);
     setCanScrollLeft(el.scrollLeft > 4);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-  };
+  }, []);
+
+  useLayoutEffect(() => {
+    syncScrollMetrics();
+  }, [categories.length, syncScrollMetrics]);
 
   useEffect(() => {
-    updateScrollState();
+    syncScrollMetrics();
     const el = scrollRef.current;
-    if (el) el.addEventListener("scroll", updateScrollState);
-    window.addEventListener("resize", updateScrollState);
+    if (el) el.addEventListener("scroll", syncScrollMetrics);
+    window.addEventListener("resize", syncScrollMetrics);
     return () => {
-      if (el) el.removeEventListener("scroll", updateScrollState);
-      window.removeEventListener("resize", updateScrollState);
+      if (el) el.removeEventListener("scroll", syncScrollMetrics);
+      window.removeEventListener("resize", syncScrollMetrics);
     };
-  }, [categories.length]);
+  }, [categories.length, syncScrollMetrics]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => syncScrollMetrics());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [categories.length, syncScrollMetrics]);
 
   const scrollByDir = (delta: number) => {
     scrollRef.current?.scrollBy({ left: delta, behavior: "smooth" });
-    setTimeout(updateScrollState, 350);
+    setTimeout(syncScrollMetrics, 350);
   };
 
   const showArrows = isLg;
@@ -104,12 +118,12 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
     <section
       ref={sectionRef}
       aria-label="Shop by category"
-      className="relative w-full shrink-0 border-y border-white/[0.06] bg-[rgba(255,255,255,0.02)] py-2 md:py-3"
+      className="relative w-full min-w-0 shrink-0 border-y border-white/[0.08] bg-[#03060f]/40 py-2 backdrop-blur-[2px] md:py-2.5"
     >
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none absolute left-0 top-0 z-[1] h-full w-10 bg-gradient-to-r from-[#0a0f1e] via-[#0a0f1e]/85 to-transparent md:w-14",
+          "pointer-events-none absolute left-0 top-0 z-[1] h-full w-10 bg-gradient-to-r from-[#03060f] via-[#03060f]/90 to-transparent md:w-14",
           !showArrows && "hidden",
         )}
       />
@@ -128,19 +142,20 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
       <div
         ref={scrollRef}
         className={cn(
-          "no-scrollbar flex min-w-0 gap-1 overflow-x-auto scroll-smooth px-2 [-ms-overflow-style:none] sm:gap-2 md:px-4",
+          "no-scrollbar flex min-w-0 gap-2 overflow-x-auto scroll-smooth scroll-pb-1 scroll-pl-[max(0.75rem,env(safe-area-inset-left,0px))] scroll-pr-[max(0.75rem,env(safe-area-inset-right,0px))] px-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] pb-0.5 pt-0.5 [scrollbar-width:none] sm:gap-2.5 md:gap-3 md:px-4",
+          centerWhenFits && "justify-center",
           showArrows ? "lg:mx-11" : "",
+          "snap-x snap-proximity",
         )}
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {categories.map((cat, index) => {
-          const isFeatured = index === 0;
           const isActive = isActiveHref(cat.href);
 
           return (
             <motion.div
               key={cat.label}
-              className="relative shrink-0"
+              className="relative shrink-0 snap-start"
               initial={reduceMotion ? undefined : { opacity: 0, y: 8 }}
               animate={
                 reduceMotion
@@ -160,44 +175,39 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
                 aria-label={cat.label}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex w-[4.25rem] flex-col items-center gap-1 rounded-xl px-1 py-1.5 transition-colors sm:w-[4.75rem] md:w-[5.25rem] md:gap-1.5 md:py-2",
-                  "hover:bg-white/[0.06]",
-                  isActive && "bg-white/[0.08]",
-                  isFeatured && "ring-1 ring-[rgba(245,166,35,0.35)] ring-offset-0",
+                  "flex w-[5.125rem] min-w-[5.125rem] max-w-[5.125rem] flex-col items-center rounded-xl border border-transparent px-1 py-1.5 transition-[background-color,border-color,box-shadow,transform] duration-200 sm:w-[5.5rem] sm:min-w-[5.5rem] sm:max-w-[5.5rem] md:w-[5.75rem] md:min-w-[5.75rem] md:max-w-[5.75rem]",
+                  "hover:border-white/10 hover:bg-white/[0.06] active:scale-[0.98]",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#03060f]",
+                  isActive &&
+                    "border-amber-400/30 bg-white/[0.07] shadow-[inset_0_0_0_1px_rgba(245,166,35,0.12)]",
                 )}
               >
                 <div
                   className={cn(
-                    "relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.08] sm:h-10 sm:w-10 md:h-11 md:w-11",
-                    isFeatured && "border-[rgba(245,166,35,0.4)] bg-[rgba(245,166,35,0.12)]",
+                    "relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-inset ring-white/10 sm:h-11 sm:w-11 md:h-12 md:w-12",
+                    isActive && "ring-amber-400/35",
                   )}
                 >
-                  {isFeatured && !reduceMotion ? (
-                    <span
-                      className="absolute right-0.5 top-0.5 flex h-1.5 w-1.5"
-                      aria-hidden
-                    >
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f5a623] opacity-50" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#f5a623]" />
-                    </span>
-                  ) : null}
                   {cat.img ? (
                     <Image
                       src={cat.img}
                       alt=""
-                      width={40}
-                      height={40}
-                      className="h-7 w-7 object-contain sm:h-8 sm:w-8 md:h-9 md:w-9"
+                      width={48}
+                      height={48}
+                      className={cn(
+                        "h-8 w-8 object-contain sm:h-9 sm:w-9 md:h-10 md:w-10",
+                        cat.img.endsWith(".png") && "mix-blend-multiply contrast-[1.05]",
+                      )}
                       unoptimized
                       priority={index === 0}
                       fetchPriority={index === 0 ? "high" : undefined}
                       loading={index === 0 ? "eager" : "lazy"}
                       quality={index === 0 ? 85 : undefined}
-                      sizes={index === 0 ? "(max-width: 768px) 96px, 120px" : "48px"}
+                      sizes="(max-width: 768px) 64px, 88px"
                     />
                   ) : (
                     <span
-                      className="text-lg leading-none sm:text-xl"
+                      className="text-[1.35rem] leading-none sm:text-2xl"
                       aria-hidden
                     >
                       {cat.emoji ?? "📦"}
@@ -206,9 +216,9 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
                 </div>
                 <span
                   className={cn(
-                    "max-w-full px-0.5 text-center font-ui text-[11px] font-medium leading-[1.15] text-white sm:text-[11px] md:text-[11px]",
-                    isFeatured && "text-[#f5a623]",
-                    isActive && "text-[#f5a623]",
+                    "mt-1 flex min-h-[2.5rem] w-full max-w-full items-center justify-center px-0.5 text-center font-ui text-[10px] font-medium leading-snug tracking-wide text-white/82 sm:min-h-[2.625rem] sm:text-[10.5px] md:text-[11px]",
+                    "line-clamp-2 break-words [overflow-wrap:anywhere]",
+                    isActive && "font-semibold text-[#f5a623]",
                   )}
                 >
                   {cat.label}
@@ -222,7 +232,7 @@ export function CategoryMenu({ trendingHref = "/shop" }: { trendingHref?: string
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none absolute right-0 top-0 z-[1] h-full w-10 bg-gradient-to-l from-[#0a0f1e] via-[#0a0f1e]/85 to-transparent md:w-14",
+          "pointer-events-none absolute right-0 top-0 z-[1] h-full w-10 bg-gradient-to-l from-[#03060f] via-[#03060f]/90 to-transparent md:w-14",
           !showArrows && "hidden",
         )}
       />

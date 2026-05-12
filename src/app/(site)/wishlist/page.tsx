@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import { ProductCard } from "@/components/product/ProductCard";
+import { ProductGridSkeleton } from "@/components/product/ProductGridSkeleton";
 
 export default function WishlistPage() {
   const isMounted = useIsMounted();
@@ -12,9 +13,10 @@ export default function WishlistPage() {
 
   if (!isMounted) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="h-12 w-12 rounded-full border-4 border-brand-600 border-t-transparent animate-spin mb-4" />
+      <div className="min-h-screen bg-brand-50 pb-20">
+        <div className="mx-auto max-w-[1200px] px-4 py-12 md:px-8 md:py-20">
+          <div className="mb-12 h-10 w-64 animate-pulse rounded-lg bg-brand-200/50" />
+          <ProductGridSkeleton count={8} />
         </div>
       </div>
     );

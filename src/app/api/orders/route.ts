@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
-import { v4 as uuid } from 'uuid';
-import { queryAll, execute, queryOne } from '@/lib/db';
-import nodemailer from 'nodemailer';
+import { NextResponse } from "next/server";
+import { v4 as uuid } from "uuid";
+import { queryAll, execute, queryOne } from "@/lib/db";
+import nodemailer from "nodemailer";
+import { isAdminAuthenticated } from "@/lib/admin-api-auth";
+import { signOrderReceiptToken } from "@/lib/order-receipt";
+import { listRecentOrders } from "@/lib/orders-server";
 
 function createSmtpTransport() {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
@@ -247,16 +250,17 @@ async function sendOrderEmails(order: any, items: any) {
 
 export async function GET(req: Request) {
   try {
+    const admin = await isAdminAuthenticated();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const { searchParams } = new URL(req.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const orders = await queryAll("SELECT * FROM orders ORDER BY created_at DESC LIMIT ?", [limit]);
-    const result = await Promise.all(orders.map(async (o: any) => {
-      const items = await queryAll("SELECT * FROM order_items WHERE order_id = ?", [o.id]);
-      return { ...o, items };
-    }));
+    const limit = Number.parseInt(searchParams.get("limit") || "50", 10);
+    const result = await listRecentOrders(Number.isFinite(limit) ? limit : 50);
     return NextResponse.json(result);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to list orders";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -281,14 +285,16 @@ export async function POST(req: Request) {
 
     const order = await queryOne("SELECT * FROM orders WHERE id = ?", [id]);
     const orderItems = await queryAll("SELECT * FROM order_items WHERE order_id = ?", [id]);
-    
+
     // Fire and forget email dispatch so checkout stays fast.
     sendOrderEmails(order, orderItems).catch((error) => {
       console.error("Order email dispatch failed:", error);
     });
 
-    return NextResponse.json({ ...order, items: orderItems }, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const receiptToken = await signOrderReceiptToken(id);
+    return NextResponse.json({ ...order, items: orderItems, receiptToken }, { status: 201 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Order failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

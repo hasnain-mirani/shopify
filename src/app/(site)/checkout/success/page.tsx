@@ -11,37 +11,69 @@ import { Check, MapPin } from "lucide-react";
 import { SshubMark } from "@/components/brand/SshubMark";
 import { SshubWordmark } from "@/components/brand/SshubWordmark";
 
+type OrderRow = Record<string, unknown> & {
+  id?: string;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  subtotal?: number;
+  total?: number;
+  items?: Array<{
+    id: string;
+    product_title: string;
+    variant_title?: string;
+    price: number;
+    quantity: number;
+    image_url?: string;
+  }>;
+};
+
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId");
-  const [order, setOrder] = useState<any>(null);
+  const receipt = searchParams.get("receipt");
+  const legacyOrderId = searchParams.get("orderId");
+  const [order, setOrder] = useState<OrderRow | null>(null);
+  const [loadError, setLoadError] = useState<"missing" | "expired" | "legacy" | null>(null);
   const [loading, setLoading] = useState(true);
   const [notified, setNotified] = useState(false);
 
   useEffect(() => {
-    if (!orderId) {
+    if (receipt) {
+      setLoadError(null);
+      api.orders
+        .getByReceipt(receipt)
+        .then((data) => {
+          setOrder(data as OrderRow);
+          setLoading(false);
+        })
+        .catch(() => {
+          setLoadError("expired");
+          setLoading(false);
+        });
+      return;
+    }
+
+    if (legacyOrderId) {
+      setLoadError("legacy");
       setLoading(false);
       return;
     }
 
-    api.orders.get(orderId)
-      .then(data => {
-        setOrder(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, [orderId]);
+    setLoadError("missing");
+    setLoading(false);
+  }, [receipt, legacyOrderId]);
 
   // Fire order confirmation notification once
   useEffect(() => {
-    if (order && !notified) {
+    if (order && !notified && order.id) {
       setNotified(true);
       toast.success(
-        `Order #${order.id?.split('-')[0]?.toUpperCase()} has been placed successfully!`,
-        { duration: 5000 }
+        `Order #${String(order.id).split("-")[0]?.toUpperCase()} has been placed successfully!`,
+        { duration: 5000 },
       );
     }
   }, [order, notified]);
@@ -57,13 +89,37 @@ function CheckoutSuccessContent() {
     );
   }
 
-  if (!order) {
+  if (loadError === "legacy") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-zinc-900">Order not found</h1>
-          <p className="text-zinc-500 mb-8">We couldn't find the details for this order.</p>
-          <Link href="/shop" className="btn-primary">Return to Shop</Link>
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold mb-4 text-zinc-900">Receipt link updated</h1>
+          <p className="text-zinc-500 mb-8">
+            Order confirmation links from older checkouts are no longer supported here. Use the confirmation email or contact support with your order details.
+          </p>
+          <Link href="/shop" className="btn-primary">
+            Return to Shop
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order || loadError === "expired" || loadError === "missing") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white p-6">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold mb-4 text-zinc-900">
+            {loadError === "expired" ? "Receipt link expired" : "Order not found"}
+          </h1>
+          <p className="text-zinc-500 mb-8">
+            {loadError === "expired"
+              ? "Open the link from your confirmation email again, or contact support if you need help."
+              : "Use the receipt link from your order confirmation, or return to the shop."}
+          </p>
+          <Link href="/shop" className="btn-primary">
+            Return to Shop
+          </Link>
         </div>
       </div>
     );
@@ -107,9 +163,10 @@ function CheckoutSuccessContent() {
                 <Check className="h-6 w-6 text-brand-300" />
               </div>
               <div>
-                <p className="text-sm text-zinc-400 mb-1">Confirmation #{order.id.split('-')[0].toUpperCase()}</p>
+                <p className="text-sm text-zinc-400 mb-1">Confirmation #{String(order.id ?? "").split("-")[0].toUpperCase()}</p>
                 <h1 className="text-2xl font-semibold text-white">
-                  Thank you{order.customer_name ? `, ${order.customer_name.split(' ')[0]}` : ''}!
+                  Thank you
+                  {order.customer_name ? `, ${String(order.customer_name).split(" ")[0]}` : ""}!
                 </h1>
               </div>
             </div>

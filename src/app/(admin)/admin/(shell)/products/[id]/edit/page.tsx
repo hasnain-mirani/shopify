@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProductForm } from "@/components/admin/ProductForm";
 import { AdminPage } from "@/components/admin/AdminShell";
+import { ProductFormNoSsr } from "@/components/admin/ProductFormNoSsr";
 import { updateProductAction } from "./actions";
 import { api } from "@/lib/api-client";
 import type { ProductOption, ProductVariant } from "../../new/actions";
@@ -116,7 +116,7 @@ export default async function EditProductPage({
           ))}
         </div>
 
-        <ProductForm
+        <ProductFormNoSsr
           initialData={initialData}
           onSubmit={updateProductAction}
           submitLabel="Update Product"

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
@@ -9,6 +9,7 @@ import {
   Search as SearchIcon,
   Sparkles,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { ProductGrid } from "./ProductGrid";
 import { ProductGridSkeleton } from "./ProductGridSkeleton";
@@ -57,21 +58,18 @@ export function SearchView({
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<Product[]>(initialResults);
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState(false);
   const [, startTransition] = useTransition();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestRequestIdRef = useRef(0);
+  const hydratedFromUrl = useRef(false);
 
   const hasQuery = query.trim().length > 0;
   const chips = suggestions?.length ? suggestions : DEFAULT_SUGGESTIONS;
 
   const urlQuery = searchParams.get("q") ?? "";
-  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
-  if (urlQuery !== prevUrlQuery) {
-    setPrevUrlQuery(urlQuery);
-    setQuery(urlQuery);
-  }
 
   const runSearch = useMemo(
     () => async (q: string) => {
@@ -79,20 +77,45 @@ export function SearchView({
       if (!q.trim()) {
         setResults([]);
         setLoading(false);
+        setSearchError(false);
         return;
       }
       setLoading(true);
+      setSearchError(false);
       try {
         const data = await searchProducts(q);
-        if (requestId === latestRequestIdRef.current) setResults(data);
+        if (requestId === latestRequestIdRef.current) {
+          setResults(data);
+          setSearchError(false);
+        }
       } catch {
-        if (requestId === latestRequestIdRef.current) setResults([]);
+        if (requestId === latestRequestIdRef.current) {
+          setResults([]);
+          setSearchError(true);
+        }
       } finally {
         if (requestId === latestRequestIdRef.current) setLoading(false);
       }
     },
     [],
   );
+
+  useEffect(() => {
+    setQuery(urlQuery);
+    if (!urlQuery.trim()) {
+      setResults([]);
+      setLoading(false);
+      setSearchError(false);
+      hydratedFromUrl.current = true;
+      return;
+    }
+    if (!hydratedFromUrl.current && urlQuery === initialQuery) {
+      hydratedFromUrl.current = true;
+      return;
+    }
+    hydratedFromUrl.current = true;
+    void runSearch(urlQuery);
+  }, [urlQuery, runSearch, initialQuery]);
 
   const syncUrl = (next: string) => {
     startTransition(() => {
@@ -134,10 +157,20 @@ export function SearchView({
   const clear = () => {
     setQuery("");
     setResults([]);
+    setSearchError(false);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     syncUrl("");
     inputRef.current?.focus();
   };
+
+  const qTrim = query.trim().toLowerCase();
+  const inlineSuggestions = useMemo(() => {
+    if (qTrim.length < 1) return [];
+    const pool = [...new Set([...chips, "Matte", "Leather", "Ceramic", "Cosy", "Minimal", "Pastel"])];
+    return pool
+      .filter((t) => t.toLowerCase() !== qTrim && t.toLowerCase().includes(qTrim))
+      .slice(0, 6);
+  }, [chips, qTrim]);
 
   return (
     <>
@@ -264,6 +297,27 @@ export function SearchView({
             </div>
           </form>
 
+          {inlineSuggestions.length > 0 && hasQuery && !loading && (
+            <div className="mt-4 max-w-2xl">
+              <p className="mb-2 font-ui text-[10px] uppercase tracking-[0.22em] text-brand-500">
+                Suggestions
+              </p>
+              <ul className="flex flex-wrap gap-2" role="listbox" aria-label="Search suggestions">
+                {inlineSuggestions.map((term) => (
+                  <li key={term} role="option">
+                    <button
+                      type="button"
+                      onClick={() => applyChip(term)}
+                      className="inline-flex items-center rounded-full border border-brand-200/80 bg-white/90 px-3 py-1.5 font-ui text-[11px] font-medium uppercase tracking-[0.16em] text-brand-800 shadow-sm backdrop-blur-sm transition-colors hover:border-brand-900 hover:text-brand-900"
+                    >
+                      {term}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* ─── Suggestion chips ─── */}
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-2 font-ui text-[10px] uppercase tracking-[0.25em] text-brand-500">
@@ -305,6 +359,8 @@ export function SearchView({
           </div>
         ) : !hasQuery ? (
           <EmptyPrompt onPick={applyChip} />
+        ) : searchError ? (
+          <SearchFailed query={query} onRetry={() => void runSearch(query)} />
         ) : results.length === 0 ? (
           <NoResults query={query} onPick={applyChip} chips={chips} />
         ) : (
@@ -320,6 +376,44 @@ export function SearchView({
         )}
       </section>
     </>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Search request failed                                                      */
+/* -------------------------------------------------------------------------- */
+
+function SearchFailed({ query, onRetry }: { query: string; onRetry: () => void }) {
+  return (
+    <div className="pt-10 md:pt-14">
+      <div className="surface-card border border-red-200/60 bg-red-50/90 p-8 text-center dark:border-red-900/40 dark:bg-red-950/30 md:p-12">
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200">
+          <AlertCircle className="h-7 w-7" aria-hidden />
+        </div>
+        <h2 className="heading-display text-2xl text-brand-900 dark:text-white md:text-3xl">
+          Search didn&apos;t complete
+        </h2>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-brand-700 dark:text-zinc-300">
+          We couldn&apos;t load results for &ldquo;{query}&rdquo;. Check your connection and try again, or
+          browse the shop.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={onRetry}
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-brand-900 px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-brand-800"
+          >
+            Retry search
+          </button>
+          <Link
+            href="/shop"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-brand-300 px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-[0.14em] text-brand-900 transition-colors hover:border-brand-900 dark:border-white/20 dark:text-white"
+          >
+            Browse shop
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
 

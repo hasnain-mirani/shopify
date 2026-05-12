@@ -170,3 +170,30 @@ export function buildPageMetadata(
     },
   };
 }
+
+/** Homepage — absolute title so the root title template is not applied twice. */
+export function buildHomeMetadata(): Metadata {
+  const title = `${SITE_NAME} — Premium Mobile Accessories & Smart Tech`;
+  const desc = truncate(
+    "Premium phone accessories, smartwatches, power banks, and mobile tech in Pakistan — fast delivery, COD, and curated quality at SSHUB.",
+    160,
+  );
+  const url = absoluteUrl("/");
+  return {
+    title: { absolute: title },
+    description: desc,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      title,
+      description: desc,
+      url,
+      siteName: SITE_NAME,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: desc,
+    },
+  };
+}

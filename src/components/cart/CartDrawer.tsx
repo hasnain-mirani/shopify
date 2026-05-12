@@ -6,6 +6,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
+import { safeCheckoutHref } from "@/lib/safe-checkout-href";
 import { useCartStore } from "@/store/cart-store";
 import { CartLineItem } from "./CartLineItem";
 
@@ -101,13 +102,13 @@ export function CartDrawer({ className }: CartDrawerProps) {
                 Shipping and taxes calculated at checkout.
               </p>
 
-              <a
-                href={(cart as any).checkoutUrl || "/checkout"}
+              <Link
+                href={safeCheckoutHref(cart.checkoutUrl)}
                 className="btn-primary w-full flex items-center justify-center gap-2"
               >
                 Continue to pay
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </a>
+              </Link>
             </footer>
           )}
           </motion.div>
@@ -134,11 +135,11 @@ function EmptyState({ onClose }: { onClose: () => void }) {
         </p>
       </div>
       <Link
-        href="/products"
+        href="/shop"
         onClick={onClose}
         className="btn-outline mt-2 inline-flex items-center gap-2"
       >
-        Shop products
+        Shop bestsellers
         <ArrowRight className="h-4 w-4" aria-hidden="true" />
       </Link>
     </div>

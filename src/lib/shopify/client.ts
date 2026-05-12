@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { ShopifyConnection } from "@/types/shopify";
 
 /**
@@ -61,13 +63,11 @@ function getEndpoint(): string {
 }
 
 function getAccessToken(): string {
-  const token =
-    process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ??
-    process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+  const token = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN?.trim();
 
   if (!token) {
     throw new ShopifyError(
-      "Missing env var SHOPIFY_STOREFRONT_ACCESS_TOKEN (public Storefront API access token).",
+      "Missing server env SHOPIFY_STOREFRONT_ACCESS_TOKEN. Do not use NEXT_PUBLIC_ for Storefront tokens — they would ship to the browser bundle.",
     );
   }
   return token;

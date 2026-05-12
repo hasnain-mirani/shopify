@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   // Nodemailer is CommonJS; bundling it in Turbopack dev can throw "Can't resolve".
   serverExternalPackages: ["nodemailer"],
   images: {
+    /** Allow `quality` values used by next/image across the app (Next 15+). */
+    qualities: [75, 85, 90, 100],
     remotePatterns: [
       {
         protocol: "https",
@@ -65,7 +67,45 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
   async headers() {
+    const securityHeaders = [
+      {
+        key: "X-Frame-Options",
+        value: "DENY",
+      },
+      {
+        key: "X-Content-Type-Options",
+        value: "nosniff",
+      },
+      {
+        key: "Referrer-Policy",
+        value: "strict-origin-when-cross-origin",
+      },
+      {
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(), geolocation=()",
+      },
+      {
+        key: "Content-Security-Policy",
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http:",
+          "style-src 'self' 'unsafe-inline' https:",
+          "img-src 'self' data: blob: https:",
+          "font-src 'self' data: https:",
+          "connect-src 'self' https: wss:",
+          "frame-ancestors 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "upgrade-insecure-requests",
+        ].join("; "),
+      },
+    ];
+
     return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
       {
         source: "/_next/static/(.*)",
         headers: [
