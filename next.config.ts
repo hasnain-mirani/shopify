@@ -8,6 +8,24 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig: NextConfig = {
   // Nodemailer is CommonJS; bundling it in Turbopack dev can throw "Can't resolve".
   serverExternalPackages: ["nodemailer"],
+  /**
+   * When BACKEND_API_URL is an absolute URL, proxy /api/product-ai/* to Express *before*
+   * filesystem routing. Avoids production 404s when the App route handler is not matched.
+   */
+  async rewrites() {
+    const backend = process.env.BACKEND_API_URL?.trim().replace(/\/$/, "") ?? "";
+    if (!backend || !/^https?:\/\//i.test(backend)) {
+      return { beforeFiles: [], afterFiles: [], fallback: [] };
+    }
+    return {
+      beforeFiles: [
+        {
+          source: "/api/product-ai/:path*",
+          destination: `${backend}/product-ai/:path*`,
+        },
+      ],
+    };
+  },
   images: {
     /** Allow `quality` values used by next/image across the app (Next 15+). */
     qualities: [75, 85, 90, 100],
