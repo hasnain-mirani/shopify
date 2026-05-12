@@ -93,8 +93,9 @@ app.get("/", (_req, res) => {
       cart: "/api/cart",
       settings: "/api/settings",
       upload: "/api/upload",
-      users: "/api/users"
-    }
+      users: "/api/users",
+      productAi: "/api/product-ai (POST …/identify-from-image, …/generate-image)",
+    },
   });
 });
 

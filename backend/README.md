@@ -26,6 +26,17 @@ backend/
 └── .env.example          # Environment variables template
 ```
 
+## Vercel (serverless)
+
+If you deploy this folder to **Vercel**, nested routes like `POST /api/product-ai/identify-from-image` must hit the Express handler. Vercel maps `api/index.js` only to the **`/api`** path, so this repo includes **`api/[...slug].js`** as a catch-all that re-exports the same server.
+
+- In the Vercel project, set **Root Directory** to `backend` (if the repo is monorepo).
+- Set **Environment variables** from `backend/.env.example` (especially `GEMINI_API_KEY`, `DATABASE_URL`, `FRONTEND_URL`).
+- **`FRONTEND_URL`** must include your live Next.js origin (e.g. `https://your-store.vercel.app`) so CORS allows the admin browser to call this API.
+- Redeploy after pulling so `api/[...slug].js` is picked up.
+
+Multipart AI uploads are subject to Vercel’s body size limits; use images under ~4 MB on Hobby if you hit errors.
+
 ## Render Deployment Steps
 
 ### 1. Prepare Your Repository
