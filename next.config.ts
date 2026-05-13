@@ -13,18 +13,7 @@ const nextConfig: NextConfig = {
    * filesystem routing. Avoids production 404s when the App route handler is not matched.
    */
   async rewrites() {
-    const backend = process.env.BACKEND_API_URL?.trim().replace(/\/$/, "") ?? "";
-    if (!backend || !/^https?:\/\//i.test(backend)) {
-      return { beforeFiles: [], afterFiles: [], fallback: [] };
-    }
-    return {
-      beforeFiles: [
-        {
-          source: "/api/product-ai/:path*",
-          destination: `${backend}/product-ai/:path*`,
-        },
-      ],
-    };
+    return { beforeFiles: [], afterFiles: [], fallback: [] };
   },
   images: {
     /** Allow `quality` values used by next/image across the app (Next 15+). */

@@ -1,45 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getBackendApiBase,
-  getBackendApiHostHint,
-  getBackendProxyMisconfigMessage,
-} from "@/lib/backend-url";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  const misconfig = getBackendProxyMisconfigMessage();
-  if (misconfig) {
-    return NextResponse.json({ error: misconfig }, { status: 502 });
-  }
-
   try {
-    const base = getBackendApiBase();
-    const url = `${base}/product-ai/generate-image`;
-    const body = await req.text();
+    const token = process.env.REPLICATE_API_TOKEN;
+    if (!token) {
+      return NextResponse.json(
+        { error: "REPLICATE_API_TOKEN is not configured on the server. Add it to your Vercel environment variables." },
+        { status: 503 },
+      );
+    }
+    
+    let productDescription = "";
+    try {
+      const body = await req.json();
+      productDescription = String(body.productDescription || "").trim();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
 
-    const res = await fetch(url, {
+    if (!productDescription) {
+      return NextResponse.json({ error: "productDescription is required." }, { status: 400 });
+    }
+
+    // Call replicate directly instead of using proxy
+    const res = await fetch("https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: body || "{}",
-      cache: "no-store",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "Prefer": "wait" // Wait for prediction to complete instead of polling
+      },
+      body: JSON.stringify({
+        input: {
+          prompt: [
+            "Professional studio-quality product photograph of:",
+            productDescription,
+            "Clean white seamless background, photorealistic, cinematic softbox lighting, 8k, sharp focus, macro detail, catalog style, no text overlay, no watermark.",
+          ].join(" "),
+          num_outputs: 1,
+          aspect_ratio: "1:1",
+          output_format: "webp",
+          output_quality: 90,
+        }
+      })
     });
 
-    const text = await res.text();
-    const ct = res.headers.get("content-type") || "application/json";
-    return new NextResponse(text, { status: res.status, headers: { "content-type": ct } });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("[product-ai/generate-image] Replicate API error:", res.status, errorText);
+      return NextResponse.json({ error: `Image generation failed: ${res.statusText}` }, { status: 502 });
+    }
+
+    const data = await res.json();
+    
+    // For synchronous requests with Prefer: wait, the output is in data.output
+    let imageUrl = null;
+    if (Array.isArray(data.output) && data.output[0]) imageUrl = data.output[0];
+    else if (typeof data.output === "string") imageUrl = data.output;
+    else if (data.output && typeof data.output === "object" && data.output[0]) imageUrl = data.output[0];
+
+    if (!imageUrl || typeof imageUrl !== "string") {
+      console.error("[product-ai/generate-image] unexpected Replicate output:", data);
+      return NextResponse.json({ error: "Image generation returned no URL." }, { status: 502 });
+    }
+
+    return NextResponse.json({ imageUrl });
   } catch (err) {
-    console.error("[api/product-ai/generate-image] proxy:", err);
-    const msg = err instanceof Error ? err.message : "Proxy failed";
-    const host = getBackendApiHostHint();
-    const hint =
-      msg === "fetch failed" || /failed to fetch/i.test(msg)
-        ? `Could not reach the API at ${host}. Start the Express backend locally or set BACKEND_API_URL on Vercel (Next project) to your deployed /api base.`
-        : undefined;
-    return NextResponse.json(
-      { error: msg, ...(hint ? { hint } : {}) },
-      { status: 502 },
-    );
+    console.error("[product-ai/generate-image]:", err);
+    const msg = err instanceof Error ? err.message : "Image generation failed.";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
