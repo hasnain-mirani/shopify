@@ -159,7 +159,11 @@ router.get("/", async (req, res) => {
 
 router.get("/:handle", async (req, res) => {
   try {
-    const product = await queryOne("SELECT * FROM products WHERE handle = ?", [req.params.handle]);
+    const key = decodeURIComponent(req.params.handle || "").trim();
+    const product = await queryOne(
+      "SELECT * FROM products WHERE LOWER(handle) = LOWER(?) OR id = ? LIMIT 1",
+      [key, key],
+    );
     if (!product) return res.status(404).json({ error: "Product not found" });
 
     const images = await queryAll("SELECT * FROM product_images WHERE product_id = ? ORDER BY position", [product.id]);
@@ -576,8 +580,19 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await execute("DELETE FROM products WHERE id = ?", [req.params.id]);
-    res.json({ ok: true, deletedId: req.params.id });
+    const id = req.params.id;
+    const existing = await queryOne("SELECT id FROM products WHERE id = ?", [id]);
+    if (!existing) return res.status(404).json({ error: "Product not found" });
+
+    await execute("DELETE FROM product_variants WHERE product_id = ?", [id]);
+    await execute(
+      "DELETE FROM product_option_values WHERE option_id IN (SELECT id FROM product_options WHERE product_id = ?)",
+      [id],
+    );
+    await execute("DELETE FROM product_options WHERE product_id = ?", [id]);
+    await execute("DELETE FROM product_images WHERE product_id = ?", [id]);
+    await execute("DELETE FROM products WHERE id = ?", [id]);
+    res.json({ ok: true, deletedId: id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

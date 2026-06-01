@@ -216,9 +216,22 @@ export async function DELETE(
 ) {
   try {
     const { handle: id } = await context.params;
+    const existing = await queryOne("SELECT id FROM products WHERE id = ?", [id]);
+    if (!existing) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    await execute("DELETE FROM product_variants WHERE product_id = ?", [id]);
+    await execute(
+      "DELETE FROM product_option_values WHERE option_id IN (SELECT id FROM product_options WHERE product_id = ?)",
+      [id],
+    );
+    await execute("DELETE FROM product_options WHERE product_id = ?", [id]);
+    await execute("DELETE FROM product_images WHERE product_id = ?", [id]);
     await execute("DELETE FROM products WHERE id = ?", [id]);
     return NextResponse.json({ ok: true, deletedId: id });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 import type { Product, OrderKPIs } from "@/types";
 import { getSiteUrl } from "@/lib/site-url";
-import { getBackendApiBase } from "@/lib/backend-url";
+import { getBackendApiBase, isNextRunningOnVercel } from "@/lib/backend-url";
 import { uploadToCloudinary, uploadMultipleToCloudinary, type CloudinaryUploadResult } from "./cloudinary";
 
 const RAW_API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
@@ -15,10 +15,17 @@ function getApiBase(): string {
     return RAW_API_BASE;
   }
 
-  // Server actions / Route Handlers: never self-fetch "https://this-app.vercel.app/api" when
-  // NEXT_PUBLIC_API_URL is "/api" — that breaks on Vercel (localhost, missing routes). Use Express.
+  // Server actions with NEXT_PUBLIC_API_URL=/api: use Express when BACKEND_API_URL is set,
+  // otherwise same-origin Next /api (catalog routes run on this deployment).
   if (RAW_API_BASE.startsWith("/")) {
-    return getBackendApiBase();
+    const backend = getBackendApiBase();
+    const onVercelServer = isNextRunningOnVercel();
+    const backendUnset = !process.env.BACKEND_API_URL?.trim();
+    const backendIsLocalhost = /^https?:\/\/(127\.0\.0\.1|localhost)/i.test(backend);
+    if (onVercelServer && (backendUnset || backendIsLocalhost)) {
+      return `${getSiteUrl()}${RAW_API_BASE}`.replace(/\/$/, "");
+    }
+    return backend;
   }
 
   const serverOrigin = process.env.INTERNAL_API_ORIGIN || getSiteUrl();
