@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { execute, queryAll } from "@/lib/db";
+import { getBackendApiBase } from "@/lib/backend-url";
+
 const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL;
 const SHOULD_PROXY = Boolean(RAW_API_URL && /^https?:\/\//.test(RAW_API_URL));
-const BACKEND_URL =
-  SHOULD_PROXY
-    ? (RAW_API_URL?.replace(/\/$/, "") ?? "http://localhost:4000/api")
-    : "http://localhost:4000/api";
+const BACKEND_URL = getBackendApiBase();
 
 type CartItemRow = {
   id: string;

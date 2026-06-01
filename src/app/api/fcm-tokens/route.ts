@@ -1,24 +1,20 @@
 import { NextResponse } from "next/server";
-
-const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL;
-const BACKEND_URL =
-  RAW_API_URL && /^https?:\/\//.test(RAW_API_URL)
-    ? RAW_API_URL.replace(/\/$/, "")
-    : "http://localhost:4000/api";
+import { getProxyApiBase } from "@/lib/backend-url";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const res = await fetch(`${BACKEND_URL}/fcm-tokens`, {
+    const base = getProxyApiBase();
+    const res = await fetch(`${base}/fcm-tokens`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
     const text = await res.text();
-    let data: any = {};
+    let data: Record<string, unknown> = {};
     try {
-      data = text ? JSON.parse(text) : {};
+      data = text ? (JSON.parse(text) as Record<string, unknown>) : {};
     } catch {
       data = { error: text || "Invalid backend response" };
     }
@@ -28,7 +24,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed to save FCM token" }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to save FCM token";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

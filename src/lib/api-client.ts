@@ -1,6 +1,6 @@
 import type { Product, OrderKPIs } from "@/types";
 import { getSiteUrl } from "@/lib/site-url";
-import { getBackendApiBase, isNextRunningOnVercel } from "@/lib/backend-url";
+import { getBackendApiBase, getNextAppApiBase, isNextRunningOnVercel } from "@/lib/backend-url";
 import { uploadToCloudinary, uploadMultipleToCloudinary, type CloudinaryUploadResult } from "./cloudinary";
 
 const RAW_API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
@@ -19,7 +19,7 @@ function getApiBase(): string {
   // Locally, use Express when BACKEND_API_URL is set (normalized to end with /api).
   if (RAW_API_BASE.startsWith("/")) {
     if (isNextRunningOnVercel()) {
-      return `${getSiteUrl()}${RAW_API_BASE}`.replace(/\/$/, "");
+      return getNextAppApiBase();
     }
     return getBackendApiBase();
   }
@@ -330,21 +330,8 @@ export const api = {
       return normalizeProduct(found);
     },
     getById: async (id: string) => {
-      // Backends differ: some expose `/products/id/:id`, others only
-      // `/products/:handle`. We try id-route first, then fall back to
-      // listing and matching by id/handle to keep edit routes stable.
       try {
-        const raw = await apiFetch<any>(`/products/id/${id}`);
-        return normalizeProduct(raw);
-      } catch (error) {
-        const apiError = error as ApiError;
-        if (apiError?.status && apiError.status !== 404) {
-          throw error;
-        }
-      }
-
-      try {
-        const raw = await apiFetch<any>(`/products/${id}`);
+        const raw = await apiFetch<any>(`/products/${encodeURIComponent(id)}`);
         return normalizeProduct(raw);
       } catch (error) {
         const apiError = error as ApiError;
@@ -363,9 +350,11 @@ export const api = {
     create: (data: Record<string, unknown>) =>
       apiFetch<any>("/products", { method: "POST", body: data }),
     update: (id: string, data: Record<string, unknown>) =>
-      apiFetch<any>(`/products/${id}`, { method: "PUT", body: data }),
+      apiFetch<any>(`/products/${encodeURIComponent(id)}`, { method: "PUT", body: data }),
     delete: (id: string) =>
-      apiFetch<{ ok: boolean; deletedId: string }>(`/products/${id}`, { method: "DELETE" }),
+      apiFetch<{ ok: boolean; deletedId: string }>(`/products/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
   },
 
   orders: {

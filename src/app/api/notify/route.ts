@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { getBackendApiBase } from "@/lib/backend-url";
+import { getProxyApiBase } from "@/lib/backend-url";
 
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
-
-    const base = getBackendApiBase();
+    const base = getProxyApiBase();
     const res = await fetch(`${base}/notify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -13,9 +12,9 @@ export async function POST(req: Request) {
     });
 
     const text = await res.text();
-    let data: any = {};
+    let data: Record<string, unknown> = {};
     try {
-      data = text ? JSON.parse(text) : {};
+      data = text ? (JSON.parse(text) as Record<string, unknown>) : {};
     } catch {
       data = { error: text || "Invalid backend response" };
     }
@@ -25,7 +24,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed to send notification" }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to send notification";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

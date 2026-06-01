@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBackendApiBase } from "@/lib/backend-url";
+import { getNextAppApiBase } from "@/lib/backend-url";
 
 function normalizeUserRow(row: Record<string, unknown>) {
   const id = String(row.id ?? row.uid ?? "");
@@ -13,9 +13,10 @@ function normalizeUserRow(row: Record<string, unknown>) {
   };
 }
 
-export async function GET() {
+
+export async function GET(request: NextRequest) {
   try {
-    const base = getBackendApiBase();
+    const base = getNextAppApiBase(request);
     const res = await fetch(`${base}/users`, { cache: "no-store" });
     const text = await res.text();
     let data: unknown;
@@ -45,7 +46,7 @@ export async function GET() {
     const message = err instanceof Error ? err.message : "Failed to reach backend";
     return NextResponse.json(
       {
-        error: `${message}. Is the API running and is BACKEND_API_URL (or NEXT_PUBLIC_API_URL) set?`,
+        error: `${message}. Is the API running and is DATABASE_URL set on Vercel?`,
       },
       { status: 500 },
     );
@@ -55,7 +56,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const base = getBackendApiBase();
+    const base = getNextAppApiBase(request);
     const res = await fetch(`${base}/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -67,7 +68,10 @@ export async function POST(request: NextRequest) {
       data = await res.json();
     } catch {
       const text = await res.text();
-      return NextResponse.json({ error: `Backend returned non-JSON (${res.status}): ${text.substring(0, 100)}` }, { status: res.status || 500 });
+      return NextResponse.json(
+        { error: `Backend returned non-JSON (${res.status}): ${text.substring(0, 100)}` },
+        { status: res.status || 500 },
+      );
     }
 
     if (!res.ok) {

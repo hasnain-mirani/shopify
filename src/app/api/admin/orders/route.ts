@@ -1,32 +1,20 @@
 import { NextResponse } from "next/server";
-import { getBackendApiBase } from "@/lib/backend-url";
+import { isAdminAuthenticated } from "@/lib/admin-api-auth";
+import { listRecentOrders } from "@/lib/orders-server";
 
 export async function GET(req: Request) {
   try {
+    const admin = await isAdminAuthenticated();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
-    const limit = searchParams.get("limit") || "20";
-    const base = getBackendApiBase();
-
-    const res = await fetch(
-      `${base}/orders?limit=${encodeURIComponent(limit)}`,
-      { cache: "no-store" },
-    );
-
-    const text = await res.text();
-    let data: any = [];
-    try {
-      data = text ? JSON.parse(text) : [];
-    } catch {
-      data = [];
-    }
-
-    if (!res.ok) {
-      return NextResponse.json({ error: "Failed to fetch orders", orders: [] }, { status: res.status });
-    }
-
-    const orders = Array.isArray(data) ? data : data?.orders || [];
+    const limit = Number.parseInt(searchParams.get("limit") || "20", 10);
+    const orders = await listRecentOrders(Number.isFinite(limit) ? limit : 20);
     return NextResponse.json({ orders });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed to fetch orders", orders: [] }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to fetch orders";
+    return NextResponse.json({ error: message, orders: [] }, { status: 500 });
   }
 }
