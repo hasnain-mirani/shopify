@@ -15,17 +15,13 @@ function getApiBase(): string {
     return RAW_API_BASE;
   }
 
-  // Server actions with NEXT_PUBLIC_API_URL=/api: use Express when BACKEND_API_URL is set,
-  // otherwise same-origin Next /api (catalog routes run on this deployment).
+  // Server actions: on Vercel always use this app's /api routes (reliable DATABASE_URL).
+  // Locally, use Express when BACKEND_API_URL is set (normalized to end with /api).
   if (RAW_API_BASE.startsWith("/")) {
-    const backend = getBackendApiBase();
-    const onVercelServer = isNextRunningOnVercel();
-    const backendUnset = !process.env.BACKEND_API_URL?.trim();
-    const backendIsLocalhost = /^https?:\/\/(127\.0\.0\.1|localhost)/i.test(backend);
-    if (onVercelServer && (backendUnset || backendIsLocalhost)) {
+    if (isNextRunningOnVercel()) {
       return `${getSiteUrl()}${RAW_API_BASE}`.replace(/\/$/, "");
     }
-    return backend;
+    return getBackendApiBase();
   }
 
   const serverOrigin = process.env.INTERNAL_API_ORIGIN || getSiteUrl();
@@ -45,7 +41,14 @@ const HTTP_STATUS_HINTS: Record<number, string> = {
   503: "Service unavailable — try again later.",
 };
 
+function isPlatformNotFoundHtml(rawText: string): boolean {
+  return /NOT_FOUND/i.test(rawText) && /could not be found/i.test(rawText);
+}
+
 function headlineFromErrorBody(status: number, parsed: unknown, rawText: string): string {
+  if (status === 404 && isPlatformNotFoundHtml(rawText)) {
+    return "Catalog API route not found. The request URL is missing /api — check BACKEND_API_URL or redeploy.";
+  }
   if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
     const o = parsed as Record<string, unknown>;
     for (const key of ["error", "message", "detail", "title"]) {
@@ -54,8 +57,12 @@ function headlineFromErrorBody(status: number, parsed: unknown, rawText: string)
     }
   }
   if (typeof parsed === "string" && parsed.trim()) return parsed.trim();
-  const stripped = rawText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  if (stripped.length > 0) return stripped.slice(0, 200) + (stripped.length > 200 ? "…" : "");
+  const stripped = rawText
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\b[a-z]{3}\d+:[a-z]+\d+::[a-z0-9-]+\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (stripped.length > 0) return stripped.slice(0, 160) + (stripped.length > 160 ? "…" : "");
   return HTTP_STATUS_HINTS[status] || `Request failed (HTTP ${status}).`;
 }
 
@@ -231,8 +238,7 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
     const errorsArr = Array.isArray((parsed as Record<string, unknown> | null)?.errors)
       ? ((parsed as Record<string, unknown>).errors as unknown[])
       : undefined;
-    const contextLine = `Request: ${method} ${endpoint}`;
-    const mergedDetails = [contextLine, ...detailLines].slice(0, 12);
+    const mergedDetails = [`${method} ${url}`, ...detailLines].slice(0, 8);
     throw new ApiError(headline, {
       status: response.status,
       details: mergedDetails,

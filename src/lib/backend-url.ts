@@ -1,14 +1,25 @@
 /**
+ * Ensure catalog API base ends with `/api` (avoids Vercel 404 on `/products/:id`).
+ */
+export function normalizeCatalogApiBase(base: string): string {
+  const trimmed = base.trim().replace(/\/$/, "");
+  if (!trimmed) return "http://127.0.0.1:4000/api";
+  if (/\/api$/i.test(trimmed)) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return `${trimmed}/api`;
+  return trimmed;
+}
+
+/**
  * Absolute base URL for the Express catalog API (server-side fetches from Next).
  * Prefer BACKEND_API_URL in .env.local for admin + server routes.
  * NEXT_PUBLIC_API_URL is only used when it is already an absolute http(s) URL.
  */
 export function getBackendApiBase(): string {
   const dedicated = process.env.BACKEND_API_URL?.trim();
-  if (dedicated) return dedicated.replace(/\/$/, "");
+  if (dedicated) return normalizeCatalogApiBase(dedicated);
 
   const pub = process.env.NEXT_PUBLIC_API_URL?.trim() || "";
-  if (/^https?:\/\//i.test(pub)) return pub.replace(/\/$/, "");
+  if (/^https?:\/\//i.test(pub)) return normalizeCatalogApiBase(pub);
 
   return "http://127.0.0.1:4000/api";
 }

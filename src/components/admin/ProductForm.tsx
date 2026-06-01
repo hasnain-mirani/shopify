@@ -181,7 +181,13 @@ export function ProductForm({
   }, [state?.ok, state?.redirectTo, router]);
 
   useEffect(() => {
-    if (error) toast.error(error, { style: API_ERROR_TOAST_STYLE, duration: 6500 });
+    if (error) {
+      toast.error(error, {
+        id: "admin-product-form-error",
+        style: API_ERROR_TOAST_STYLE,
+        duration: 6500,
+      });
+    }
   }, [error]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {

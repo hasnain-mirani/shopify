@@ -47,6 +47,7 @@ export function DeleteProductButton({
         router.refresh();
       } else {
         toast.error(result.error ?? "Failed to delete product.", {
+          id: "admin-product-delete-error",
           style: API_ERROR_TOAST_STYLE,
           duration: 6500,
         });

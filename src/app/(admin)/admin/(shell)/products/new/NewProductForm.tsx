@@ -40,7 +40,13 @@ export function NewProductForm() {
   const [imageGenLoading, setImageGenLoading] = useState(false);
 
   useEffect(() => {
-    if (state.error) toast.error(state.error, { style: API_ERROR_TOAST_STYLE, duration: 6500 });
+    if (state.error) {
+      toast.error(state.error, {
+        id: "admin-product-form-error",
+        style: API_ERROR_TOAST_STYLE,
+        duration: 6500,
+      });
+    }
   }, [state.error]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
