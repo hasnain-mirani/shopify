@@ -16,6 +16,7 @@ import {
 } from "@/lib/admin-product-categories";
 import { normalizeProductIdentifyPayload } from "@/lib/normalize-product-identify";
 import { Upload, X, Loader2, Plus, Trash2, ChevronUp, Wand2, Sparkles } from "lucide-react";
+import { AdminFormProgress } from "@/components/admin/AdminFormProgress";
 import type { ProductFormState, ProductOption, ProductVariant } from "@/app/(admin)/admin/(shell)/products/new/actions";
 
 export interface ProductFormData {
@@ -182,6 +183,7 @@ export function ProductForm({
 
   useEffect(() => {
     if (error) {
+      toast.dismiss("admin-product-form-progress");
       toast.error(error, {
         id: "admin-product-form-error",
         style: API_ERROR_TOAST_STYLE,
@@ -189,6 +191,23 @@ export function ProductForm({
       });
     }
   }, [error]);
+
+  const progressLabel = submitLabel.toLowerCase().includes("update")
+    ? "Updating product…"
+    : submitLabel.toLowerCase().includes("create")
+      ? "Creating product…"
+      : "Saving product…";
+
+  useEffect(() => {
+    if (!isPending) {
+      toast.dismiss("admin-product-form-progress");
+      return;
+    }
+    toast.loading(progressLabel, {
+      id: "admin-product-form-progress",
+      style: API_ERROR_TOAST_STYLE,
+    });
+  }, [isPending, progressLabel]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
@@ -502,7 +521,15 @@ export function ProductForm({
     <form
       action={formAction}
       className="relative space-y-6 pb-24 lg:max-w-4xl lg:pb-8"
+      aria-busy={isPending}
     >
+      <AdminFormProgress active={isPending} label={progressLabel} />
+      {isPending ? (
+        <div
+          className="pointer-events-none absolute inset-0 z-30 rounded-xl bg-white/40 backdrop-blur-[1px] dark:bg-zinc-950/40"
+          aria-hidden
+        />
+      ) : null}
       {/* Hidden fields */}
       <input type="hidden" name="imageUrls" value={formData.imageUrls.join(",")} />
       <input type="hidden" name="featuredImageIndex" value={formData.featuredImageIndex} />

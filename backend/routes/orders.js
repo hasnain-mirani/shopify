@@ -5,7 +5,12 @@ const nodemailer = require("nodemailer");
 
 const router = express.Router();
 
-const DEFAULT_ADMIN_EMAIL = "hasnainmirani1122@gmail.com";
+const {
+  DEFAULT_ADMIN_ORDER_EMAIL: DEFAULT_ADMIN_EMAIL,
+  buildOrderEmailContext,
+  renderCustomerOrderEmail,
+  renderAdminOrderEmail,
+} = require("../lib/order-emails");
 
 function isPlaceholderEmail(email) {
   const e = String(email || "").trim().toLowerCase();
@@ -48,7 +53,7 @@ async function sendOrderConfirmationEmail(order, items) {
         requireTLS: !secure,
         auth: {
           user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
+          pass: process.env.SMTP_PASS,
         },
         tls: { servername: host },
         connectionTimeout: 15000,
@@ -68,74 +73,29 @@ async function sendOrderConfirmationEmail(order, items) {
       });
     }
 
-    const itemsHtml = items.map(i => `
-      <tr>
-        <td style="padding: 12px; border-bottom: 1px solid #eee;">
-          <div style="font-weight: bold;">${i.product_title}</div>
-          <div style="font-size: 12px; color: #666;">${i.variant_title || ""}</div>
-        </td>
-        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${i.quantity}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">PKR ${i.price}</td>
-      </tr>
-    `).join("");
-    
+    const ctx = buildOrderEmailContext(order, items, {
+      storeName: process.env.STORE_DISPLAY_NAME || "SSHUB",
+    });
     const buyerEmail = await sanitizeCustomerEmail(order.customer_email, queryOne);
     const adminEmail = await resolveAdminEmail(queryOne);
+    const fromUser = process.env.SMTP_USER || "noreply@sshub.store";
+    const storeName = ctx.storeName;
 
-    const htmlTemplate = (isForAdmin) => `
-      <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-        <h2 style="color: #1a1a1a; text-align: center;">${isForAdmin ? "New Order Received!" : "Thank You for Your Order!"}</h2>
-        <p>Hi ${isForAdmin ? "Admin" : (order.customer_name || 'Customer')},</p>
-        <p>${isForAdmin ? `A new order (#${order.id.split('-')[0].toUpperCase()}) has been placed.` : "We've received your order and are getting it ready to be shipped."}</p>
-        
-        <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="margin-top: 0;">Order Summary</h3>
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="font-size: 12px; color: #888; text-transform: uppercase;">
-                <th style="text-align: left; padding: 8px;">Item</th>
-                <th style="text-align: center; padding: 8px;">Qty</th>
-                <th style="text-align: right; padding: 8px;">Price</th>
-              </tr>
-            </thead>
-            <tbody>${itemsHtml}</tbody>
-          </table>
-          <div style="text-align: right; margin-top: 15px; font-size: 18px; font-weight: bold;">
-            Total: PKR ${order.total}
-          </div>
-        </div>
-
-        <div style="margin: 20px 0;">
-          <strong>Shipping Address:</strong><br/>
-          ${order.customer_name}<br/>
-          ${order.address || ''}<br/>
-          ${[order.city, order.postal_code].filter(Boolean).join(" ")}<br/>
-          ${order.country}
-        </div>
-
-        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;"/>
-        <p style="font-size: 12px; color: #999; text-align: center;">
-          ${isForAdmin ? "This is an automated notification from SSHUB Admin." : "If you have any questions, please contact our support team."}
-        </p>
-      </div>
-    `;
-
-    // Send to customer only when we have a real buyer email (not shop placeholder)
     if (buyerEmail) {
       await transporter.sendMail({
-        from: `"SSHUB" <${process.env.SMTP_USER || "noreply@sshub.store"}>`,
+        from: `"${storeName}" <${fromUser}>`,
         to: buyerEmail,
-        subject: `Order Confirmation #${order.id.split('-')[0].toUpperCase()}`,
-        html: htmlTemplate(false),
+        subject: `${storeName} — Order placed · #${ctx.shortId}`,
+        html: renderCustomerOrderEmail(ctx),
       });
     }
 
-    // Send to Admin
     await transporter.sendMail({
-        from: `"SSHUB Admin" <${process.env.SMTP_USER || "noreply@sshub.store"}>`,
+      from: `"${storeName} · Orders" <${fromUser}>`,
       to: adminEmail,
-      subject: `[New Order] #${order.id.split('-')[0].toUpperCase()} - PKR ${order.total}`,
-      html: htmlTemplate(true),
+      replyTo: buyerEmail || undefined,
+      subject: `[${storeName}] New order #${ctx.shortId} · Rs. ${ctx.total.toLocaleString("en-PK")}`,
+      html: renderAdminOrderEmail(ctx),
     });
 
     console.log("Order confirmation emails sent.");
@@ -144,7 +104,7 @@ async function sendOrderConfirmationEmail(order, items) {
       message: err.message,
       code: err.code,
       command: err.command,
-      stack: err.stack
+      stack: err.stack,
     });
   }
 }

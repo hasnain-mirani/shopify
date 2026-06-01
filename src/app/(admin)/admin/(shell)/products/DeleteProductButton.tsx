@@ -19,7 +19,6 @@ interface Props {
  *
  * First click arms the button (shows a red "Confirm" state). A second click
  * within the 5-second window runs the server action; anywhere else resets.
- * This avoids a full modal while still preventing a single-click disaster.
  */
 export function DeleteProductButton({
   productId,
@@ -40,8 +39,15 @@ export function DeleteProductButton({
       return;
     }
 
+    const toastId = "admin-product-delete-progress";
+    toast.loading(`Deleting "${productTitle}"…`, {
+      id: toastId,
+      style: API_ERROR_TOAST_STYLE,
+    });
+
     startTransition(async () => {
       const result = await deleteProductAction(productId, productHandle);
+      toast.dismiss(toastId);
       if (result.ok) {
         toast.success(`Deleted "${productTitle}".`);
         router.refresh();
@@ -62,30 +68,34 @@ export function DeleteProductButton({
       onClick={handleClick}
       disabled={pending}
       aria-label={
-        armed ? `Click again to confirm deleting ${productTitle}` : `Delete ${productTitle}`
+        pending
+          ? `Deleting ${productTitle}`
+          : armed
+            ? `Click again to confirm deleting ${productTitle}`
+            : `Delete ${productTitle}`
       }
-      title={armed ? "Click again to confirm" : "Delete product"}
+      title={pending ? "Deleting…" : armed ? "Click again to confirm" : "Delete product"}
       className={cn(
-        "inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+        "inline-flex items-center justify-center gap-1.5 rounded-md transition-all",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-60",
-        armed
-          ? "bg-red-600 text-white hover:bg-red-500"
-          : "text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30",
+        "disabled:cursor-not-allowed disabled:opacity-70",
+        pending
+          ? "h-8 min-w-[7.5rem] bg-red-600/90 px-2 text-xs font-medium text-white"
+          : armed
+            ? "h-8 min-w-[5.5rem] bg-red-600 px-2 text-xs font-medium text-white hover:bg-red-500"
+            : "h-8 w-8 text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30",
       )}
     >
       {pending ? (
-        <Loader2 size={14} className="animate-spin" />
+        <>
+          <Loader2 size={14} className="animate-spin shrink-0" />
+          <span>Deleting…</span>
+        </>
+      ) : armed ? (
+        <span>Confirm</span>
       ) : (
         <Trash2 size={14} />
       )}
-      <span className="sr-only">
-        {pending
-          ? "Deleting"
-          : armed
-            ? "Confirm delete"
-            : `Delete ${productTitle}`}
-      </span>
     </button>
   );
 }
